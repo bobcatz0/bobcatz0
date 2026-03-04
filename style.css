@@ -1,0 +1,120 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #1a1a2e;
+  color: #eee;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #4ade80;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+}
+
+.score-board {
+  display: flex;
+  gap: 32px;
+  font-size: 1rem;
+  color: #a0aec0;
+}
+
+.score-board strong {
+  color: #4ade80;
+  font-size: 1.1rem;
+}
+
+.game-wrapper {
+  position: relative;
+  border: 2px solid #2d3748;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(74, 222, 128, 0.1);
+}
+
+canvas {
+  display: block;
+  background: #0f172a;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.92);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.overlay-content h2 {
+  font-size: 2rem;
+  color: #4ade80;
+  letter-spacing: 2px;
+}
+
+.overlay-content p {
+  color: #a0aec0;
+  font-size: 0.95rem;
+}
+
+#start-btn {
+  margin-top: 8px;
+  padding: 12px 32px;
+  background: #4ade80;
+  color: #0f172a;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.2s, transform 0.1s;
+}
+
+#start-btn:hover {
+  background: #22c55e;
+  transform: translateY(-1px);
+}
+
+#start-btn:active {
+  transform: translateY(0);
+}
+
+.controls-hint {
+  display: flex;
+  gap: 24px;
+  font-size: 0.8rem;
+  color: #4a5568;
+}
