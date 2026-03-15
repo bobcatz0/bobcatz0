@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>diggerz.io - 2D Battle Royale Sidescroller</title>
+	<link rel="canonical" href="https://diggerz.io" />
+	<meta id="viewport" name="viewport"
+		content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="shortcut icon" type="image/png" href="favicon.png">
+	<!-- AdinPlay Ads -->
+	<script type="text/javascript" src="lime-compat.js"></script>
+	<script src="/disable-audio.js"></script>
+	<script type="text/javascript" src="diggerz_v-203.js"></script>
+	<script async src="libs/aiptag/pub/DGZ/diggerz.io/tag.min.js"></script>
+	<script>
+		var aiptag = aiptag || {};
+		aiptag.cmd = aiptag.cmd || [];
+		aiptag.cmd.display = aiptag.cmd.display || [];
+		aiptag.cmd.player = aiptag.cmd.player || [];
+		//CMP tool settings
+		aiptag.cmp = {
+			show: true,
+			position: "centered",  //centered or bottom
+			button: true,
+			buttonText: "Privacy settings",
+			buttonPosition: "bottom-left" //bottom-left, bottom-right, top-left, top-right
+		}
+		aiptag.cmd.player.push(function () {
+			adplayer = new aipPlayer({
+				AD_WIDTH: 960,
+				AD_HEIGHT: 540,
+				AD_FULLSCREEN: false,
+				AD_CENTERPLAYER: true,
+				LOADING_TEXT: 'loading advertisement',
+				PREROLL_ELEM: function () { return document.getElementById('preroll') },
+				AIP_COMPLETE: function () {
+					/*******************
+					 ***** WARNING *****
+					 *******************
+					 Please do not remove the PREROLL_ELEM
+					 from the page, it will be hidden automaticly.
+					 If you do want to remove it use the AIP_REMOVE callback.
+					*/
+					Main.InitMainGame();
+					//alert("Ad Completed");
+				},
+				AIP_REMOVE: function () {
+					// Here it's save to remove the PREROLL_ELEM from the page.
+					// But it's not necessary.
+				}
+			});
+		});
+	</script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125804026-1"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+		gtag('config', 'UA-125804026-1', { cookie_flags: 'secure;samesite=none' });      
+	</script>
+	<script type="text/javascript" src="lib/howler.min.js"></script>
+	<script type="text/javascript" src="lib/pako.min.js"></script>
+	<script type="text/javascript" src="lib/FileSaver.min.js"></script>
+	<script type="text/javascript" src="diggerz_v-203.js"></script>
+	<link rel="manifest" href="manifest.json" />
+	<script src="sdks/OneSignalSDK.js" async=""></script>
+	<script>
+		var OneSignal = window.OneSignal || [];
+		OneSignal.push(function () {
+			OneSignal.init({
+				appId: "2a192aa8-de57-42cc-86bc-f5d91f521a5f",
+			});
+		}); const socket = new WebSocket("ws://localhost:3000");
+
+		socket.onopen = () => {
+			console.log("Connected to server!");
+		};
+
+		socket.onmessage = (event) => {
+			console.log("Message from server:", event.data);
+		};
+
+		socket.onclose = () => {
+			console.log("Disconnected from server.");
+		};
+
+		// Example functions to send actions to the server
+		function sendMove(x, y) {
+			socket.send(JSON.stringify({ type: "move", x, y }));
+		}
+
+		function sendDig(x, y) {
+			socket.send(JSON.stringify({ type: "dig", x, y }));
+		}
+
+		function sendAttack(targetId) {
+			socket.send(JSON.stringify({ type: "attack", targetId }));
+		}
+
+	</script>
+	<script>
+		window.addEventListener("touchmove", function (event) { event.preventDefault(); }, { capture: false, passive: false });
+		if (typeof window.devicePixelRatio != 'undefined' && window.devicePixelRatio > 2) {
+			var meta = document.getElementById("viewport");
+			meta.setAttribute('content', 'width=device-width, initial-scale=' + (2 / window.devicePixelRatio) + ', user-scalable=no');
+		}
+		window.addEventListener("keydown", function (e) {
+			if (e.keyCode == 40 || e.keyCode == 38) {
+				e.preventDefault();
+			}
+		}, false);
+		window.addEventListener("wheel", function (e) {
+			e.preventDefault();
+		}, false);
+		window.addEventListener("scroll", function (e) {
+			e.preventDefault();
+		}, false);		
+	</script>
+	<style>
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			font-family: sans-serif;
+			background: LightSkyBlue;
+			color: white;
+		}
+
+		#openfl-content {
+			background: #000000;
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+</head>
+
+<body>
+	<noscript>This webpage makes extensive use of JavaScript. Please enable JavaScript in your web browser to view this
+		page.</noscript>
+	<div id="diggerz-io_300x250"
+		style="background-color: white; visibility: hidden; position: absolute; top: 30px; left: 30px; z-index: 100;">
+		<script type="text/javascript">
+			aiptag.cmd.display.push(function () { aipDisplayTag.display('diggerz-io_300x250'); });
+		</script>
+	</div>
+	<div id="a_desc"
+		style="text-shadow: 2px 2px 2px black; font-weight: bold; text-align: center; color: white; position: absolute; top: 25px; left: 50%; z-index: 100; transform: translate(-50%, -50%);">
+		2D battle royale game with building!<br />Instructions: WASD to move. Use mouse to aim, dig, and pick weapons.
+	</div>
+	<div id="a_ver"
+		style="opacity: 0.5; text-shadow: 2px 2px 2px black; font-weight: bold; text-align: center; color: white; position: absolute; top: 5px; left: 14px; z-index: 100;">
+		Build .946</div>
+	<div id="a_changes"
+		style="opacity: 0.5; text-shadow: 2px 2px 2px black; font-weight: bold; text-align: center; color: white; position: absolute; top: 25px; left: 14px; z-index: 100;">
+		<a style="color: white; text-decoration: none;" href="#changes">Change Log</a>
+	</div>
+	<div id="a_info"
+		style="opacity: 0.5; text-shadow: 2px 2px 2px black; font-weight: bold; text-align: center; color: white; position: absolute; top: 45px; left: 14px; z-index: 100;">
+		<a style="color: white; text-decoration: none;" href="#info">Information</a>
+	</div>
+	<div id="preroll" style="visibility: hidden">
+	</div>
+	<div id="openfl-content"></div>
+	<script type="text/javascript">
+		lime.embed("diggerz", "openfl-content", 0, 0, { parameters: {} });
+	</script>
+	<div style="border-radius: 25px;  border: 2px solid grey; padding: 20px; margin: 10px;" name="info" id="info">
+		<h1>Frequently Asked Questions</h1>
+		<hr><a name="About Diggerz.io"></a>
+		<h3>What is Diggerz??</h3>
+		<p>Diggerz is a 2D Battle Royale game where your goal is to be the last survivor! To do this, you can shoot
+			other players of course, but also build and dig a defense! When you dig, you can uncover new weapons and
+			tools.</p>
+		<hr><a name="issues"></a>
+		<h3>Are you aware of this bug?</h3>
+		<p>We play all the time and are probably aware, yes. But here are two:</p>
+		<ul>
+			<li>Some players occasionally walk the bottom of the screen.
+			<li>Some players stick for a second after they die.
+		</ul>
+		<hr><a name="lag"></a>
+		<h3>Lag! What should I do?</h3>
+		<p>So you're too laggy, and it's taking a long time between someone shooting or seeing a shot:
+		<ul>
+			<li>Close any other open tabs.
+			<li>Pause or cancel any active downloads or streams. You can watch prank videos another time!
+			<li>Close any file-sharing applications
+			<li>Close apps that download in the background (Steam, etc.)
+			<li>Reboot your router
+			<li>If you're on WiFi, try a wired connection if you can
+			<li>Get a better computer! Your 1998 pentium isn't good enough!
+		</ul>
+		<hr><a name="slow"></a>
+		<h3>My game isn't smooth, it's "laggy"?</h3>
+		<ul>
+			<li>Try closing other apps, browsers, and tabs
+			<li>Try zooming in our out your browser. Zooming in lowers the resolution.
+			<li>If you're running multiple displays, try moving your browser window to another one
+			<li>Install the latest video drivers for your card. Here are some links for common brands:<br>
+				<a target="_window" href="https://www.nvidia.com/Download/index.aspx">NVIDIA</a>&nbsp;
+				<a target="_window" href="https://support.amd.com/en-us/download">ATI</a>&nbsp;
+				<a target="_window"
+					href="https://www.intel.com/content/www/us/en/support/graphics-drivers.html">Intel</a>
+			<li>If your GPU is on Chrome's blacklist, it might be using a software renderer known as "SwiftShader",
+				which is terribly slow. Enter chrome://flags in your address bar, search for "Override software
+				rendering list", and enable it. CAUTION: The blacklist exists for a reason. This may make your system
+				unstable. Make sure you save anything you're working on before trying this!
+		</ul>
+		<p>If you're running Chrome, try enabling Experimental Canvas Features:</p>
+		<ul>
+			<li>Enter chrome://flags in the address bar.
+			<li>Type "canvas" in the search box.
+			<li>Find "Experimental Canvas Features" and enable it
+			<li>Restart Chrome
+		</ul>
+		<p>This may make it better, or worse. Only one way to find out.</p>
+		<hr><a name="palm"></a>
+		<h3>Why can't I move and shoot at the same time?</h3>
+		<p>Some systems have palm-cancelling software enabled by default, which prevents simultaneous keyboard and
+			trackpad/mouse input. Check your system settings for palm cancelling/rejection and turn down the sensitivity
+			or disable it altogether.</p>
+		<hr><a name="future"></a>
+		<h3>Are you going to add more stuff?</h3>
+		<p>We have so many weapons planned, but only so many hours in the day and so many projects to work on, but be
+			patient and we'll see what we can do! Hats are easy to add, weapons are hard.</p>
+		<hr><a name="webgl"></a>
+		<h3>How do I enable WebGL?</h3>
+		<p>That depends on your browser! Diggerz requires WebGL, so if you can play the game already, it's enabled, and
+			you don't have to worry about this! Otherwise, follow the directions for your browser below. You should
+			really get the latest firefox or chrome. It's better for everyone.</p>
+		<h3>Chrome 49+</h3>
+		<b>Step 1 - Enable hardware acceleration</b>
+		<ul>
+			<li>Enter <code>chrome://settings</code> in the bar up top
+			<li>Open the Advanced settings towards the bottom
+			<li>Have "Use hardware acceleration when available" enabled in the "System" section. You may need to restart
+				chrome.
+		</ul>
+		<b>Step 2 - Enable WebGL</b>
+		<ul>
+			<li>Type <code>chrome://flags</code> in the address bar
+			<li>In older versions, ensure that Disable WebGL is <b><i>NOT</i></b> checked. In newer versions, search for
+				WebGL 2.0 and set it to "Enabled". Again, you'll have to restart Chrome once you've done so.
+		</ul>
+		<h3>Firefox 54+</h3>
+		<ul>
+			<li>Enter <code>about:config</code> in the address bar
+			<li>Search for webgl.disabled and make sure it's set to <code>false</code>
+		</ul>
+		<p>You shouldn't have to restart.</p>
+		<h3>Safari 10.1+</h3>
+		<ul>
+			<li>Select Safari-&gt;Preferences from the menu bar
+			<li>Go to the Advanced tab
+			<li>"Show Develop" should be checked
+			<li>Then go to the Develop menu, select "Experimental Features" and make sure that WebGL 2.0 is checked
+		</ul>
+		<h3>Edge 14+</h3>
+		<p>It's already enabled, so make sure your graphics drivers are installed!</p>
+		<h3>Internet Explorer</h3>
+		<p>Good luck with that.</p>
+		<hr><a name="websockets"></a>
+		<h3>What are websockets?</h3>
+		<p>Websockts are what let the browser talk to our servers. It should work in any of the following browsers:</p>
+		<h3>Supported browsers</h3>
+		<ul>
+			<li>Chrome
+			<li>Firefox
+			<li>Edge
+			<li>Safari
+			<li>Opera
+		</ul>
+		<hr><a name="system"></a>
+		<h3>System requirements</h3>
+		<p>This is purely a guess, but you'll get the idea:</p>
+		<ul>
+			<li>A mouse (or crummy touchpad) and keyboard. Mobile is coming soon.
+			<li>2.0Ghz processor
+			<li>4GB RAM
+			<li>A gpu that supports WebGL
+			<li>A good internet connection
+			<li>A <a href="#webgl">WebGL</a> and <a href="#websockets">WebSocket</a>-compatible browser, such as Chrome,
+				Firefox, Safari, Edge, or Opera
+				<br>Internet Explorer is not supported!
+		</ul>
+	</div>
+	<div name="changes" id="changes">
+		<h1>Change Log</h1>
+		<hr><a name="Change Log"></a>
+		<ul>
+			<li>New daily rares
+			<li>Make sure to get notifications for each day's rare items.
+			<li>Blade weapon.
+			<li>Homing mortar weapon.
+		</ul>
+		<br />
+		<a href="https://www.crazygames.com/c/io/" target="_blank">More Web Games</a> at Crazy Games.
+	</div>
+	<button id="addToHomescreen"
+		style="background:none; border:none; display: none; position:absolute; top:0px; right: 75%; background-color: red; color: white; cursor:pointer; padding-top: 2px; padding-right: 8px; padding-bottom: 2px; padding-left: 8px;">Add
+		Diggerz to your desktop!</button>
+	<script>
+		if ('serviceWorker' in navigator) {
+			console.log("Will the service worker register?");
+			navigator.serviceWorker.register('service-worker.js')
+				.then(function (reg) {
+					console.log("Yes, it did.");
+				}).catch(function (err) {
+					console.log("No it didn't. This happened:", err)
+				});
+		}
+	</script>
+	<script>
+		let deferredPrompt;
+		var btnAdd = document.getElementById('addToHomescreen');
+		gtag('event', "show_addtodesktop");
+		window.addEventListener('beforeinstallprompt', (e) => {
+			// Stash the event so it can be triggered later.
+			deferredPrompt = e;
+			btnAdd.style.display = "block";
+		});
+		window.addEventListener('appinstalled', (evt) => {
+			gtag('event', "addtodesktop_success");
+			//console.log('a2hs installed');
+		});
+		btnAdd.addEventListener('click', (e) => {
+			//			ga('send', 'event', "title", "addtodesktop_click");
+			gtag('event', "addtodesktop_click");
+			// hide our user interface that shows our A2HS button
+			btnAdd.style.display = 'none';
+			// Show the prompt
+			deferredPrompt.prompt();
+			// Wait for the user to respond to the prompt
+			deferredPrompt.userChoice
+				.then((choiceResult) => {
+					if (choiceResult.outcome === 'accepted') {
+						console.log('User accepted the A2HS prompt');
+					} else {
+						console.log('User dismissed the A2HS prompt');
+					}
+					deferredPrompt = null;
+				});
+		});
+	</script>
+	<script>
+		if (window.matchMedia('(display-mode: standalone)').matches) {
+			gtag('event', "desktop_open");
+		}  
+	</script>
+</body>
+
+</html>
