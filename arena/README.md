@@ -17,6 +17,10 @@ Open the URL.
 
 - **Move:** `A`/`D` or `←`/`→`
 - **Jump:** `W` / `↑` / `Space` — hold for height, tap for a small hop
+- **Melee:** `J` or left-click — short-range hit in the facing direction
+- **Shoot:** `K` or right-click — projectile in the facing direction
+- **Debug boxes:** `H` — toggle hurtbox / hitbox / projectile overlays
+- **Reset match:** `R` or the reset button
 
 Run the headless logic tests:
 
@@ -42,6 +46,29 @@ npm test
 - Diggerz-style rendering: grass-topped dirt blocks + stone, and an animated
   character (idle/run/jump/fall) — uses the real Diggerz sprites when
   `tiles.png` is present (see **Assets**), procedural art otherwise
+- **Combat Prototype V1** (local only — see below)
+
+## Combat Prototype V1
+
+A second character (Player 2 / dummy) plus melee, projectiles, hit detection
+and FT20 scoring, to test spacing and attacks.
+
+- **Player 2 / dummy:** a still character with a hurtbox; its position and hit
+  count show in the debug overlay.
+- **Hitbox / hurtbox system:** toggle visible debug boxes with `H` — green
+  hurtboxes (P1, P2), the red melee hitbox while a swing is active, and yellow
+  projectile boxes.
+- **Melee** (`J` / left-click): a short-range hitbox in the facing direction
+  with a cooldown; one hit per swing.
+- **Projectile** (`K` / right-click): travels in the facing direction, scores
+  on the dummy, and disappears on hit or wall collision (with its own cooldown).
+- **Scoring (FT20):** each confirmed hit adds +1 to P1; the HUD shows
+  `P1 n — FT20 — n P2`.
+- **Win / reset placeholder:** at 20, a "P1 Wins FT20" banner appears; `R` or a
+  button resets the match.
+
+> Hits currently just increment a counter. Health / death / respawn and a
+> fighting P2 are the natural next step — the structure is ready for it.
 
 ## Modules
 
@@ -60,11 +87,22 @@ src/
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
     CharacterSprite.js       real torso+head sprite, else procedural character
     SpriteAnimation.js       reusable sprite-sheet frame stepper
+  combat/
+    aabb.js                  AABB overlap helpers — PURE
+    Hurtbox.js               body -> hurtbox AABB — PURE
+    MeleeAttack.js           swing state: cooldown, active window, hitbox — PURE
+    Projectile.js            travelling shot + wall collision — PURE
+    CombatSystem.js          melee/projectile/scoring/FT20 orchestration — PURE
+    CombatInput.js           discrete combat input (J/K/H/R + mouse) — DOM
 assets/
   tiles.atlas.json         recovered sprite rects (698 sprites) — see "Assets"
 serve.js                   zero-dependency static server (ES modules need http)
 test/movement.test.js      headless physics checks (no DOM)
+test/combat.test.js        headless combat checks (no DOM)
 ```
+
+The `combat/` core (everything except `CombatInput`) is DOM-free and unit
+tested, so it carries straight into the real PvP arena game.
 
 ## Assets — real Diggerz sprites
 
@@ -108,13 +146,14 @@ spawn are set in `ArenaScene` and `arenaMap`.
 
 ## Verified
 
-- `npm test` — 6 headless checks (gravity/landing, horizontal accel, jump,
-  wall collision, facing, animation states).
-- Browser smoke test (Chromium) — loads with no JS errors and responds to real
-  key input: rests grounded, runs right, jumps off the ground, lands, and stops
-  at walls.
+- `npm test` — 6 movement + 8 combat headless checks (gravity/landing,
+  horizontal accel, jump, wall collision, facing, animation states; melee
+  hit/miss/cooldown, projectile hit/wall, FT20 win, reset).
+- Browser smoke test (Chromium) — no JS errors, and real input drives it:
+  move/jump/walls, projectile scores at range, melee scores when adjacent,
+  `H` toggles debug boxes, reaching FT20 shows the win banner, `R` resets.
 
 ## Not in scope yet (intentionally)
 
-Ranked, tournaments, cosmetics, accounts, rollback, weapons/gear, and
-multiplayer. This is the movement foundation only.
+Multiplayer, ranked, tournaments, cosmetics, accounts, rollback, and full
+health/death/respawn. This is the local movement + combat foundation only.

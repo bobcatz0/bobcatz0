@@ -36,10 +36,11 @@ export class CharacterSprite {
   /**
    * @param state { x, y, width, height, vx, vy, grounded, facing, anim }
    * @param nowSec  monotonically increasing seconds (for animation timing)
+   * @param palette optional color overrides (e.g. a second player's colors)
    */
-  draw(ctx, state, nowSec) {
+  draw(ctx, state, nowSec, palette) {
     if (this.assets && this.assets.ready && this._drawReal(ctx, state, nowSec)) return;
-    this._drawProcedural(ctx, state, nowSec);
+    this._drawProcedural(ctx, state, nowSec, { ...TEAM, ...(palette || {}) });
   }
 
   // ── Real sprite composition (torso + head) ─────────────────────────────────
@@ -71,7 +72,7 @@ export class CharacterSprite {
   }
 
   // ── Procedural Diggerz-style character ─────────────────────────────────────
-  _drawProcedural(ctx, s, nowSec) {
+  _drawProcedural(ctx, s, nowSec, pal) {
     const dir = s.facing >= 0 ? 1 : -1;
     const cx = s.x + s.width / 2;
     const feet = s.y + s.height;
@@ -102,24 +103,24 @@ export class CharacterSprite {
 
     ctx.save();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = TEAM.outline;
+    ctx.strokeStyle = pal.outline;
     ctx.lineJoin = 'round';
 
     // ── legs ──
     const legW = s.width * 0.28;
     const legTop = bodyY + bodyH - 2;
     for (const [lx, off] of [[cx - legW - 1, legA], [cx + 1, legB]]) {
-      fillStrokeRect(ctx, lx, legTop, legW, feet - legTop + off * 0.0 + 6, TEAM.limb, 3);
+      fillStrokeRect(ctx, lx, legTop, legW, feet - legTop + off * 0.0 + 6, pal.limb, 3);
       // foot
-      fillStrokeRect(ctx, lx - 1, legTop + (feet - legTop) + off, legW + 3, 4, TEAM.bodyDark, 2);
+      fillStrokeRect(ctx, lx - 1, legTop + (feet - legTop) + off, legW + 3, 4, pal.bodyDark, 2);
     }
 
     // ── back arm ──
-    drawArm(ctx, cx - dir * bodyW * 0.30, bodyY + bodyH * 0.25, dir, -armSwing, s.width, TEAM.limb);
+    drawArm(ctx, cx - dir * bodyW * 0.30, bodyY + bodyH * 0.25, dir, -armSwing, s.width, pal.limb);
 
     // ── body ──
     roundRectPath(ctx, bodyX, bodyY, bodyW, bodyH, 7);
-    ctx.fillStyle = TEAM.body;
+    ctx.fillStyle = pal.body;
     ctx.fill();
     ctx.stroke();
     // belly shading
@@ -130,7 +131,7 @@ export class CharacterSprite {
     // ── head ──
     ctx.beginPath();
     ctx.arc(headCx, headCy, headR, 0, Math.PI * 2);
-    ctx.fillStyle = TEAM.head;
+    ctx.fillStyle = pal.head;
     ctx.fill();
     ctx.stroke();
 
@@ -139,15 +140,15 @@ export class CharacterSprite {
     const eyeY = headCy - headR * 0.05;
     ctx.beginPath();
     ctx.arc(eyeX, eyeY, headR * 0.30, 0, Math.PI * 2);
-    ctx.fillStyle = TEAM.eyeWhite;
+    ctx.fillStyle = pal.eyeWhite;
     ctx.fill();
     ctx.beginPath();
     ctx.arc(eyeX + dir * headR * 0.12, eyeY, headR * 0.15, 0, Math.PI * 2);
-    ctx.fillStyle = TEAM.eyePupil;
+    ctx.fillStyle = pal.eyePupil;
     ctx.fill();
 
     // ── front arm ──
-    drawArm(ctx, cx + dir * bodyW * 0.30, bodyY + bodyH * 0.25, dir, armSwing, s.width, TEAM.bodyDark);
+    drawArm(ctx, cx + dir * bodyW * 0.30, bodyY + bodyH * 0.25, dir, armSwing, s.width, pal.bodyDark);
 
     ctx.restore();
   }
