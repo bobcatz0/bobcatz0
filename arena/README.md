@@ -39,6 +39,9 @@ npm test
 - Simple animation-state values: `idle` / `run` / `jump` / `fall`
 - FT20 score placeholder in the HUD (no scoring logic yet)
 - Debug overlay: `x, y, vx, vy, grounded, facing, anim`
+- Diggerz-style rendering: grass-topped dirt blocks + stone, and an animated
+  character (idle/run/jump/fall) — uses the real Diggerz sprites when
+  `tiles.png` is present (see **Assets**), procedural art otherwise
 
 ## Modules
 
@@ -50,11 +53,46 @@ src/
     TileCollision.js        AABB-vs-tile resolution + ground snap — PURE logic
     PlayerController.js      binds input + body + movement
     InputState.js            keyboard -> intents (left/right/jumpHeld/jumpPressed)
-    ArenaScene.js            canvas, game loop, rendering, HUD, debug overlay
+    ArenaScene.js            canvas, game loop, HUD, debug overlay, tile classify
     arenaMap.js              the one arena, as ASCII -> collision grid
+  render/
+    AssetStore.js            loads the real Diggerz atlas (tiles.png) if present
+    TileSprites.js           real dirt/grass/stone tiles, else procedural texture
+    CharacterSprite.js       real torso+head sprite, else procedural character
+    SpriteAnimation.js       reusable sprite-sheet frame stepper
+assets/
+  tiles.atlas.json         recovered sprite rects (698 sprites) — see "Assets"
 serve.js                   zero-dependency static server (ES modules need http)
 test/movement.test.js      headless physics checks (no DOM)
 ```
+
+## Assets — real Diggerz sprites
+
+The original Diggerz textures are **not** in this repo (the binaries were never
+committed, aren't on disk, the live site is dead, and the Wayback Machine is
+blocked by the network egress allowlist). But the sprite *rectangles* are
+hardcoded in the client, so the exact coordinates of **all 698 gameplay
+sprites** were recovered into `assets/tiles.atlas.json`.
+
+What's where in the original atlas (`tiles.png`):
+
+| Sprite | Name | Rect (x, y, w, h) |
+| --- | --- | --- |
+| Dirt block | `B108_0_PNG` | 1091, 62, 64, 64 |
+| Grass surface block | `B100_0_PNG` | 149, 62, 64, 64 |
+| Stone block | `B216_0_PNG` | 430, 286, 64, 64 |
+| Character torso | `ADVTORSO_PNG` | 138, 4, 34, 39 |
+| Character head | `ALIENHEAD_PNG` | 18, 61, 60, 65 |
+| Character arm | `ARM_PNG` | 0, 19, 17, 14 |
+
+> The player is **skeletal** in Diggerz (assembled from body-part sprites),
+> not a single frame sheet.
+
+**Use the real sprites:** drop the original `tiles.png` into `arena/assets/`.
+`AssetStore` loads it, and `TileSprites` / `CharacterSprite` switch from the
+procedural art to the real sprites automatically (the console logs which mode
+is active). Until then the prototype renders faithful Diggerz-style procedural
+tiles + character so it always runs.
 
 `MovementController` and `TileCollision` are **pure** — no DOM, input, or
 rendering — so they're the pieces you carry into the real PvP arena game.
