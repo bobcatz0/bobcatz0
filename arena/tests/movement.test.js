@@ -11,9 +11,9 @@ const collider = new TileCollision(map);
 const mc = new MovementController();
 const DT = 1 / 120;
 
-const FLOOR_TOP = (map.rows - 1) * map.tileSize; // top of the bottom wall row
+const FLOOR_TOP = (map.rows - 1) * map.tileSize;
 const PLAYER_H = 36;
-const RESTING_Y = FLOOR_TOP - PLAYER_H;          // y when standing on the floor
+const RESTING_Y = FLOOR_TOP - PLAYER_H;
 
 const NONE = { left: false, right: false, jumpHeld: false, jumpPressed: false };
 const RIGHT = { left: false, right: true, jumpHeld: false, jumpPressed: false };
@@ -22,14 +22,15 @@ const LEFT = { left: true, right: false, jumpHeld: false, jumpPressed: false };
 let passed = 0;
 const ok = (l) => { console.log('  ok -', l); passed++; };
 const body = (x, y) => MovementController.createBody(x, y, 24, PLAYER_H);
+
 function run(b, input, seconds) {
   const steps = Math.round(seconds / DT);
   for (let i = 0; i < steps; i++) mc.step(b, input, DT, collider);
 }
 
-// 1. Gravity + landing: a body in open space falls and settles on the floor.
+// 1. Gravity + landing
 (function gravity() {
-  const b = body(80, 200); // column 2, open shaft down to the floor
+  const b = body(80, 200);
   run(b, NONE, 2.0);
   assert.strictEqual(b.grounded, true, 'grounded after falling');
   assert.ok(Math.abs(b.vy) < 1, `vy settled (${b.vy})`);
@@ -37,10 +38,10 @@ function run(b, input, seconds) {
   ok('gravity pulls the player down and it lands on the floor');
 })();
 
-// 2. Horizontal movement accelerates toward top speed and moves right.
+// 2. Horizontal movement
 (function horizontal() {
   const b = body(80, RESTING_Y);
-  run(b, NONE, 0.05); // settle grounded
+  run(b, NONE, 0.05);
   const x0 = b.x;
   run(b, RIGHT, 0.5);
   assert.ok(b.vx > 0, `vx positive (${b.vx})`);
@@ -50,42 +51,39 @@ function run(b, input, seconds) {
   ok('horizontal input accelerates to top speed and moves right');
 })();
 
-// 3. Jump: leaves the ground, rises, then lands again.
+// 3. Jump
 (function jump() {
   const b = body(80, RESTING_Y);
   run(b, NONE, 0.05);
   assert.strictEqual(b.grounded, true, 'grounded before jump');
 
-  // One step with the jump edge.
   mc.step(b, { left: false, right: false, jumpHeld: true, jumpPressed: true }, DT, collider);
   assert.ok(b.vy < -400, `launched upward (vy=${b.vy})`);
   assert.strictEqual(b.grounded, false, 'airborne after jump');
   assert.strictEqual(b.anim, 'jump', 'anim is jump while rising');
 
   const apexY = b.y;
-  // Hold jump and keep rising a little.
   run(b, { left: false, right: false, jumpHeld: true, jumpPressed: false }, 0.15);
   assert.ok(b.y < apexY, `rose above launch point (${apexY} -> ${b.y})`);
 
-  // Let go and fall back down.
   run(b, NONE, 1.5);
   assert.strictEqual(b.grounded, true, 'landed again');
   assert.ok(Math.abs(b.y - RESTING_Y) < 0.5, 'back on the floor');
   ok('jump launches up, rises, and lands back on the floor');
 })();
 
-// 4. Wall collision: cannot pass through a solid block.
+// 4. Wall collision
 (function wall() {
-  const b = body(60, RESTING_Y); // near the left wall (column 0 is solid)
+  const b = body(60, RESTING_Y);
   run(b, NONE, 0.05);
-  run(b, LEFT, 1.0); // shove left into the wall
-  const wallRight = map.tileSize; // right edge of column 0
+  run(b, LEFT, 1.0);
+  const wallRight = map.tileSize;
   assert.ok(b.x >= wallRight - 0.001, `stopped at wall (x=${b.x}, wall=${wallRight})`);
   assert.ok(Math.abs(b.vx) < 0.001, `horizontal velocity killed on impact (vx=${b.vx})`);
   ok('player collides with walls and cannot pass through');
 })();
 
-// 5. Facing follows steering direction.
+// 5. Facing
 (function facing() {
   const b = body(200, RESTING_Y);
   run(b, NONE, 0.05);
@@ -96,7 +94,7 @@ function run(b, input, seconds) {
   ok('facing direction tracks input');
 })();
 
-// 6. Animation states: idle / run / jump / fall.
+// 6. Animation states
 (function anim() {
   const b = body(200, RESTING_Y);
   run(b, NONE, 0.3);
@@ -108,7 +106,6 @@ function run(b, input, seconds) {
   mc.step(b, { left: false, right: false, jumpHeld: true, jumpPressed: true }, DT, collider);
   assert.strictEqual(b.anim, 'jump', 'jump while rising');
 
-  // Rise to apex then check fall.
   run(b, { left: false, right: false, jumpHeld: true, jumpPressed: false }, 0.4);
   assert.strictEqual(b.anim, 'fall', 'fall while descending');
   ok('animation state values reflect idle / run / jump / fall');
