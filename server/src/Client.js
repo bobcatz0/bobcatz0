@@ -36,6 +36,9 @@ class Client {
     this.row = 17;
     this.vx = 0;
     this.vy = 0;
+    this.anim = 0;    // animation-state index
+    this.facing = 1;  // +1 right, -1 left
+    this.aim = 0;     // packed aim angle
     this.alive = true;
   }
 

@@ -51,7 +51,8 @@ function buildWorldMap(world) {
   const chunkCount = chunkCols * chunkRows; // one layer-chunk (3 layers fit in 4)
 
   w.writeUInt16(S2C.WORLD_MAP); // opcode 4
-  w.writeInt32(0);              // discarded
+  w.writeUInt16(0);             // d slot (client dispatcher reads + ignores it)
+  w.writeInt32(0);              // discarded by v30 (its first Q7)
   w.writeUInt16(world.cols);    // s30 width
   w.writeUInt16(world.layers);  // s32
   w.writeUInt16(world.rows);    // s31 height

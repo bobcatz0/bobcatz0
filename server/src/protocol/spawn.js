@@ -48,6 +48,7 @@ function buildPlayerSpawn(opts) {
 
   const w = new ByteWriter();
   w.writeUInt16(S2C.PLAYER_SPAWN); // opcode 5
+  w.writeUInt16(0);                // d slot (client dispatcher reads + ignores it)
 
   w.writeUUID(uuid);
   w.writeString(name);

@@ -14,6 +14,7 @@ const ByteWriter = require('../src/net/ByteWriter');
 const handshake = require('../src/protocol/handshake');
 const { buildWorldMap, TILE } = require('../src/protocol/worldmap');
 const { buildPlayerSpawn } = require('../src/protocol/spawn');
+const { parseClientMove, buildServerMove } = require('../src/protocol/movement');
 const World = require('../src/World');
 
 let passed = 0;
@@ -78,7 +79,8 @@ function ok(label) { console.log('  ok -', label); passed++; }
 
   const r = new ByteReader(buf);
   assert.strictEqual(r.readUInt16(), 4, 'map opcode');
-  r.readInt32();                       // discarded
+  r.readUInt16();                      // d slot
+  r.readInt32();                       // discarded by v30
   const cols = r.readUInt16();
   r.readUInt16();                      // s32
   const rows = r.readUInt16();
@@ -117,6 +119,7 @@ function ok(label) { console.log('  ok -', label); passed++; }
 
   const r = new ByteReader(buf);
   assert.strictEqual(r.readUInt16(), 5, 'spawn opcode');
+  r.readUInt16();                      // d slot
   assert.deepStrictEqual(r.readUUID(), uuid, 'player uuid');
   assert.strictEqual(r.readString(), 'Hero', 'name');
   assert.strictEqual(r.readSplitFloat(), 32, 'x');
@@ -145,6 +148,55 @@ function ok(label) { console.log('  ok -', label); passed++; }
   const visibility = r.readSplitFloat();
   assert.ok(visibility > 0, 'visibility > 0');
   ok('spawn parses (uuid/name/pos/level/visibility)');
+})();
+
+// ── 5. Movement round-trip ───────────────────────────────────────────────────
+// (a) client K.X7 -> server parseClientMove   (b) server buildServerMove -> client L34
+(function testMovement() {
+  const TILE = 64; // l._44
+
+  // (a) Build a client movement packet exactly like K.X7 (7 split floats, no d slot).
+  const TS = 64;
+  const cx = 33.5, cy = 17.25, vx = 4.2, vy = -1.5, facing = -1;
+  const c = new ByteWriter();
+  c.writeUInt16(6);                 // opcode (no d slot on the client side)
+  c.writeSplitFloat(cx);            // x (tile units)
+  c.writeSplitFloat(cy);            // y
+  c.writeSplitFloat(vx);            // vx
+  c.writeSplitFloat(vy);            // vy
+  c.writeSplitFloat(0);             // anim
+  c.writeSplitFloat(99);            // b35 (must be dropped)
+  c.writeSplitFloat(facing);        // facing
+  c.writeUInt16(1234);              // aim
+  c.writeByte(0); c.writeByte(0);
+  const cbuf = c.toBuffer();
+
+  const cr = new ByteReader(cbuf);
+  assert.strictEqual(cr.readUInt16(), 6, 'client move opcode');
+  const parsed = parseClientMove(cr, 6);
+  assert.strictEqual(parsed.x, cx, 'parsed x');
+  assert.strictEqual(parsed.y, cy, 'parsed y');
+  assert.strictEqual(parsed.vx, vx, 'parsed vx');
+  assert.strictEqual(parsed.facing, facing, 'parsed facing (b35 dropped)');
+
+  // (b) Build the server->client relay and read it back the way V34 -> L34 does.
+  const sbuf = buildServerMove([7, 0, 0, 0], parsed);
+  const sr = new ByteReader(sbuf);
+  assert.strictEqual(sr.readUInt16(), 6, 'server move opcode');
+  sr.readUInt16();                  // d slot (consumed by dispatcher before V34)
+  assert.deepStrictEqual(sr.readUUID(), [7, 0, 0, 0], 'V34 uuid'); // V34: Q6()
+  // L34 reads:
+  assert.strictEqual(sr.readSplitFloat() * TILE, cx * TILE, 'L34 x*64');
+  assert.strictEqual(sr.readSplitFloat() * TILE, cy * TILE, 'L34 y*64');
+  assert.strictEqual(sr.readSplitFloat(), vx, 'L34 vx');
+  assert.strictEqual(sr.readSplitFloat(), vy, 'L34 vy');
+  sr.readSplitFloat();              // anim
+  assert.strictEqual(sr.readSplitFloat(), facing, 'L34 facing');
+  assert.strictEqual(sr.readUInt16(), 1234, 'L34 aim');
+  sr.readByte(); sr.readByte();
+  assert.strictEqual(sr.readUInt16(), Math.round(cx), 'L34 standing col');
+  assert.strictEqual(sr.readUInt16(), Math.round(cy), 'L34 standing row');
+  ok('movement round-trip (K.X7 -> parse -> buildServerMove -> L34)');
 })();
 
 console.log(`\nAll ${passed} protocol checks passed.`);

@@ -9,6 +9,7 @@ const { C2S, S2C } = require('./net/opcodes');
 const handshake = require('./protocol/handshake');
 const { buildWorldMap } = require('./protocol/worldmap');
 const { buildPlayerSpawn } = require('./protocol/spawn');
+const { parseClientMove, buildServerMove } = require('./protocol/movement');
 
 /**
  * GameServer — owns the world and all connected clients, and drives the
@@ -61,13 +62,15 @@ class GameServer {
 
   onPacket(client, buf) {
     const r = new ByteReader(buf);
+    // Read ONLY the opcode here. Client->server bodies start right after the
+    // opcode (offset 2); there is no universal "d slot" on the inbound side
+    // (login is the exception and reads its own sub-opcode).
     const opcode = r.readUInt16();
-    const sub = r.readUInt16(); // second uint16 (sub-opcode / flags / padding)
     log.inbound(client.id, opcode, buf);
 
     switch (opcode) {
       case C2S.LOGIN:          // 2
-        this.handleLogin(client, r, sub);
+        this.handleLogin(client, r);
         break;
       case C2S.HANDSHAKE_ACK:  // 4
         this.handleAck(client);
@@ -90,13 +93,14 @@ class GameServer {
         // TODO: chat broadcast (op 12).
         break;
       default:
-        log.info(`C${client.id} unhandled opcode ${opcode} (sub ${sub})`);
+        log.info(`C${client.id} unhandled opcode ${opcode}`);
     }
   }
 
   // ── Flow handlers ──────────────────────────────────────────────────────────
 
-  handleLogin(client, reader, sub) {
+  handleLogin(client, reader) {
+    const sub = reader.readUInt16(); // login sub-opcode (always 2)
     const login = handshake.parseLogin(reader);
     client.name = login.userName || 'Player';
     log.info(`C${client.id} login: name="${client.name}" platform="${login.platform}" sub=${sub}`);
@@ -137,19 +141,14 @@ class GameServer {
   }
 
   handleMove(client, opcode, reader) {
-    // op 6 (K.X7):  x, y (split floats, tile units), then velocity etc.
-    // op 8 (K.y8):  bool, x, 0, y, 0, uint16
-    if (opcode === C2S.MOVE) {
-      client.col = reader.readSplitFloat();
-      client.row = reader.readSplitFloat();
-      client.vx = reader.readSplitFloat();
-      client.vy = reader.readSplitFloat();
-    } else {
-      reader.readByte();                 // bool
-      client.col = reader.readSplitFloat();
-      reader.readSplitFloat();           // 0
-      client.row = reader.readSplitFloat();
-    }
+    const m = parseClientMove(reader, opcode);
+    client.col = m.x;
+    client.row = m.y;
+    client.vx = m.vx;
+    client.vy = m.vy;
+    client.anim = m.anim;
+    client.facing = m.facing;
+    client.aim = m.aim;
     this.broadcastMove(client);
   }
 
@@ -164,31 +163,16 @@ class GameServer {
     });
   }
 
-  /**
-   * Build a PLAYER_MOVE (op 6) packet matching L34's read order:
-   *   uuid, x, y, vx, vy, anim(float), facing(float), aimAngle(uint16),
-   *   byte, byte, standingTileCol(uint16), standingTileRow(uint16)
-   */
-  buildMove(client) {
-    const w = new ByteWriter();
-    w.writeUInt16(S2C.PLAYER_MOVE); // 6
-    w.writeUUID(client.sessionUUID);
-    w.writeSplitFloat(client.col);  // x
-    w.writeSplitFloat(client.row);  // y
-    w.writeSplitFloat(client.vx);   // vx
-    w.writeSplitFloat(client.vy);   // vy
-    w.writeSplitFloat(0);           // anim state
-    w.writeSplitFloat(1);           // facing / x-scale
-    w.writeUInt16(0);               // aim angle packed
-    w.writeByte(0);
-    w.writeByte(0);
-    w.writeUInt16(Math.max(0, Math.round(client.col))); // standing col
-    w.writeUInt16(Math.max(0, Math.round(client.row))); // standing row
-    return w.toBuffer();
-  }
-
   broadcastMove(client) {
-    const packet = this.buildMove(client);
+    const packet = buildServerMove(client.sessionUUID, {
+      x: client.col,
+      y: client.row,
+      vx: client.vx,
+      vy: client.vy,
+      anim: client.anim,
+      facing: client.facing,
+      aim: client.aim,
+    });
     for (const other of this.clients.values()) {
       if (other === client || other.stage !== 'playing') continue;
       other.send(packet);
@@ -198,6 +182,7 @@ class GameServer {
   broadcastPlayerLeft(client) {
     const w = new ByteWriter();
     w.writeUInt16(S2C.PLAYER_LEFT); // 3
+    w.writeUInt16(0);               // d slot (client dispatcher reads + ignores it)
     w.writeUUID(client.sessionUUID);
     const packet = w.toBuffer();
     for (const other of this.clients.values()) {
