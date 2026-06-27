@@ -1,9 +1,13 @@
-# PvP Arena — movement prototype
+# PvP Arena — movement prototype + Diggerz reference
 
 A standalone browser prototype that recreates the **Diggerz-style movement
-feel** as clean, reusable game code. Single player, no networking, no scoring
-logic yet — the only goal is to prove the movement feels good locally before
-weapons/gear/multiplayer are built on top.
+feel** as clean, reusable code, plus a set of modules that faithfully recreate
+the **confirmed** Diggerz client systems (input, character rig, items) to build
+the real PvP game on top of.
+
+Single player. No networking. **No combat is implemented yet** — combat is being
+designed first (the original Diggerz combat was server-authoritative and that
+server code is lost; see the docs below).
 
 ![preview](preview.png)
 
@@ -15,12 +19,15 @@ node serve.js          # http://localhost:8080
 ```
 Open the URL.
 
+Controls (the real Diggerz scheme):
+
 - **Move:** `A`/`D` or `←`/`→`
 - **Jump:** `W` / `↑` / `Space` — hold for height, tap for a small hop
-- **Melee:** `J` or left-click — short-range hit in the facing direction
-- **Shoot:** `K` or right-click — projectile in the facing direction
-- **Debug boxes:** `H` — toggle hurtbox / hitbox / projectile overlays
-- **Reset match:** `R` or the reset button
+- **Descend:** `S` / `↓`
+
+(Mouse aim, left-mouse use/dig/build, and mouse-wheel hotbar selection are the
+confirmed Diggerz controls and are documented in the audit, but combat is not
+wired up yet — by design.)
 
 Run the headless logic tests:
 
@@ -35,40 +42,21 @@ npm test
 - Gravity + capped fall speed
 - Accelerated horizontal movement with ground/air friction
 - Jumping with **coyote time**, **jump buffering**, and **variable height**
-  (release early to cut the jump) — the small tricks that make it feel good
-- AABB collision against tile/platform blocks (with flush ground-snap so a
-  standing player never jitters)
-- Velocity tracking (`vx`, `vy`)
-- Facing direction
-- Simple animation-state values: `idle` / `run` / `jump` / `fall`
+- AABB collision against tile/platform blocks (with flush ground-snap)
+- Velocity tracking, facing direction, animation-state values
 - FT20 score placeholder in the HUD (no scoring logic yet)
 - Debug overlay: `x, y, vx, vy, grounded, facing, anim`
-- Diggerz-style rendering: grass-topped dirt blocks + stone, and an animated
-  character (idle/run/jump/fall) — uses the real Diggerz sprites when
-  `tiles.png` is present (see **Assets**), procedural art otherwise
-- **Combat Prototype V1** (local only — see below)
+- Diggerz-style rendering: grass-topped dirt blocks + stone and an animated
+  character — uses the real Diggerz sprites when `tiles.png` is present (see
+  **Assets**), procedural art otherwise
 
-## Combat Prototype V1
+## Documentation
 
-A second character (Player 2 / dummy) plus melee, projectiles, hit detection
-and FT20 scoring, to test spacing and attacks.
-
-- **Player 2 / dummy:** a still character with a hurtbox; its position and hit
-  count show in the debug overlay.
-- **Hitbox / hurtbox system:** toggle visible debug boxes with `H` — green
-  hurtboxes (P1, P2), the red melee hitbox while a swing is active, and yellow
-  projectile boxes.
-- **Melee** (`J` / left-click): a short-range hitbox in the facing direction
-  with a cooldown; one hit per swing.
-- **Projectile** (`K` / right-click): travels in the facing direction, scores
-  on the dummy, and disappears on hit or wall collision (with its own cooldown).
-- **Scoring (FT20):** each confirmed hit adds +1 to P1; the HUD shows
-  `P1 n — FT20 — n P2`.
-- **Win / reset placeholder:** at 20, a "P1 Wins FT20" banner appears; `R` or a
-  button resets the match.
-
-> Hits currently just increment a counter. Health / death / respawn and a
-> fighting P2 are the natural next step — the structure is ready for it.
+- **`docs/DIGGERZ_CLIENT_MECHANICS_AUDIT.md`** — the real Diggerz client
+  mechanics (input, rendering, items, networking, assets), each finding tagged
+  Confirmed / Likely / Unknown / Placeholder. The source of truth.
+- **`docs/STANDALONE_PVP_COMBAT_DESIGN.md`** — the proposed combat design for
+  the standalone game (awaiting approval before any combat is coded).
 
 ## Modules
 
@@ -79,7 +67,7 @@ src/
     MovementController.js   the "feel": gravity, accel, jump, anim — PURE logic
     TileCollision.js        AABB-vs-tile resolution + ground snap — PURE logic
     PlayerController.js      binds input + body + movement
-    InputState.js            keyboard -> intents (left/right/jumpHeld/jumpPressed)
+    InputState.js            keyboard -> movement intents
     ArenaScene.js            canvas, game loop, HUD, debug overlay, tile classify
     arenaMap.js              the one arena, as ASCII -> collision grid
   render/
@@ -87,32 +75,29 @@ src/
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
     CharacterSprite.js       real torso+head sprite, else procedural character
     SpriteAnimation.js       reusable sprite-sheet frame stepper
-  combat/
-    aabb.js                  AABB overlap helpers — PURE
-    Hurtbox.js               body -> hurtbox AABB — PURE
-    MeleeAttack.js           swing state: cooldown, active window, hitbox — PURE
-    Projectile.js            travelling shot + wall collision — PURE
-    CombatSystem.js          melee/projectile/scoring/FT20 orchestration — PURE
-    CombatInput.js           discrete combat input (J/K/H/R + mouse) — DOM
+  diggerz/                  ← faithful recreations of CONFIRMED client systems
+    InputBindings.js         real key/mouse/wheel bindings (audit §1)
+    CharacterRig.js          real parts, animation states, facing, aim encoding
+    ItemSystem.js            real hotbar/slot model (type, count, wheel select)
+    WeaponSystem.js          confirmed "use intent" (opcode 287) + animation only
+    CombatController.js      wires the confirmed flow; resolution is delegated
 assets/
   tiles.atlas.json         recovered sprite rects (698 sprites) — see "Assets"
 serve.js                   zero-dependency static server (ES modules need http)
-test/movement.test.js      headless physics checks (no DOM)
-test/combat.test.js        headless combat checks (no DOM)
+tests/movement.test.js     headless physics checks (no DOM)
+tests/diggerz.test.js      headless checks of the confirmed Diggerz systems
 ```
 
-The `combat/` core (everything except `CombatInput`) is DOM-free and unit
-tested, so it carries straight into the real PvP arena game.
+The `src/diggerz/` modules contain **only confirmed** client behavior — no
+invented damage, ranges, cooldowns, or projectiles. Those were server-side and
+are deliberately left out until the combat design is approved.
 
 ## Assets — real Diggerz sprites
 
-The original Diggerz textures are **not** in this repo (the binaries were never
-committed, aren't on disk, the live site is dead, and the Wayback Machine is
-blocked by the network egress allowlist). But the sprite *rectangles* are
-hardcoded in the client, so the exact coordinates of **all 698 gameplay
-sprites** were recovered into `assets/tiles.atlas.json`.
-
-What's where in the original atlas (`tiles.png`):
+The original Diggerz textures are **not** in this repo (binaries never
+committed; live site dead; archive blocked by the egress allowlist). But the
+sprite *rectangles* are hardcoded in the client, so the exact coordinates of
+**all 698 gameplay sprites** were recovered into `assets/tiles.atlas.json`.
 
 | Sprite | Name | Rect (x, y, w, h) |
 | --- | --- | --- |
@@ -121,39 +106,27 @@ What's where in the original atlas (`tiles.png`):
 | Stone block | `B216_0_PNG` | 430, 286, 64, 64 |
 | Character torso | `ADVTORSO_PNG` | 138, 4, 34, 39 |
 | Character head | `ALIENHEAD_PNG` | 18, 61, 60, 65 |
-| Character arm | `ARM_PNG` | 0, 19, 17, 14 |
-
-> The player is **skeletal** in Diggerz (assembled from body-part sprites),
-> not a single frame sheet.
 
 **Use the real sprites:** drop the original `tiles.png` into `arena/assets/`.
-`AssetStore` loads it, and `TileSprites` / `CharacterSprite` switch from the
-procedural art to the real sprites automatically (the console logs which mode
-is active). Until then the prototype renders faithful Diggerz-style procedural
-tiles + character so it always runs.
-
-`MovementController` and `TileCollision` are **pure** — no DOM, input, or
-rendering — so they're the pieces you carry into the real PvP arena game.
-`MovementController.step(body, input, dt, collider)` is the whole movement
-model; tune the constants in its `DEFAULTS` to dial the feel.
+`AssetStore` loads it and the renderers switch from procedural art to the real
+sprites automatically.
 
 ## Tuning the feel
 
 All movement constants live in `MovementController.DEFAULTS` (gravity, move
-speed, accel/friction, jump speed, coyote/buffer times, jump-cut). They're
-plain px/s and px/s² values — adjust and reload. The collision box size and
-spawn are set in `ArenaScene` and `arenaMap`.
+speed, accel/friction, jump speed, coyote/buffer times, jump-cut).
 
 ## Verified
 
-- `npm test` — 6 movement + 8 combat headless checks (gravity/landing,
-  horizontal accel, jump, wall collision, facing, animation states; melee
-  hit/miss/cooldown, projectile hit/wall, FT20 win, reset).
-- Browser smoke test (Chromium) — no JS errors, and real input drives it:
-  move/jump/walls, projectile scores at range, melee scores when adjacent,
-  `H` toggles debug boxes, reaching FT20 shows the win banner, `R` resets.
+- `npm test` — 6 movement + 7 Diggerz-mechanics headless checks (gravity/
+  landing, horizontal accel, jump, wall collision, facing, animation states;
+  real bindings, aim encoding, animation names, hotbar wheel-select, opcode-287
+  intent shape).
+- Browser smoke test (Chromium) — loads with no JS errors and responds to real
+  key input: rests grounded, runs, jumps, lands, stops at walls.
 
 ## Not in scope yet (intentionally)
 
-Multiplayer, ranked, tournaments, cosmetics, accounts, rollback, and full
-health/death/respawn. This is the local movement + combat foundation only.
+Combat (pending the design doc), multiplayer, ranked, tournaments, cosmetics,
+accounts, rollback. This is the movement foundation plus the confirmed Diggerz
+reference systems only.

@@ -38,21 +38,7 @@
       border-radius: 8px; font-size: 12.5px; line-height: 1.45;
       white-space: pre; pointer-events: none; color: #b9c7da;
     }
-    #winbanner {
-      position: absolute; inset: 0; display: none;
-      flex-direction: column; align-items: center; justify-content: center;
-      gap: 16px; border-radius: 10px;
-      background: rgba(8,12,20,.78); backdrop-filter: blur(2px);
-    }
-    #winbanner .title { font-size: 40px; font-weight: 800; letter-spacing: 1px; color: #7fffa8; }
-    #winbanner button, #resetBtn {
-      font: inherit; font-size: 15px; cursor: pointer;
-      background: #2a3346; color: #e7eef9;
-      border: 1px solid rgba(255,255,255,.18); border-radius: 8px;
-      padding: 8px 16px;
-    }
-    #winbanner button:hover, #resetBtn:hover { background: #354060; }
-    .help { opacity: .6; font-size: 13px; text-align: center; }
+    .help { opacity: .6; font-size: 13px; }
     .help b { color: #e7eef9; }
   </style>
 </head>
@@ -62,17 +48,11 @@
     <div class="stage">
       <canvas id="game"></canvas>
       <pre id="debug"></pre>
-      <div id="winbanner">
-        <div class="title" data-win-text>P1 Wins FT20</div>
-        <button id="rematchBtn">Reset match (R)</button>
-      </div>
     </div>
     <div class="help">
-      Move <b>A</b>/<b>D</b> or <b>←</b>/<b>→</b> &nbsp;·&nbsp; Jump <b>W</b> / <b>↑</b> / <b>Space</b><br />
-      Melee <b>J</b> / left-click &nbsp;·&nbsp; Shoot <b>K</b> / right-click
-      &nbsp;·&nbsp; Debug boxes <b>H</b> &nbsp;·&nbsp; Reset <b>R</b>
+      Move <b>A</b>/<b>D</b> or <b>←</b>/<b>→</b> &nbsp;·&nbsp; Jump <b>W</b> / <b>↑</b> / <b>Space</b>
+      &nbsp;·&nbsp; hold jump for height, tap for a hop
     </div>
-    <button id="resetBtn" style="margin-top:2px;">Reset match (R)</button>
   </div>
   <script type="module" src="./src/main.js"></script>
 </body>

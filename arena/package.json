@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "serve": "node serve.js",
-    "test": "node tests/movement.test.js && node tests/combat.test.js && node tests/diggerz.test.js"
+    "test": "node tests/movement.test.js && node tests/diggerz.test.js"
   }
 }
