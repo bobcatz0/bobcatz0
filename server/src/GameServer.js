@@ -10,6 +10,7 @@ const handshake = require('./protocol/handshake');
 const { buildWorldMap } = require('./protocol/worldmap');
 const { buildPlayerSpawn } = require('./protocol/spawn');
 const { parseClientMove, buildServerMove } = require('./protocol/movement');
+const MovementValidator = require('./movement/MovementValidator');
 
 /**
  * GameServer — owns the world and all connected clients, and drives the
@@ -29,6 +30,20 @@ class GameServer {
   constructor() {
     this.world = new World();
     this.clients = new Map(); // id -> Client
+
+    // Anti-cheat for client-reported movement. Bounds come from the world
+    // (with a little vertical slack for jumping above the surface). Speed and
+    // teleport caps are deliberately permissive — they only catch egregious
+    // cheating, never legitimate play.
+    this.moveValidator = new MovementValidator({
+      minX: -2,
+      maxX: this.world.cols + 2,
+      minY: -12,
+      maxY: this.world.rows + 12,
+      maxHorizontalSpeed: 40,   // tiles/sec
+      maxVerticalSpeed: 120,    // tiles/sec (falling can be fast)
+      maxTeleportDistance: 20,  // tiles in a single update
+    });
   }
 
   onConnect(ws) {
@@ -128,6 +143,8 @@ class GameServer {
       row: client.row,
     });
     client.stage = 'playing';
+    // Establish the movement-validator baseline at the spawn point.
+    client.moveState = this.moveValidator.createState(client.col, client.row);
     log.outbound(client.id, S2C.PLAYER_SPAWN, spawn);
     client.send(spawn);
 
@@ -142,14 +159,59 @@ class GameServer {
 
   handleMove(client, opcode, reader) {
     const m = parseClientMove(reader, opcode);
-    client.col = m.x;
-    client.row = m.y;
-    client.vx = m.vx;
-    client.vy = m.vy;
+
+    if (!client.moveState) {
+      client.moveState = this.moveValidator.createState(client.col, client.row);
+    }
+    const verdict = this.moveValidator.check(
+      client.moveState,
+      { x: m.x, y: m.y, vx: m.vx, vy: m.vy },
+      Date.now(),
+    );
+
+    // Rate-limited burst: ignore this packet entirely.
+    if (verdict.dropped) return;
+
+    // Apply the CORRECTED values — clamped on a violation, last-good position
+    // on impossible coordinates. The raw (invalid) value is never used.
+    client.col = verdict.x;
+    client.row = verdict.y;
+    client.vx = verdict.vx;
+    client.vy = verdict.vy;
+    // Animation / aim are cosmetic; pass the reported values through.
     client.anim = m.anim;
     client.facing = m.facing;
     client.aim = m.aim;
+
+    if (verdict.violations.length) {
+      log.info(
+        `C${client.id} suspicious movement [${verdict.violations.join(',')}] ` +
+        `clamped; suspicion=${verdict.suspicion}`,
+      );
+      if (verdict.flagged && !client.flaggedForReview) {
+        client.flaggedForReview = true;
+        log.info(`C${client.id} *** FLAGGED FOR ADMIN REVIEW *** (name="${client.name}")`);
+      }
+    }
+
     this.broadcastMove(client);
+  }
+
+  /** Players currently flagged for admin review (clamped, not banned). */
+  getFlaggedPlayers() {
+    const out = [];
+    for (const c of this.clients.values()) {
+      if (c.flaggedForReview && c.moveState) {
+        out.push({
+          id: c.id,
+          name: c.name,
+          suspicion: c.moveState.suspicion,
+          totalViolations: c.moveState.totalViolations,
+          reasons: c.moveState.reasonCounts,
+        });
+      }
+    }
+    return out;
   }
 
   // ── Broadcasts ──────────────────────────────────────────────────────────────

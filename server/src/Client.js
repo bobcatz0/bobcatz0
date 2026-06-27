@@ -40,6 +40,11 @@ class Client {
     this.facing = 1;  // +1 right, -1 left
     this.aim = 0;     // packed aim angle
     this.alive = true;
+
+    // Anti-cheat: per-player movement-validator state (created on spawn) and a
+    // sticky flag for admin review.
+    this.moveState = null;
+    this.flaggedForReview = false;
   }
 
   send(buffer) {

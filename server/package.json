@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node test/handshake-test.js"
+    "test": "node test/handshake-test.js && node test/movement-validator-test.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
