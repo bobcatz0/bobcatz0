@@ -1,0 +1,10 @@
+{
+  "name": "pvp-arena-prototype",
+  "version": "0.1.0",
+  "description": "Standalone browser prototype recreating the Diggerz-style movement feel (single player, no networking).",
+  "type": "module",
+  "scripts": {
+    "serve": "node serve.js",
+    "test": "node test/movement.test.js"
+  }
+}
