@@ -10,17 +10,18 @@
  * Browser-only (uses Image/fetch), but deliberately small and self-contained.
  */
 export class AssetStore {
-  constructor(base = 'assets/') {
+  constructor(base = 'assets/', atlasFile = 'tiles.atlas.json') {
     this.base = base;
-    this.image = null;   // HTMLImageElement once tiles.png loads (else null)
-    this.atlas = null;   // { sprites: { NAME: [x,y,w,h] } }
+    this.atlasFile = atlasFile; // 'tiles.atlas.json' or 'ui.atlas.json' etc.
+    this.image = null;   // HTMLImageElement once the texture loads (else null)
+    this.atlas = null;   // { image, sprites: { NAME: [x,y,w,h] } }
     this.ready = false;  // true only when BOTH the atlas json and image exist
   }
 
   /** Load the atlas json and (optionally) the texture. Safe to await once. */
   async load() {
     try {
-      const res = await fetch(this.base + 'tiles.atlas.json');
+      const res = await fetch(this.base + this.atlasFile);
       this.atlas = res.ok ? await res.json() : null;
     } catch {
       this.atlas = null;

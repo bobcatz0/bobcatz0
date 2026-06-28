@@ -57,12 +57,13 @@ npm test
 - FT20 score placeholder in the HUD (no scoring logic yet)
 - Debug overlay: `x, y, vx, vy, grounded, facing, anim`
 - Diggerz-style rendering: real Diggerz tiles + character sprites
-- **Combat V1:** a dummy opponent with health + hurtbox; a hotbar (mouse-wheel
-  select) rendering the real **Fake Sword** + **Blue Ray Gun** sprites;
-  left-click uses the selected weapon; sword = melee arc, ray gun = projectile;
-  health / death / respawn / brief spawn-invulnerability; **FT20 kill scoring**
-  with a win banner; health bars, selected-weapon label, score, and debug
-  hitboxes. All combat numbers are PROPOSED values in `src/combat/CombatConfig.js`.
+- **Diggerz hotbar + use-intent (no combat resolution yet):** a 3-slot hotbar
+  using the real `ui.png` **POCKET** slot sprite + the real weapon icons from
+  `tiles.png` (**Fake Sword**, **Blue Ray Gun**, **Shotgun**). Mouse wheel
+  selects (highlight + name), the mouse aims (aim line + reticle), and left-click
+  emits only the **confirmed opcode-287 use intent** (logged + shown in the
+  debug panel). No damage, hit detection, projectiles, melee or scoring — the
+  resolution layer (`src/combat/`) exists and is tested, but is **not wired** yet.
 
 ## Documentation
 
