@@ -5,9 +5,22 @@ approved.
 
 This proposes the combat system for the standalone PvP arena. It builds on the
 **confirmed** Diggerz client controls (see
-`DIGGERZ_CLIENT_MECHANICS_AUDIT.md`) and, where the original Diggerz **server**
-logic is gone, proposes a clean new design rather than pretending anything was
-extracted.
+`DIGGERZ_CLIENT_MECHANICS_AUDIT.md`) and the **confirmed** Diggerz weapon roster
+(see `DIGGERZ_WEAPON_CATALOG.md` / `src/diggerz/DiggerzWeaponCatalog.js`), and,
+where the original Diggerz **server** logic is gone, proposes a clean new design
+rather than pretending anything was extracted.
+
+**Provenance ground rules (read first):**
+- **Weapon roster** comes from the confirmed Diggerz client/assets (the weapon
+  catalog) — real items, real ids, real names, real sprites. Not invented.
+- **Combat controls** come from the confirmed Diggerz client (WASD/arrows,
+  W/↑/Space jump, S/↓ descend, mouse aim, left-mouse use, wheel hotbar). No J/K.
+- **Combat resolution** (damage, range, cooldown, projectile physics, hit
+  detection, scoring) is the **only** part that needs new design, because the
+  original server logic is missing.
+- **Any new damage / cooldown / projectile / range value is PROPOSED, not
+  extracted** — every such number below is tagged as a proposal and lives in a
+  config file for tuning.
 
 Three buckets are kept strictly separate:
 1. **Confirmed from the Diggerz client** — facts we will reuse as-is.
@@ -90,24 +103,24 @@ Proposed: the **resolver** is the new piece. It looks at the selected item's
 *category* and applies the proposed behavior below. In local play the resolver
 runs in-process; online it runs on the server (same code) — see §3.13.
 
-### 3.3 Weapon categories
+### 3.3 Weapon categories & roster (from the confirmed catalog)
 
-Proposed four categories (the real Diggerz sprite set maps cleanly onto these):
+The roster is **not invented** — it is the confirmed Diggerz weapon catalog
+(`DIGGERZ_WEAPON_CATALOG.md`, 38 items with real ids/names/sprites). Categories
+are [INFERRED] from sprite role + the client's `gun_pose`/`hit` animation split:
 
-| Category | Examples (real sprites) | Use |
-| --- | --- | --- |
-| **Melee** | `SWORD_PNG`, `PIRATESWORD_PNG`, `AXE_PNG`, `HAMMER_PNG` | short arc swing |
-| **Projectile (gun)** | `SHOTGUN_PNG`, `RAILGUN_PNG`, `LIGHTGUN_PNG`, `GOLDRAYGUN_PNG` | fire shot(s) |
-| **Tool** (later) | `PICKAXE_PNG`, `SHOVEL_PNG` | dig terrain |
-| **Block** (later) | `B108_0` (dirt), etc. | place terrain |
+| Category | Real Diggerz items (id, name) |
+| --- | --- |
+| **Melee** | 55 Fake Sword, 239 Excalibur, 242 Pirate Sword, 245 Meat Cleaver, 243 Crowbar, 329 Blade, 379+ Lightsabre … |
+| **Ranged** | 79/80/83 Ray Gun (railgun), 81 Beta Gun, 235 Light Gun, 248 Shotgun, 276 Musket, 93 Grenade Launcher, 139 Bazooka … |
+| **Thrown** | 327 Triple Mortar, 371 Depth Charge |
+| **Tool** (later) | 240 Pickaxe, 246 Shovel |
 
-Each weapon is a **data record** (no behavior baked into modules), e.g.:
-
-```
-{ id, name, sprite, category, damage, cooldown,
-  // melee:    reach, arcDegrees
-  // projectile: speed, ttl, gravity, pellets, spread }
-```
+Each weapon's **identity** (id, name, sprite, rect, category) is **confirmed**
+and lives in `DiggerzWeaponCatalog.js`. Its **combat values** (`damage`,
+`cooldown`, melee `reach`/`arc`, projectile `speed`/`ttl`/`pellets`/`spread`)
+are **[UNKNOWN] server-side** → they are filled by the **proposed** config
+(§3.4–3.7), clearly marked as proposed, never as extracted.
 
 ### 3.4 Melee behavior (proposed)
 
@@ -235,8 +248,10 @@ Please confirm these so the build matches your intent (no code until then):
 
 1. **Scoring model:** Option A (hit-count FT20) or **Option B (health + kills
    FT20, recommended)**?
-2. **First weapon set (v1):** which to implement first — e.g. one melee
-   (`SWORD`) + one gun (`SHOTGUN`)? Pick the starting 2–3.
+2. **First weapon set (v1):** confirmed real Diggerz items recommended (from the
+   catalog): **id 55 "Fake Sword"** (melee) → **id 79 "Blue Ray Gun" / railgun**
+   (single-shot ranged) → **id 248 "Shotgun"** (multi-pellet ranged). Confirm
+   this order / set.
 3. **Tools/building:** include dig/build in the first combat pass, or defer
    until after melee+gun feel right? (Proposed: defer.)
 4. **Respawn:** enable respawn (Option B) or keep a single life per point and

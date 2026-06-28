@@ -149,11 +149,14 @@ It reads clearly but is not the real rig or the real state names.
 
 ### [CONFIRMED] Item types (`a4`)
 ```
-a4 === 1  -> placeable BLOCK/tile  (built with opcode 11; needs g36 > 0)
-a4 === 2  -> WEAPON / TOOL         (used with opcode 287)
+a4 === 1  -> placeable BLOCK/tile      (built with opcode 11; needs g36 > 0)
+a4 === 2  -> HELD/EQUIPPED item        (cosmetics AND weapons/tools)
 ```
-Special-cased ids seen: `h44 === 141`, `h44 === 127`, `h44 === 326` (specific
-blocks/tools with bespoke behavior).
+CORRECTION: `a4 === 2` is **not** weapon-only — 174 items use it, including
+hats/shoes/hair/masks as well as weapons. Weapons are the **subset** identified
+by their weapon sprite/id; the confirmed list is in
+`DIGGERZ_WEAPON_CATALOG.md`. Weapons are used via opcode 287.
+Special-cased ids seen: `h44 === 141`, `h44 === 127`, `h44 === 326`.
 
 ### [CONFIRMED] Equipped weapon
 `l.z39.j35` is the held weapon entity; `j35.u41` is its id; `j35.F57()` is its

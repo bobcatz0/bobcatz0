@@ -55,6 +55,9 @@ npm test
 - **`docs/DIGGERZ_CLIENT_MECHANICS_AUDIT.md`** — the real Diggerz client
   mechanics (input, rendering, items, networking, assets), each finding tagged
   Confirmed / Likely / Unknown / Placeholder. The source of truth.
+- **`docs/DIGGERZ_WEAPON_CATALOG.md`** — the confirmed Diggerz weapon roster
+  (38 real items: ids, names, sprites, atlas rects). Machine-readable form in
+  `src/diggerz/DiggerzWeaponCatalog.js`.
 - **`docs/STANDALONE_PVP_COMBAT_DESIGN.md`** — the proposed combat design for
   the standalone game (awaiting approval before any combat is coded).
 

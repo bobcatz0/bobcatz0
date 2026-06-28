@@ -9,10 +9,15 @@
  */
 
 // Confirmed item types (field `a4`).
+// CORRECTION (see DIGGERZ_WEAPON_CATALOG.md): a4===2 is "held/equipped item" and
+// covers cosmetics (hats/shoes/hair) AND weapons/tools — it is NOT weapon-only.
+// Weapons are the SUBSET identified by the weapon catalog (by sprite/id).
 export const ITEM_TYPE = {
-  BLOCK: 1,  // placeable tile — built with opcode 11; requires count (g36) > 0
-  WEAPON: 2, // weapon / tool — used with opcode 287
+  BLOCK: 1, // placeable tile — built with opcode 11; requires count (g36) > 0
+  HELD: 2,  // held/equipped item: cosmetics + weapons/tools (weapons used via opcode 287)
 };
+// Back-compat alias; prefer ITEM_TYPE.HELD + the weapon catalog to identify weapons.
+ITEM_TYPE.WEAPON = ITEM_TYPE.HELD;
 
 /**
  * An item slot mirrors the confirmed client fields.
