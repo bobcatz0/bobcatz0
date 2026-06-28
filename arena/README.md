@@ -29,7 +29,9 @@ Controls (the real Diggerz scheme — no J/K, no number keys):
 - **Aim:** mouse
 - **Use weapon:** left-click
 - **Select weapon:** mouse wheel
-- Reset match / toggle debug hitboxes: on-screen button + checkbox (not keybinds)
+- **Zoom:** `+`/`=` in, `−` out, `0` reset (or the on-screen buttons) — separate
+  from the wheel (wheel stays weapon selection)
+- Reset position / toggle aim+debug: on-screen button + checkbox (not keybinds)
 
 Run the headless logic tests:
 
@@ -56,7 +58,11 @@ npm test
 - Velocity tracking, facing direction, animation-state values
 - FT20 score placeholder in the HUD (no scoring logic yet)
 - Debug overlay: `x, y, vx, vy, grounded, facing, anim`
-- Diggerz-style rendering: real Diggerz tiles + character sprites
+- Diggerz-style rendering: real Diggerz tiles + a fuller character assembled
+  from the real body-part sprites (head, eyes, torso, pants, legs, feet, arms,
+  hands) with correct facing (right→right, left→left) and the equipped weapon
+  held in the front hand, rotated toward the mouse aim
+- Camera **zoom** (0.75×–2.0×, keeps the player centred) on `+`/`−`/`0`
 - **Diggerz hotbar + use-intent (no combat resolution yet):** a 3-slot hotbar
   using the real `ui.png` **POCKET** slot sprite + the real weapon icons from
   `tiles.png` (**Fake Sword**, **Blue Ray Gun**, **Shotgun**). Mouse wheel

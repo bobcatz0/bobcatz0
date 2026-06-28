@@ -20,16 +20,45 @@ export const PARTS = {
   animal: ['frontpaw', 'backpaw', 'wing', 'tail', 'prickear'],
 };
 
-// Confirmed atlas part sprites (tiles.png) for a default humanoid, name -> rect.
-// (More skins exist; these are the verified defaults from the audit.)
+// Confirmed default-humanoid atlas part sprites (tiles.png), name -> atlas key.
+// These are the REAL Diggerz base parts (verified against the pixels).
 export const PART_SPRITES = {
-  torso: 'ADVTORSO_PNG',  // [138,4,34,39]
-  head: 'ALIENHEAD_PNG',  // [18,61,60,65]
-  arm: 'ARM_PNG',         // [0,19,17,14]
-  armBack: 'ARM_BACK_PNG',// [0,34,17,14]
-  hat: 'ADVHAT_PNG',      // [18,4,86,56]
-  shoes: 'ADVSHOES_PNG',  // [105,4,32,16]
+  head: 'HEAD_PNG',        // [1769,352,56,50] orange head
+  eyes: 'EYES_PNG',        // [563,382,35,21]  white eyes
+  torso: 'TORSO_PNG',      // [436,1912,34,27] dark torso
+  pants: 'PANTS_PNG',      // [208,46,34,8]
+  leg: 'LEG_PNG',          // [179,1660,24,17] front leg
+  legBack: 'LEG_BACK_PNG', // [593,45,24,15]   back leg
+  foot: 'FOOT_PNG',        // [138,44,32,16]
+  arm: 'ARM_PNG',          // [0,19,17,14]     front arm
+  armBack: 'ARM_BACK_PNG', // [0,34,17,14]
+  hand: 'HAND_PNG',        // [2027,4,20,16]   front hand
+  handBack: 'HAND_BACK_PNG',// [183,386,20,16]
 };
+
+/**
+ * Standalone APPROXIMATE rig layout (the original skeleton/bone offsets are not
+ * in the repo — see RIG_NOTES). Offsets are in destination pixels for a 24x36
+ * body, relative to the feet centre (cx, feetY); facing-right orientation. The
+ * scene mirrors the whole rig for facing-left and draws the held weapon arm
+ * separately (so it rotates to the real aim). NOT extracted — tunable.
+ */
+export const RIG_LAYOUT = {
+  // each: { key, w, h, dx, dy }  — dx from cx (left edge), dy from feetY (top edge)
+  backLeg:   { key: 'legBack', w: 13, h: 9,  dx: -9, dy: -11 },
+  frontLeg:  { key: 'leg',     w: 13, h: 9,  dx: -2, dy: -11 },
+  backFoot:  { key: 'foot',    w: 13, h: 7,  dx: -11, dy: -4 },
+  frontFoot: { key: 'foot',    w: 13, h: 7,  dx: -2, dy: -4 },
+  pants:     { key: 'pants',   w: 20, h: 6,  dx: -10, dy: -13 },
+  torso:     { key: 'torso',   w: 21, h: 17, dx: -10, dy: -28 },
+  head:      { key: 'head',    w: 30, h: 27, dx: -13, dy: -49 },
+  eyes:      { key: 'eyes',    w: 16, h: 10, dx: 1,  dy: -39 }, // front-shifted
+};
+
+// Front-arm shoulder pivot (where the aiming arm + weapon attach), relative to
+// (cx, feetY), facing-right. The arm/weapon rotate to the aim from here.
+export const SHOULDER = { dx: 3, dy: -26 };
+export const ARM_LENGTH = 11; // px, hand distance from the shoulder
 
 // Confirmed animation-state names (i33._38("name"); current = i33.Z28).
 // NOTE: real names — there is no "run"/"fall"; movement is "walk", leaving the

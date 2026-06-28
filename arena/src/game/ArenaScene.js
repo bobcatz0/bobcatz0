@@ -34,12 +34,13 @@ const weaponSlot = (id) => ({ ...byId(id), type: ITEM_TYPE.WEAPON });
  * the confirmed opcode-287-shaped use intent (logged + shown for debugging).
  */
 export class ArenaScene {
-  constructor(canvas, { debugEl, hudEl, resetBtn, debugChk } = {}) {
+  constructor(canvas, { debugEl, hudEl, resetBtn, debugChk, zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.debugEl = debugEl;
     this.hudEl = hudEl;
     this.debugChk = debugChk;
+    this.zoomLabel = zoomLabel;
 
     this.map = buildArenaMap(40);
     canvas.width = VIEW_W;
@@ -78,6 +79,17 @@ export class ArenaScene {
     this.combatInput = new CombatInput(canvas);
     if (resetBtn) resetBtn.addEventListener('click', () => this.resetView());
 
+    // Debug/playtest zoom — separate from the mouse wheel (wheel = hotbar).
+    //   + / =  zoom in   ·   -  zoom out   ·   0  reset
+    if (zoomInBtn) zoomInBtn.addEventListener('click', () => this.zoomBy(1.15));
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this.zoomBy(1 / 1.15));
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this.resetZoom());
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Equal' || e.code === 'NumpadAdd') { this.zoomBy(1.15); e.preventDefault(); }
+      else if (e.code === 'Minus' || e.code === 'NumpadSubtract') { this.zoomBy(1 / 1.15); e.preventDefault(); }
+      else if (e.code === 'Digit0' || e.code === 'Numpad0') { this.resetZoom(); e.preventDefault(); }
+    });
+
     // Aim + use-intent debug state.
     this.aimAngle = 0;
     this.aimPoint = { x: 0, y: 0 };
@@ -96,6 +108,7 @@ export class ArenaScene {
 
   start() {
     this._renderHud();
+    this._updateZoomLabel();
     this._last = performance.now();
     requestAnimationFrame(this._loop);
   }
@@ -107,6 +120,11 @@ export class ArenaScene {
     this.hotbar.select(0);
     this.camera.snap(b.x + b.w / 2, b.y + b.h / 2);
   }
+
+  _playerCenter() { const b = this.player.body; return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; }
+  zoomBy(f) { const c = this._playerCenter(); this.camera.zoomBy(f, c.x, c.y); this._updateZoomLabel(); }
+  resetZoom() { const c = this._playerCenter(); this.camera.resetZoom(c.x, c.y); this._updateZoomLabel(); }
+  _updateZoomLabel() { if (this.zoomLabel) this.zoomLabel.textContent = `${this.camera.zoom.toFixed(2)}×`; }
 
   _onUseIntent(intent, used) {
     this.lastUseIntent = { ...intent, weapon: used.item?.name, angle: used.angle };
@@ -165,12 +183,13 @@ export class ArenaScene {
     this.background.render(ctx, cam, VIEW_W, VIEW_H);
 
     ctx.save();
-    ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+    ctx.scale(cam.zoom, cam.zoom);          // zoom only affects rendering
+    ctx.translate(-cam.x, -cam.y);
 
     const c0 = Math.max(0, Math.floor(cam.x / t));
-    const c1 = Math.min(map.cols - 1, Math.floor((cam.x + VIEW_W) / t));
+    const c1 = Math.min(map.cols - 1, Math.floor((cam.x + cam.viewWorldW) / t));
     const r0 = Math.max(0, Math.floor(cam.y / t));
-    const r1 = Math.min(map.rows - 1, Math.floor((cam.y + VIEW_H) / t));
+    const r1 = Math.min(map.rows - 1, Math.floor((cam.y + cam.viewWorldH) / t));
 
     ctx.strokeStyle = COLORS.grid; ctx.lineWidth = 1;
     for (let c = c0; c <= c1 + 1; c++) { ctx.beginPath(); ctx.moveTo(c * t, r0 * t); ctx.lineTo(c * t, (r1 + 1) * t); ctx.stroke(); }
@@ -180,9 +199,12 @@ export class ArenaScene {
       for (let c = c0; c <= c1; c++)
         if (this.collider.isSolid(c, r)) this.tiles.drawTile(ctx, this._tileKind(c, r), c * t, r * t, t);
 
-    // P2 static visual reference, then the player.
-    this.character.draw(ctx, this._bodyState(this.p2), now, P2_PALETTE);
-    this.character.draw(ctx, this.player.state, now);
+    // P2 static visual reference (no weapon), then the player holding the
+    // selected weapon (aimed at the mouse).
+    this.character.draw(ctx, this._bodyState(this.p2), now, { palette: P2_PALETTE });
+    const sel = this.hotbar.selectedItem;
+    const weaponSprite = sel ? this.assets.getSprite(sel.spriteKey) : null;
+    this.character.draw(ctx, this.player.state, now, { aim: this.aimAngle, weapon: weaponSprite });
 
     // Aim line + reticle (the confirmed aim direction, player -> mouse).
     if (this._debugOn()) this._drawAim();
@@ -295,8 +317,8 @@ export class ArenaScene {
       li ? `  last    op${li.opcode} slot ${li.slot} -> (${f(li.targetX)},${f(li.targetY)})` : `  last    —`,
       ``,
       `mouse(w)  ${f(this.aimPoint.x)}, ${f(this.aimPoint.y)}`,
-      `player(w) ${f(pb.x)}, ${f(pb.y)}`,
-      `camera    ${f(this.camera.x)}, ${f(this.camera.y)}`,
+      `player(w) ${f(pb.x)}, ${f(pb.y)}  facing ${pb.facing > 0 ? 'R' : 'L'}`,
+      `camera    ${f(this.camera.x)}, ${f(this.camera.y)}  zoom ${this.camera.zoom.toFixed(2)}x`,
     ].join('\n');
   }
 }

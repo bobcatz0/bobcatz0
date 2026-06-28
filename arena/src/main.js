@@ -8,6 +8,10 @@ const scene = new ArenaScene(canvas, {
   hudEl: document.getElementById('hud'),
   resetBtn: document.getElementById('resetBtn'),
   debugChk: document.getElementById('debugChk'),
+  zoomInBtn: document.getElementById('zoomInBtn'),
+  zoomOutBtn: document.getElementById('zoomOutBtn'),
+  zoomResetBtn: document.getElementById('zoomResetBtn'),
+  zoomLabel: document.getElementById('zoomLabel'),
 });
 
 // Hold the Diggerz loading screen until the real assets are ready, then start.

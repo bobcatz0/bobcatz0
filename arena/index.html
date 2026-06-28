@@ -34,6 +34,9 @@
     button { font: inherit; font-size: 14px; cursor: pointer; background: #2a3346; color: #e7eef9; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 7px 14px; }
     button:hover { background: #354060; }
     .bar { display: flex; align-items: center; gap: 16px; opacity: .85; font-size: 13px; }
+    .zoom { display: inline-flex; align-items: center; gap: 6px; }
+    .zoom button { padding: 3px 9px; }
+    #zoomLabel { min-width: 46px; text-align: center; }
     .help { opacity: .6; font-size: 13px; text-align: center; }
     .help b { color: #e7eef9; }
     label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -55,10 +58,16 @@
     <div class="bar">
       <label><input type="checkbox" id="debugChk" checked /> show aim + debug</label>
       <button id="resetBtn">Reset position</button>
+      <span class="zoom">
+        zoom <button id="zoomOutBtn">−</button>
+        <span id="zoomLabel">1.00×</span>
+        <button id="zoomInBtn">+</button>
+        <button id="zoomResetBtn">reset</button>
+      </span>
     </div>
     <div class="help">
       Move <b>A</b>/<b>D</b> or <b>←</b>/<b>→</b> · Jump <b>W</b>/<b>↑</b>/<b>Space</b> · Descend <b>S</b>/<b>↓</b><br />
-      Aim <b>mouse</b> · <b>Left-click</b> use weapon · <b>Mouse wheel</b> select weapon
+      Aim <b>mouse</b> · <b>Left-click</b> use weapon · <b>Mouse wheel</b> select weapon · Zoom <b>+</b>/<b>−</b>/<b>0</b>
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>

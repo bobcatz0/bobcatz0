@@ -3,6 +3,7 @@ import { buildArenaMap } from '../src/game/arenaMap.js';
 import { TileCollision } from '../src/game/TileCollision.js';
 import { MovementController } from '../src/game/MovementController.js';
 import { Camera } from '../src/game/Camera.js';
+import { facingScale } from '../src/diggerz/CharacterRig.js';
 
 // Arena scale + camera + spawns. No combat, no physics changes.
 
@@ -110,6 +111,37 @@ const RIGHT = { left: false, right: true, jump: false, jumpHeld: false, jumpPres
   assert.ok(cam.x <= map.worldW - VIEW_W + 1e-6 && cam.x >= 0, 'follow stays clamped x');
   assert.ok(cam.y <= map.worldH - VIEW_H + 1e-6 && cam.y >= 0, 'follow stays clamped y');
   ok('camera follows the player and clamps to map bounds');
+})();
+
+// 8. Camera zoom: clamps to [min,max], keeps centred, screen->world is zoom-aware.
+(function zoom() {
+  const cam = new Camera(VIEW_W, VIEW_H, map.worldW, map.worldH);
+  assert.strictEqual(cam.zoom, 1, 'default zoom 1');
+  // clamp
+  assert.strictEqual(cam.setZoom(5, 1600, 680), cam.maxZoom, 'clamps to maxZoom');
+  assert.strictEqual(cam.setZoom(0.1, 1600, 680), cam.minZoom, 'clamps to minZoom');
+  // zooming in shrinks the visible world span
+  cam.setZoom(1, 1600, 680);
+  const span1 = cam.viewWorldW;
+  cam.setZoom(2, 1600, 680);
+  assert.ok(cam.viewWorldW < span1, 'zoom in shows less world');
+  // centred: the player's world point maps back near the viewport centre
+  cam.setZoom(1.5, 1600, 680);
+  const w = cam.screenToWorld(VIEW_W / 2, VIEW_H / 2);
+  assert.ok(Math.abs(w.x - 1600) < 1 && Math.abs(w.y - 680) < 1, 'player stays centred under zoom');
+  // screen->world halves the offset at 2x
+  cam.setZoom(2, 1600, 680);
+  const a = cam.screenToWorld(0, 0), b = cam.screenToWorld(200, 0);
+  assert.ok(Math.abs((b.x - a.x) - 100) < 1e-6, '200 screen px = 100 world px at 2x');
+  ok('camera zoom clamps to [0.75, 2.0], keeps the player centred, screen->world zoom-aware');
+})();
+
+// 9. Facing helper sign is stable (guards against the moonwalk inversion).
+(function facing() {
+  assert.strictEqual(facingScale(1), 1, 'facing right -> +1 (no mirror)');
+  assert.strictEqual(facingScale(-1), -1, 'facing left -> -1 (mirror)');
+  assert.strictEqual(facingScale(0), 1, 'neutral -> +1');
+  ok('facing scale sign is stable (right=+1, left=-1)');
 })();
 
 console.log(`\nAll ${passed} arena checks passed.`);
