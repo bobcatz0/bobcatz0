@@ -39,12 +39,15 @@ npm test
 
 ## What's implemented
 
-- A large PvP arena (**80×34 tiles = 3200×1360 world**) with a wide floor,
-  boundary walls, an open centre, and reachable multi-height platforms
-  (`src/game/arenaMap.js`); spawn points (P1 left, P2 right) stored in the map
+- A large PvP arena (**100×38 tiles = 4000×1520 world**) with a wide floor,
+  boundary walls, an open centre, and spread-out reachable multi-height
+  platforms (`src/game/arenaMap.js`); spawn points (P1 left, P2 right) in the map
 - A **follow camera** (`src/game/Camera.js`): fixed 1000×640 viewport, smooth
   (non-floaty) follow, clamped to the world bounds; HUD/hotbar/debug stay fixed
   to the screen; the debug overlay shows true world coords + camera x/y
+- **Real Diggerz presentation:** a parallax backdrop from `bknd.png` (mountains,
+  hills, moon — `src/render/Background.js`), the official `loading.jpg` loading
+  screen, and `favicon.png` as the app icon
 - One controllable player
 - Gravity + capped fall speed
 - Accelerated horizontal movement with ground/air friction
@@ -70,7 +73,10 @@ npm test
   (38 real items: ids, names, sprites, atlas rects). Machine-readable form in
   `src/diggerz/DiggerzWeaponCatalog.js`.
 - **`docs/STANDALONE_PVP_COMBAT_DESIGN.md`** — the proposed combat design for
-  the standalone game (awaiting approval before any combat is coded).
+  the standalone game.
+- **`docs/DIGGERZ_UI_CATALOG.md`** — the real asset inventory (tiles/ui/bknd/
+  loading/favicon) and the `ui.png` UI sprites identified for HUD/hotbar/
+  buttons/arrows/health/score (ready to wire).
 
 ## Modules
 
@@ -90,6 +96,7 @@ src/
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
     CharacterSprite.js       real torso+head sprite, else procedural character
     SpriteAnimation.js       reusable sprite-sheet frame stepper
+    Background.js            real bknd.png parallax backdrop (mountains/hills/moon)
   diggerz/                  ← faithful recreations of CONFIRMED client systems
     InputBindings.js         real key/mouse/wheel bindings (audit §1)
     CharacterRig.js          real parts, animation states, facing, aim encoding

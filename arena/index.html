@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PvP Arena — Combat V1</title>
+  <title>PvP Arena — Diggerz prototype</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
   <style>
     :root { color-scheme: dark; }
     html, body {
@@ -36,9 +37,15 @@
     .help { opacity: .6; font-size: 13px; text-align: center; }
     .help b { color: #e7eef9; }
     label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    #loading {
+      position: fixed; inset: 0; z-index: 50;
+      background: #000 center / contain no-repeat url("assets/loading.jpg");
+      transition: opacity .35s ease;
+    }
   </style>
 </head>
 <body>
+  <div id="loading"></div>
   <div class="wrap">
     <div id="hud"></div>
     <div class="stage">

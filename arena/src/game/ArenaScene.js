@@ -7,6 +7,7 @@ import { Camera } from './Camera.js';
 import { AssetStore } from '../render/AssetStore.js';
 import { TileSprites } from '../render/TileSprites.js';
 import { CharacterSprite } from '../render/CharacterSprite.js';
+import { Background } from '../render/Background.js';
 import { aimAngle as computeAim } from '../diggerz/CharacterRig.js';
 import { CombatSystem } from '../combat/CombatSystem.js';
 import { CombatInput } from '../combat/CombatInput.js';
@@ -48,10 +49,14 @@ export class ArenaScene {
     this.assets = new AssetStore('assets/');
     this.tiles = new TileSprites(this.assets);
     this.character = new CharacterSprite(this.assets);
-    this.assets.load().then((ready) => {
-      console.log(ready
+    this.background = new Background('assets/');
+    // Real assets load together; `ready` resolves when both are in (used to
+    // hold the loading screen until the real arena can render).
+    this.ready = Promise.all([this.assets.load(), this.background.load()]).then(([tilesReady]) => {
+      console.log(tilesReady
         ? '[arena] real Diggerz tiles.png loaded — rendering real sprites'
         : '[arena] tiles.png not found — using procedural Diggerz-style art');
+      return tilesReady;
     });
 
     this.player = new PlayerController(
@@ -132,6 +137,9 @@ export class ArenaScene {
     const g = ctx.createLinearGradient(0, 0, 0, VIEW_H);
     g.addColorStop(0, COLORS.sky0); g.addColorStop(1, COLORS.sky1);
     ctx.fillStyle = g; ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    // Real Diggerz parallax backdrop (mountains/hills/moon), screen space.
+    this.background.render(ctx, cam, VIEW_W, VIEW_H);
 
     // World space.
     ctx.save();
