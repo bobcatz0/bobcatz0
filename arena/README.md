@@ -39,9 +39,9 @@ npm test
 
 ## What's implemented
 
-- A large PvP arena (**100×38 tiles = 4000×1520 world**) with a wide floor,
-  boundary walls, an open centre, and spread-out reachable multi-height
-  platforms (`src/game/arenaMap.js`); spawn points (P1 left, P2 right) in the map
+- A large PvP arena (**80×34 tiles = 3200×1360 world**) with a wide floor,
+  boundary walls, an open centre, and reachable multi-height platforms
+  (`src/game/arenaMap.js`); spawn points (P1 left, P2 right) in the map
 - A **follow camera** (`src/game/Camera.js`): fixed 1000×640 viewport, smooth
   (non-floaty) follow, clamped to the world bounds; HUD/hotbar/debug stay fixed
   to the screen; the debug overlay shows true world coords + camera x/y
@@ -74,9 +74,9 @@ npm test
   `src/diggerz/DiggerzWeaponCatalog.js`.
 - **`docs/STANDALONE_PVP_COMBAT_DESIGN.md`** — the proposed combat design for
   the standalone game.
-- **`docs/DIGGERZ_UI_CATALOG.md`** — the real asset inventory (tiles/ui/bknd/
-  loading/favicon) and the `ui.png` UI sprites identified for HUD/hotbar/
-  buttons/arrows/health/score (ready to wire).
+- **`docs/UI_ASSET_AUDIT.md`** — the `ui.png` UI sprites identified + verified
+  for HUD/hotbar/health/buttons/arrows/score/match status (ready to wire), plus
+  the real asset inventory.
 
 ## Modules
 

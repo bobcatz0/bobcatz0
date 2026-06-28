@@ -22,10 +22,10 @@ const RIGHT = { left: false, right: true, jump: false, jumpHeld: false, jumpPres
 
 // 1. The arena is large and bigger than the viewport.
 (function size() {
-  assert.strictEqual(map.cols, 100, '100 tiles wide');
-  assert.ok(map.rows >= 36 && map.rows <= 40, 'height in 36–40 tiles');
-  assert.ok(map.worldW >= 3 * VIEW_W && map.worldH > VIEW_H, 'world much larger than viewport');
-  ok('arena is much larger than the viewport (100 x 38 tiles)');
+  assert.ok(map.cols >= 78 && map.cols <= 82, 'about 80 tiles wide');
+  assert.ok(map.rows >= 32 && map.rows <= 36, 'height in 32–36 tiles');
+  assert.ok(map.worldW > 3 * VIEW_W && map.worldH > VIEW_H, 'world much larger than viewport');
+  ok('arena is much larger than the viewport (~80 x 34 tiles)');
 })();
 
 // 2. Spawn points exist in the map config (P1 left, P2 right).
