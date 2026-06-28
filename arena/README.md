@@ -97,10 +97,11 @@ are deliberately left out until the combat design is approved.
 
 ## Assets — real Diggerz sprites
 
-The original Diggerz textures are **not** in this repo (binaries never
-committed; live site dead; archive blocked by the egress allowlist). But the
-sprite *rectangles* are hardcoded in the client, so the exact coordinates of
-**all 698 gameplay sprites** were recovered into `assets/tiles.atlas.json`.
+The **real Diggerz assets are now in `assets/`** — the original
+`tiles.png` (2048×2048 atlas), `ui.png`, `bknd.png`, `favicon.png`, alongside
+the recovered `tiles.atlas.json` (698 sprite rects). The arena renders the real
+sprites (console: *"real Diggerz tiles.png loaded"*); the procedural art is now
+only a fallback if `tiles.png` is missing.
 
 | Sprite | Name | Rect (x, y, w, h) |
 | --- | --- | --- |
@@ -109,10 +110,10 @@ sprite *rectangles* are hardcoded in the client, so the exact coordinates of
 | Stone block | `B216_0_PNG` | 430, 286, 64, 64 |
 | Character torso | `ADVTORSO_PNG` | 138, 4, 34, 39 |
 | Character head | `ALIENHEAD_PNG` | 18, 61, 60, 65 |
+| Fake Sword (weapon) | `SWORD_PNG` | 1442, 720, 70, 38 |
 
-**Use the real sprites:** drop the original `tiles.png` into `arena/assets/`.
-`AssetStore` loads it and the renderers switch from procedural art to the real
-sprites automatically.
+The 38 confirmed weapons (verified against the real `tiles.png`) are in
+`docs/DIGGERZ_WEAPON_CATALOG.md` / `src/diggerz/DiggerzWeaponCatalog.js`.
 
 ## Tuning the feel
 

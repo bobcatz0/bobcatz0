@@ -5,6 +5,17 @@ switch) and the recovered atlas `arena/assets/tiles.atlas.json`. This is the
 **source of truth** for the standalone PvP weapon roster — no invented weapons,
 no renames. Machine-readable form: `arena/src/diggerz/DiggerzWeaponCatalog.js`.
 
+### Verified against the real `tiles.png`
+
+The original Diggerz `tiles.png` (the **2048×2048** RGBA atlas, 2,218,667 bytes,
+from `DIGGERZ - Copy/backend/files/frontend/assets/tiles.png`) is now in
+`arena/assets/` and the arena renders the real sprites (the console logs
+*"real Diggerz tiles.png loaded"*). All **38/38** weapon rects below were
+validated against it — every rect is in-bounds and contains a real, non-empty
+weapon sprite. Visual confirmation (Fake Sword, Blue Ray Gun, Shotgun,
+Excalibur, Grenade Launcher, Pickaxe, Bazooka, Meat Cleaver):
+`weapon_sprites_verification.png`.
+
 Confidence tags: **[CONFIRMED]** (in client/atlas), **[INFERRED]** (strong guess
 from sprite/animation), **[UNKNOWN]** (server-side; not in client).
 
