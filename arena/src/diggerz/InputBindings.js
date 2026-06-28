@@ -31,6 +31,22 @@ export const BINDINGS = {
 export const MOUSE_UP = 0;
 export const MOUSE_DOWN = 1;
 
+// ── STANDALONE PvP PROTOTYPE DIVERGENCE (NOT a confirmed Diggerz binding) ──────
+// Diggerz selected the hotbar slot with the mouse wheel. For this PvP prototype
+// the wheel zooms the camera instead, and weapon selection moves to the number
+// keys for direct/fast swapping. Keyed by KeyboardEvent.code so the DOM layer
+// can map a keydown straight to a hotbar slot index.
+export const HOTBAR_SLOT_KEYS = {
+  Digit1: 0, Numpad1: 0,
+  Digit2: 1, Numpad2: 1,
+  Digit3: 2, Numpad3: 2,
+};
+
+/** Hotbar slot index for a KeyboardEvent.code, or null if it isn't a slot key. */
+export function hotbarSlotForCode(code) {
+  return code in HOTBAR_SLOT_KEYS ? HOTBAR_SLOT_KEYS[code] : null;
+}
+
 /** True if any keyCode bound to `action` is held in `keyState`. */
 export function isDown(keyState, action) {
   const has = keyState instanceof Set

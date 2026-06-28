@@ -9,6 +9,7 @@ import { TileSprites } from '../render/TileSprites.js';
 import { CharacterSprite } from '../render/CharacterSprite.js';
 import { Background } from '../render/Background.js';
 import { aimAngle as computeAim, encodeAim } from '../diggerz/CharacterRig.js';
+import { hotbarSlotForCode } from '../diggerz/InputBindings.js';
 import { CombatInput } from '../combat/CombatInput.js';
 import { CombatSystem } from '../combat/CombatSystem.js';
 import { bodyHurtbox } from '../combat/geometry.js';
@@ -74,9 +75,13 @@ export class ArenaScene {
     if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this.zoomBy(1 / 1.15));
     if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this.resetZoom());
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Equal' || e.code === 'NumpadAdd') { this.zoomBy(1.15); e.preventDefault(); }
+      // Number keys select the hotbar weapon (1=Sword, 2=Ray Gun, 3=Shotgun).
+      const slot = hotbarSlotForCode(e.code);
+      if (slot !== null) { this.combat.selectSlot(slot); e.preventDefault(); return; }
+      // 0 resets zoom; +/- still nudge it (the wheel is the primary zoom).
+      if (e.code === 'Digit0' || e.code === 'Numpad0') { this.resetZoom(); e.preventDefault(); }
+      else if (e.code === 'Equal' || e.code === 'NumpadAdd') { this.zoomBy(1.15); e.preventDefault(); }
       else if (e.code === 'Minus' || e.code === 'NumpadSubtract') { this.zoomBy(1 / 1.15); e.preventDefault(); }
-      else if (e.code === 'Digit0' || e.code === 'Numpad0') { this.resetZoom(); e.preventDefault(); }
     });
 
     this.aimAngle = 0;
@@ -112,8 +117,10 @@ export class ArenaScene {
     const pcx = pb.x + pb.w / 2, pcy = pb.y + pb.h / 2;
     this.aimAngle = computeAim(pcx, pcy, this.aimPoint.x, this.aimPoint.y);
 
+    // Mouse wheel zooms the camera (wheel up = in, down = out), centred on P1.
     const wheel = this.combatInput.consumeWheel();
-    if (wheel !== 0) this.combat.selectWheel(wheel);
+    if (wheel < 0) this.zoomBy(1.15);
+    else if (wheel > 0) this.zoomBy(1 / 1.15);
     if (this.combatInput.consumeUsePress()) this.combat.use(this.simTime, this.aimAngle);
 
     this._acc += frame;

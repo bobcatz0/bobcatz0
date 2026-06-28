@@ -1,11 +1,12 @@
 /**
- * CombatInput — the real Diggerz combat controls (DOM):
+ * CombatInput — the prototype combat/mouse controls (DOM):
  *   - mouse position  -> aim
  *   - left mouse      -> use the selected weapon (press edge + held)
- *   - mouse wheel     -> select hotbar slot
+ *   - mouse wheel     -> camera zoom (STANDALONE divergence: Diggerz used the
+ *                        wheel for hotbar selection; weapon selection now lives
+ *                        on the number keys — see InputBindings.HOTBAR_SLOT_KEYS)
  *
- * No J/K, no number keys, no invented controls. Reset / debug toggle are UI
- * buttons (in the page), not keybinds.
+ * Reset / debug toggle are UI buttons (in the page), not keybinds.
  */
 export class CombatInput {
   constructor(canvas) {

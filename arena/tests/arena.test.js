@@ -4,6 +4,9 @@ import { TileCollision } from '../src/game/TileCollision.js';
 import { MovementController } from '../src/game/MovementController.js';
 import { Camera } from '../src/game/Camera.js';
 import { facingScale } from '../src/diggerz/CharacterRig.js';
+import { hotbarSlotForCode } from '../src/diggerz/InputBindings.js';
+import { Hotbar } from '../src/diggerz/ItemSystem.js';
+import { byId } from '../src/diggerz/DiggerzWeaponCatalog.js';
 
 // Arena scale + camera + spawns. No combat, no physics changes.
 
@@ -142,6 +145,46 @@ const RIGHT = { left: false, right: true, jump: false, jumpHeld: false, jumpPres
   assert.strictEqual(facingScale(-1), -1, 'facing left -> -1 (mirror)');
   assert.strictEqual(facingScale(0), 1, 'neutral -> +1');
   ok('facing scale sign is stable (right=+1, left=-1)');
+})();
+
+// 10. Number keys select hotbar weapons (standalone divergence from Diggerz's
+//     mouse-wheel selection); the wheel now zooms instead.
+(function numberKeys() {
+  // code -> slot mapping (Digit1/2/3 + Numpad1/2/3; everything else is null).
+  assert.strictEqual(hotbarSlotForCode('Digit1'), 0, '1 -> slot 0');
+  assert.strictEqual(hotbarSlotForCode('Digit2'), 1, '2 -> slot 1');
+  assert.strictEqual(hotbarSlotForCode('Digit3'), 2, '3 -> slot 2');
+  assert.strictEqual(hotbarSlotForCode('Numpad1'), 0, 'numpad 1 -> slot 0');
+  assert.strictEqual(hotbarSlotForCode('Numpad3'), 2, 'numpad 3 -> slot 2');
+  assert.strictEqual(hotbarSlotForCode('Digit4'), null, 'no slot 4');
+  assert.strictEqual(hotbarSlotForCode('KeyW'), null, 'movement key is not a slot');
+
+  // pressing a number key updates the selected hotbar slot.
+  const hb = new Hotbar([55, 79, 248].map((id) => byId(id)));
+  hb.select(hotbarSlotForCode('Digit2'));
+  assert.strictEqual(hb.selected, 1, 'pressing 2 selects Blue Ray Gun');
+  assert.strictEqual(hb.selectedItem.name, 'Blue Ray Gun', 'slot 1 is Blue Ray Gun');
+  hb.select(hotbarSlotForCode('Digit3'));
+  assert.strictEqual(hb.selected, 2, 'pressing 3 selects Shotgun');
+  hb.select(hotbarSlotForCode('Digit1'));
+  assert.strictEqual(hb.selected, 0, 'pressing 1 selects Fake Sword');
+  ok('number keys 1/2/3 select the hotbar weapon (and update the selected slot)');
+})();
+
+// 11. Mouse wheel zooms the camera (up = in, down = out) and clamps to [min,max].
+(function wheelZoom() {
+  const cam = new Camera(VIEW_W, VIEW_H, map.worldW, map.worldH);
+  // Mirror ArenaScene's wheel mapping: deltaY<0 (wheel up) -> zoom in.
+  const onWheel = (dir) => { if (dir < 0) cam.zoomBy(1.15, 1600, 680); else if (dir > 0) cam.zoomBy(1 / 1.15, 1600, 680); };
+  assert.strictEqual(cam.zoom, 1, 'starts at 1.0');
+  onWheel(-1); assert.ok(cam.zoom > 1, 'wheel up zooms in');
+  onWheel(1); onWheel(1); assert.ok(cam.zoom < 1, 'wheel down zooms out');
+  // spamming the wheel never escapes the clamp range
+  for (let i = 0; i < 60; i++) onWheel(-1);
+  assert.strictEqual(cam.zoom, cam.maxZoom, 'clamps at maxZoom (2.0)');
+  for (let i = 0; i < 60; i++) onWheel(1);
+  assert.strictEqual(cam.zoom, cam.minZoom, 'clamps at minZoom (0.75)');
+  ok('mouse wheel zooms the camera and clamps to [0.75, 2.0]');
 })();
 
 console.log(`\nAll ${passed} arena checks passed.`);

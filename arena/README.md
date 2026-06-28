@@ -21,17 +21,25 @@ node serve.js          # http://localhost:8080
 ```
 Open the URL.
 
-Controls (the real Diggerz scheme — no J/K, no number keys):
+Controls:
 
 - **Move:** `A`/`D` or `←`/`→`
 - **Jump:** `W` / `↑` / `Space` — hold for height, tap for a small hop
 - **Descend:** `S` / `↓`
 - **Aim:** mouse
-- **Use weapon:** left-click
-- **Select weapon:** mouse wheel
-- **Zoom:** `+`/`=` in, `−` out, `0` reset (or the on-screen buttons) — separate
-  from the wheel (wheel stays weapon selection)
-- Reset position / toggle aim+debug: on-screen button + checkbox (not keybinds)
+- **Use weapon:** left-click (selected weapon, toward the aim)
+- **Select weapon:** `1` Fake Sword · `2` Blue Ray Gun · `3` Shotgun
+  (`Numpad1/2/3` too)
+- **Zoom camera:** **mouse wheel** — up = in, down = out (clamped 0.75×–2.0×);
+  `0` resets to 1.0× (`+`/`−` also nudge it, or use the on-screen buttons)
+- Reset / toggle aim+debug: on-screen button + checkbox (not keybinds)
+
+> **Standalone control change (intentional):** Diggerz used the mouse wheel for
+> hotbar selection. For this PvP prototype the wheel **zooms the camera** and
+> weapon swapping moves to the **number keys** for direct/fast selection. The
+> confirmed Diggerz wheel→slot behavior is still documented/tested in
+> `src/diggerz/` (the recreation layer); only the active prototype controls
+> diverge.
 
 Run the headless logic tests:
 
@@ -72,14 +80,16 @@ npm test
   from the real body-part sprites (head, eyes, torso, pants, legs, feet, arms,
   hands) with correct facing (right→right, left→left) and the equipped weapon
   held in the front hand, rotated toward the mouse aim
-- Camera **zoom** (0.75×–2.0×, keeps the player centred) on `+`/`−`/`0`
+- Camera **zoom** (0.75×–2.0×, keeps the player centred) on the **mouse wheel**
+  (`0` resets; `+`/`−` also nudge it)
 - **Diggerz hotbar + Combat V1 resolution (wired):** a 3-slot hotbar using the
   real `ui.png` **POCKET** slot sprite + the real weapon icons from `tiles.png`
-  (**Fake Sword**, **Blue Ray Gun**, **Shotgun**). Mouse wheel selects (highlight
-  + name), the mouse aims (aim line + reticle), and left-click resolves the
-  selected weapon against the dummy through the headless resolver layer
-  (`src/combat/`) — melee arc for the sword, projectile for the ray gun, health /
-  death / respawn / FT20 kill scoring. The shotgun is selectable but deferred.
+  (**Fake Sword**, **Blue Ray Gun**, **Shotgun**). The number keys `1`/`2`/`3`
+  select the slot (highlight + name), the mouse aims (aim line + reticle), and
+  left-click resolves the selected weapon against the dummy through the headless
+  resolver layer (`src/combat/`) — melee arc for the sword, projectile for the
+  ray gun, health / death / respawn / FT20 kill scoring. The shotgun is
+  selectable but deferred.
 
 ## Documentation
 
@@ -168,11 +178,12 @@ speed, accel/friction, jump speed, coyote/buffer times, jump-cut).
 
 ## Verified
 
-- `npm test` — 6 movement + 9 arena + 7 Diggerz-mechanics + 3 hotbar + 9 combat
+- `npm test` — 6 movement + 11 arena + 7 Diggerz-mechanics + 3 hotbar + 9 combat
   headless checks (movement physics; arena size/spawns/landing/traversal/
-  boundary-walls/jump-reachability/camera-clamp/zoom-clamp/facing-sign; real
-  bindings/aim/animation; hotbar; sword + ray gun hits, death, respawn +
-  invulnerability, score, FT20 win, reset).
+  boundary-walls/jump-reachability/camera-clamp/zoom-clamp/facing-sign/
+  number-key weapon select/wheel-zoom; real bindings/aim/animation; hotbar;
+  sword + ray gun hits, death, respawn + invulnerability, score, FT20 win,
+  reset).
 - Browser smoke (Chromium) — real assets load; the camera follows + zooms and
   clamps to bounds; the player holds the selected weapon aimed at the mouse; and
   Combat V1 resolves end to end (sword 34 dmg, ray gun 25 dmg + wall block,
