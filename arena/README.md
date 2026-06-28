@@ -56,20 +56,30 @@ npm test
 - Jumping with **coyote time**, **jump buffering**, and **variable height**
 - AABB collision against tile/platform blocks (with flush ground-snap)
 - Velocity tracking, facing direction, animation-state values
-- FT20 score placeholder in the HUD (no scoring logic yet)
-- Debug overlay: `x, y, vx, vy, grounded, facing, anim`
+- **Combat V1 (wired):** a P2 **dummy** with health + hurtbox; left-click uses the
+  selected weapon toward the mouse aim. **Fake Sword** is a melee arc hitbox;
+  **Blue Ray Gun** spawns a straight projectile (wall-blocked). On a kill: P1
+  scores +1, the dummy respawns at the P2 spawn with brief invulnerability;
+  **first to 20 kills** wins (rematch button restarts). **Shotgun** is in the
+  hotbar and selectable but does **not** resolve yet (it will use the real
+  client's shotgun functions). All combat **numbers** are PROPOSED standalone
+  values (`src/combat/CombatConfig.js`).
+- FT20 kill score in the HUD; a win banner with a rematch button
+- Health bars over both fighters; respawn marker; muzzle/swing visuals
+- Debug overlay (toggle "show aim + debug"): weapon, aim, P1/P2 HP, score,
+  world mouse/player/camera + zoom, and the live **hurtboxes/hitboxes**
 - Diggerz-style rendering: real Diggerz tiles + a fuller character assembled
   from the real body-part sprites (head, eyes, torso, pants, legs, feet, arms,
   hands) with correct facing (right→right, left→left) and the equipped weapon
   held in the front hand, rotated toward the mouse aim
 - Camera **zoom** (0.75×–2.0×, keeps the player centred) on `+`/`−`/`0`
-- **Diggerz hotbar + use-intent (no combat resolution yet):** a 3-slot hotbar
-  using the real `ui.png` **POCKET** slot sprite + the real weapon icons from
-  `tiles.png` (**Fake Sword**, **Blue Ray Gun**, **Shotgun**). Mouse wheel
-  selects (highlight + name), the mouse aims (aim line + reticle), and left-click
-  emits only the **confirmed opcode-287 use intent** (logged + shown in the
-  debug panel). No damage, hit detection, projectiles, melee or scoring — the
-  resolution layer (`src/combat/`) exists and is tested, but is **not wired** yet.
+- **Diggerz hotbar + Combat V1 resolution (wired):** a 3-slot hotbar using the
+  real `ui.png` **POCKET** slot sprite + the real weapon icons from `tiles.png`
+  (**Fake Sword**, **Blue Ray Gun**, **Shotgun**). Mouse wheel selects (highlight
+  + name), the mouse aims (aim line + reticle), and left-click resolves the
+  selected weapon against the dummy through the headless resolver layer
+  (`src/combat/`) — melee arc for the sword, projectile for the ray gun, health /
+  death / respawn / FT20 kill scoring. The shotgun is selectable but deferred.
 
 ## Documentation
 
@@ -121,7 +131,10 @@ assets/
   tiles.atlas.json         recovered sprite rects (698 sprites) — see "Assets"
 serve.js                   zero-dependency static server (ES modules need http)
 tests/movement.test.js     headless physics checks (no DOM)
+tests/arena.test.js        arena size/spawns/camera/zoom/facing-sign
 tests/diggerz.test.js      headless checks of the confirmed Diggerz systems
+tests/hotbar.test.js       hotbar selection + confirmed use-intent shape
+tests/combat.test.js       Combat V1 resolution (sword/ray gun/death/respawn/FT20)
 ```
 
 The `src/diggerz/` modules contain **only confirmed** client behavior — no
@@ -155,12 +168,15 @@ speed, accel/friction, jump speed, coyote/buffer times, jump-cut).
 
 ## Verified
 
-- `npm test` — 6 movement + 7 arena + 7 Diggerz-mechanics + 9 combat headless
-  checks (movement physics; arena size/spawns/landing/traversal/boundary-walls/
-  jump-reachability/camera-clamp; real bindings/aim/animation; sword + ray gun
-  hits, death, respawn + invulnerability, score, FT20 win, reset).
-- Browser smoke (Chromium) — real assets load; the camera follows the player
-  across the large arena and clamps to bounds; combat input still works.
+- `npm test` — 6 movement + 9 arena + 7 Diggerz-mechanics + 3 hotbar + 9 combat
+  headless checks (movement physics; arena size/spawns/landing/traversal/
+  boundary-walls/jump-reachability/camera-clamp/zoom-clamp/facing-sign; real
+  bindings/aim/animation; hotbar; sword + ray gun hits, death, respawn +
+  invulnerability, score, FT20 win, reset).
+- Browser smoke (Chromium) — real assets load; the camera follows + zooms and
+  clamps to bounds; the player holds the selected weapon aimed at the mouse; and
+  Combat V1 resolves end to end (sword 34 dmg, ray gun 25 dmg + wall block,
+  dummy death → +1 score, respawn at full HP, shotgun selectable but inert).
 
 ## Not in scope yet (intentionally)
 

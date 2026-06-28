@@ -66,8 +66,15 @@ export const BLUE_RAY_GUN = weapon(79, {
   spreadDegrees: 0,
 });
 
-// The Combat V1 loadout, in hotbar order.
-export const COMBAT_V1_LOADOUT = [FAKE_SWORD, BLUE_RAY_GUN];
+// 3. Shotgun (id 248) — in the hotbar, but resolution is DEFERRED.
+// Per the request, the shotgun's firing shape (pellet count / spread) will come
+// from the real client's shotgun functions in diggerz_v-203.js, not invented —
+// so it is selectable but does not resolve yet (kind 'unimplemented').
+export const SHOTGUN = weapon(248, { kind: 'unimplemented' });
+
+// The Combat V1 loadout, in hotbar order. Sword + Ray Gun resolve; Shotgun is
+// shown/selectable but not yet wired (no damage).
+export const COMBAT_V1_LOADOUT = [FAKE_SWORD, BLUE_RAY_GUN, SHOTGUN];
 
 // Lookup by catalog id.
 export const WEAPON_BY_ID = Object.fromEntries(COMBAT_V1_LOADOUT.map((w) => [w.id, w]));

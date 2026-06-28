@@ -6,6 +6,7 @@ const loadingEl = document.getElementById('loading');
 const scene = new ArenaScene(canvas, {
   debugEl: document.getElementById('debug'),
   hudEl: document.getElementById('hud'),
+  winEl: document.getElementById('winbanner'),
   resetBtn: document.getElementById('resetBtn'),
   debugChk: document.getElementById('debugChk'),
   zoomInBtn: document.getElementById('zoomInBtn'),
@@ -13,6 +14,9 @@ const scene = new ArenaScene(canvas, {
   zoomResetBtn: document.getElementById('zoomResetBtn'),
   zoomLabel: document.getElementById('zoomLabel'),
 });
+
+// Rematch button on the win banner restarts the FT20 match.
+document.getElementById('rematchBtn')?.addEventListener('click', () => scene.combat.reset(scene.simTime));
 
 // Hold the Diggerz loading screen until the real assets are ready, then start.
 scene.ready.finally(() => {

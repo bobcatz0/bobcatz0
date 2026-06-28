@@ -34,12 +34,12 @@ export class CombatSystem {
     // Hotbar = the confirmed loadout (Fake Sword, Blue Ray Gun); wheel selects.
     this.hotbar = new Hotbar(COMBAT_V1_LOADOUT.slice());
 
-    // One resolver per weapon id.
+    // One resolver per weapon id (only for weapons that resolve in V1).
     this.resolvers = {};
     for (const w of COMBAT_V1_LOADOUT) {
-      this.resolvers[w.id] = w.combat.kind === 'melee'
-        ? new MeleeResolver(w)
-        : new ProjectileResolver(w, collider);
+      if (w.combat.kind === 'melee') this.resolvers[w.id] = new MeleeResolver(w);
+      else if (w.combat.kind === 'projectile') this.resolvers[w.id] = new ProjectileResolver(w, collider);
+      // 'unimplemented' (e.g. Shotgun) -> no resolver, no damage yet.
     }
 
     this.match = new MatchState({ ftTarget: MATCH.ftTarget });
@@ -58,6 +58,7 @@ export class CombatSystem {
     if (this.match.winner || !this.attacker.health.alive) return false;
     const w = this.selectedWeapon;
     const r = this.resolvers[w.id];
+    if (!r) { this.lastEvent = { type: 'unimplemented', weapon: w.name }; return false; } // e.g. Shotgun
     if (w.combat.kind === 'melee') {
       return r.use(now, aimAngle);
     }
@@ -78,6 +79,7 @@ export class CombatSystem {
     // Melee swing resolution (selected or not — a swing in flight still resolves).
     for (const w of COMBAT_V1_LOADOUT) {
       const r = this.resolvers[w.id];
+      if (!r) continue; // unimplemented weapon (Shotgun)
       if (w.combat.kind === 'melee') r.resolve(now, this.attacker.body, targets, FIGHTER.hurtboxInset, onHit);
       else r.update(dt, targets, FIGHTER.hurtboxInset, onHit);
     }

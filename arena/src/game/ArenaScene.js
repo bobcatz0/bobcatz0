@@ -8,12 +8,11 @@ import { AssetStore } from '../render/AssetStore.js';
 import { TileSprites } from '../render/TileSprites.js';
 import { CharacterSprite } from '../render/CharacterSprite.js';
 import { Background } from '../render/Background.js';
-// Confirmed Diggerz systems (no combat resolution — intent only):
-import { Hotbar, ITEM_TYPE } from '../diggerz/ItemSystem.js';
-import { byId } from '../diggerz/DiggerzWeaponCatalog.js';
-import { CombatController } from '../diggerz/CombatController.js';
 import { aimAngle as computeAim, encodeAim } from '../diggerz/CharacterRig.js';
 import { CombatInput } from '../combat/CombatInput.js';
+import { CombatSystem } from '../combat/CombatSystem.js';
+import { bodyHurtbox } from '../combat/geometry.js';
+import { FIGHTER } from '../combat/CombatConfig.js';
 
 const FIXED_DT = 1 / 120;
 const MAX_FRAME = 0.25;
@@ -23,22 +22,19 @@ const VIEW_H = 640;
 const COLORS = { sky0: '#11161f', sky1: '#1b2433', grid: 'rgba(255,255,255,0.03)' };
 const P2_PALETTE = { body: '#8a6bff', bodyDark: '#5e45c9', head: '#c3b2ff', limb: '#5e45c9' };
 
-// Combat V1 loadout — the 3 confirmed Diggerz weapons (catalog ids), held items.
-const LOADOUT_IDS = [55, 79, 248]; // Fake Sword, Blue Ray Gun, Shotgun
-const weaponSlot = (id) => ({ ...byId(id), type: ITEM_TYPE.WEAPON });
-
 /**
- * ArenaScene — large arena + camera + the CONFIRMED Diggerz hotbar / weapon
- * selection / mouse aim / left-click use-INTENT. No combat resolution: no
- * damage, hit detection, projectiles, melee or scoring. Left-click only emits
- * the confirmed opcode-287-shaped use intent (logged + shown for debugging).
+ * ArenaScene — large arena + camera/zoom + the real Diggerz hotbar/aim and
+ * Combat V1 (Fake Sword melee + Blue Ray Gun projectile; Shotgun selectable but
+ * not yet resolving). Health / death / respawn / FT20 kills. All combat NUMBERS
+ * are PROPOSED standalone values (src/combat/CombatConfig.js).
  */
 export class ArenaScene {
-  constructor(canvas, { debugEl, hudEl, resetBtn, debugChk, zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel } = {}) {
+  constructor(canvas, { debugEl, hudEl, winEl, resetBtn, debugChk, zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.debugEl = debugEl;
     this.hudEl = hudEl;
+    this.winEl = winEl;
     this.debugChk = debugChk;
     this.zoomLabel = zoomLabel;
 
@@ -51,8 +47,8 @@ export class ArenaScene {
     this.input = new InputState(window);
     this.camera = new Camera(VIEW_W, VIEW_H, this.map.worldW, this.map.worldH);
 
-    this.assets = new AssetStore('assets/', 'tiles.atlas.json');     // tiles + weapons + character
-    this.ui = new AssetStore('assets/', 'ui.atlas.json');            // HUD/hotbar sprites
+    this.assets = new AssetStore('assets/', 'tiles.atlas.json');
+    this.ui = new AssetStore('assets/', 'ui.atlas.json');
     this.tiles = new TileSprites(this.assets);
     this.character = new CharacterSprite(this.assets);
     this.background = new Background('assets/');
@@ -65,22 +61,15 @@ export class ArenaScene {
       { x: this.map.spawns.p1.x, y: this.map.spawns.p1.y, width: 24, height: 36 },
       this.movement, this.collider, this.input,
     );
-    // P2 is a static visual reference only (no health, no hurtbox, no combat).
-    this.p2 = MovementController.createBody(this.map.spawns.p2.x, this.map.spawns.p2.y, 24, 36);
-    this.p2.facing = -1;
+    const dummyBody = MovementController.createBody(this.map.spawns.p2.x, this.map.spawns.p2.y, 24, 36);
+    dummyBody.facing = -1;
+    this.dummyBody = dummyBody;
 
-    // ── Confirmed Diggerz hotbar + use-intent (NO resolution) ──
-    this.hotbar = new Hotbar(LOADOUT_IDS.map(weaponSlot));
-    this.controller = new CombatController({
-      hotbar: this.hotbar,
-      isMelee: (item) => item?.category === 'melee',
-      onUseIntent: (intent, used) => this._onUseIntent(intent, used),
-    });
+    // Combat V1 (resolution): hotbar lives in CombatSystem.
+    this.combat = new CombatSystem({ collider: this.collider, attacker: this.player, dummy: { body: dummyBody } });
     this.combatInput = new CombatInput(canvas);
-    if (resetBtn) resetBtn.addEventListener('click', () => this.resetView());
+    if (resetBtn) resetBtn.addEventListener('click', () => this.combat.reset(this.simTime));
 
-    // Debug/playtest zoom — separate from the mouse wheel (wheel = hotbar).
-    //   + / =  zoom in   ·   -  zoom out   ·   0  reset
     if (zoomInBtn) zoomInBtn.addEventListener('click', () => this.zoomBy(1.15));
     if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this.zoomBy(1 / 1.15));
     if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => this.resetZoom());
@@ -90,12 +79,8 @@ export class ArenaScene {
       else if (e.code === 'Digit0' || e.code === 'Numpad0') { this.resetZoom(); e.preventDefault(); }
     });
 
-    // Aim + use-intent debug state.
     this.aimAngle = 0;
     this.aimPoint = { x: 0, y: 0 };
-    this.lastUseIntent = null;
-    this.useIntentCount = 0;
-    this.lastUseAt = -999;
 
     const pb = this.player.body;
     this.camera.snap(pb.x + pb.w / 2, pb.y + pb.h / 2);
@@ -107,18 +92,9 @@ export class ArenaScene {
   }
 
   start() {
-    this._renderHud();
-    this._updateZoomLabel();
+    this._renderHud(); this._renderWin(); this._updateZoomLabel();
     this._last = performance.now();
     requestAnimationFrame(this._loop);
-  }
-
-  resetView() {
-    const s = this.map.spawns.p1;
-    const b = this.player.body;
-    b.x = s.x; b.y = s.y; b.vx = 0; b.vy = 0;
-    this.hotbar.select(0);
-    this.camera.snap(b.x + b.w / 2, b.y + b.h / 2);
   }
 
   _playerCenter() { const b = this.player.body; return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; }
@@ -126,38 +102,24 @@ export class ArenaScene {
   resetZoom() { const c = this._playerCenter(); this.camera.resetZoom(c.x, c.y); this._updateZoomLabel(); }
   _updateZoomLabel() { if (this.zoomLabel) this.zoomLabel.textContent = `${this.camera.zoom.toFixed(2)}×`; }
 
-  _onUseIntent(intent, used) {
-    this.lastUseIntent = { ...intent, weapon: used.item?.name, angle: used.angle };
-    this.useIntentCount += 1;
-    this.lastUseAt = this.simTime;
-    // Show the generated use intent for debugging (NOT resolved into damage).
-    console.log(`[use-intent] op${intent.opcode} slot ${intent.slot} (${used.item?.name}) ` +
-      `origin (${intent.originX.toFixed(0)},${intent.originY.toFixed(0)}) -> target (${intent.targetX.toFixed(0)},${intent.targetY.toFixed(0)})`);
-  }
-
   _loop(now) {
     let frame = (now - this._last) / 1000;
     this._last = now;
     if (frame > MAX_FRAME) frame = MAX_FRAME;
 
-    // Mouse aim in world space (camera-aware).
     this.aimPoint = this.camera.screenToWorld(this.combatInput.aimX, this.combatInput.aimY);
     const pb = this.player.body;
     const pcx = pb.x + pb.w / 2, pcy = pb.y + pb.h / 2;
     this.aimAngle = computeAim(pcx, pcy, this.aimPoint.x, this.aimPoint.y);
 
-    // Confirmed Diggerz flow: wheel selects, left-click emits use intent.
     const wheel = this.combatInput.consumeWheel();
-    const pressed = this.combatInput.consumeUsePress();
-    this.controller.step(
-      { keyState: {}, mouse: { state: (this.combatInput.using || pressed) ? 1 : 0, wheel } },
-      { x: pcx, y: pcy, grounded: pb.grounded, moving: Math.abs(pb.vx) > 10, facing: pb.facing },
-      this.aimPoint,
-    );
+    if (wheel !== 0) this.combat.selectWheel(wheel);
+    if (this.combatInput.consumeUsePress()) this.combat.use(this.simTime, this.aimAngle);
 
     this._acc += frame;
     while (this._acc >= FIXED_DT) {
       this.player.update(FIXED_DT);
+      this.combat.update(FIXED_DT, this.simTime);
       this.simTime += FIXED_DT;
       this._acc -= FIXED_DT;
     }
@@ -165,6 +127,7 @@ export class ArenaScene {
 
     this._render();
     this._renderHud();
+    this._renderWin();
     this._renderDebug();
     requestAnimationFrame(this._loop);
   }
@@ -183,7 +146,7 @@ export class ArenaScene {
     this.background.render(ctx, cam, VIEW_W, VIEW_H);
 
     ctx.save();
-    ctx.scale(cam.zoom, cam.zoom);          // zoom only affects rendering
+    ctx.scale(cam.zoom, cam.zoom);
     ctx.translate(-cam.x, -cam.y);
 
     const c0 = Math.max(0, Math.floor(cam.x / t));
@@ -199,19 +162,34 @@ export class ArenaScene {
       for (let c = c0; c <= c1; c++)
         if (this.collider.isSolid(c, r)) this.tiles.drawTile(ctx, this._tileKind(c, r), c * t, r * t, t);
 
-    // P2 static visual reference (no weapon), then the player holding the
-    // selected weapon (aimed at the mouse).
-    this.character.draw(ctx, this._bodyState(this.p2), now, { palette: P2_PALETTE });
-    const sel = this.hotbar.selectedItem;
+    // ── Dummy (P2): alive -> draw + health bar + invuln flash; dead -> marker.
+    const d = this.combat.dummy;
+    if (d.health.alive) {
+      this.character.draw(ctx, this._bodyState(d.body), now, { palette: P2_PALETTE });
+      if (d.health.isInvulnerable(now)) this._flash(d.body);
+      this._healthBar(d.body, d.health);
+    } else {
+      this._respawnMarker(d);
+    }
+
+    // ── Player (P1): holding the selected weapon, aimed at the mouse.
+    const sel = this.combat.selectedWeapon;
     const weaponSprite = sel ? this.assets.getSprite(sel.spriteKey) : null;
     this.character.draw(ctx, this.player.state, now, { aim: this.aimAngle, weapon: weaponSprite });
+    this._healthBar(this.player.body, this.combat.attacker.health);
 
-    // Aim line + reticle (the confirmed aim direction, player -> mouse).
-    if (this._debugOn()) this._drawAim();
+    // ── Projectiles (ray gun) + melee swing visual (sword).
+    for (const w of this.combat.hotbar.slots) {
+      const r = this.combat.resolvers[w.id];
+      if (!r) continue;
+      if (w.combat.kind === 'projectile') for (const p of r.projectiles) this._drawProjectile(p);
+      if (w.combat.kind === 'melee') { const arc = r.debugArc(now, this.player.body); if (arc) this._drawSwing(arc); }
+    }
+
+    // Aim line + debug hitboxes.
+    if (this._debugOn()) { this._drawAim(); this._drawCombatDebug(); }
 
     ctx.restore();
-
-    // Screen space.
     this._renderHotbar();
   }
 
@@ -228,45 +206,85 @@ export class ArenaScene {
 
   _debugOn() { return this.debugChk ? this.debugChk.checked : true; }
 
-  _drawAim() {
+  _healthBar(body, health) {
     const ctx = this.ctx;
-    const pb = this.player.body;
-    const px = pb.x + pb.w / 2, py = pb.y + pb.h / 2;
-    const recent = this.simTime - this.lastUseAt < 0.18;
+    const w = body.w + 6, h = 4, x = body.x - 3, y = body.y - 12;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
+    const frac = Math.max(0, health.hp / health.max);
+    ctx.fillStyle = frac > 0.5 ? '#5bffa0' : frac > 0.25 ? '#ffe27f' : '#ff5b5b';
+    ctx.fillRect(x, y, w * frac, h);
+  }
+
+  _flash(body) {
+    const ctx = this.ctx;
+    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#fff';
+    ctx.fillRect(body.x - 3, body.y - 8, body.w + 6, body.h + 10); ctx.restore();
+  }
+
+  _respawnMarker(d) {
+    const ctx = this.ctx;
+    const x = d.spawn.x + d.body.w / 2, y = d.spawn.y + d.body.h / 2;
     ctx.save();
-    ctx.strokeStyle = recent ? 'rgba(255,226,127,0.9)' : 'rgba(127,209,255,0.7)';
-    ctx.lineWidth = 2;
-    // short direction indicator from the player + dashed line to the cursor
-    ctx.beginPath(); ctx.moveTo(px, py);
-    ctx.lineTo(px + Math.cos(this.aimAngle) * 60, py + Math.sin(this.aimAngle) * 60);
-    ctx.stroke();
-    ctx.setLineDash([4, 6]); ctx.globalAlpha = 0.4;
-    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(this.aimPoint.x, this.aimPoint.y); ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha = 1;
-    // reticle at the aim point
-    ctx.strokeStyle = recent ? '#ffe27f' : '#7fd1ff';
-    ctx.beginPath(); ctx.arc(this.aimPoint.x, this.aimPoint.y, 7, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(this.aimPoint.x - 11, this.aimPoint.y); ctx.lineTo(this.aimPoint.x + 11, this.aimPoint.y);
-    ctx.moveTo(this.aimPoint.x, this.aimPoint.y - 11); ctx.lineTo(this.aimPoint.x, this.aimPoint.y + 11); ctx.stroke();
+    ctx.strokeStyle = 'rgba(195,178,255,0.6)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = '#c3b2ff'; ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';
+    ctx.fillText('respawning…', x, y - 24); ctx.textAlign = 'left';
     ctx.restore();
+  }
+
+  _drawProjectile(p) {
+    const ctx = this.ctx;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+    ctx.fillStyle = '#7fd1ff'; ctx.strokeStyle = '#2a6f9e'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(0, 0, p.w / 2, p.h / 2, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.globalAlpha = 0.4; ctx.fillRect(-p.w, -1, p.w, 2);
+    ctx.restore();
+  }
+
+  _drawSwing(arc) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath(); ctx.moveTo(arc.x, arc.y);
+    ctx.arc(arc.x, arc.y, arc.reach, arc.aim - arc.arc / 2, arc.aim + arc.arc / 2);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  _drawAim() {
+    const ctx = this.ctx; const pb = this.player.body;
+    const px = pb.x + pb.w / 2, py = pb.y + pb.h / 2;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(127,209,255,0.4)'; ctx.lineWidth = 1; ctx.setLineDash([4, 6]);
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(this.aimPoint.x, this.aimPoint.y); ctx.stroke();
+    ctx.setLineDash([]); ctx.strokeStyle = '#7fd1ff';
+    ctx.beginPath(); ctx.arc(this.aimPoint.x, this.aimPoint.y, 6, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  _drawCombatDebug() {
+    const ctx = this.ctx;
+    const box = (b, color) => { if (!b) return; ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w, b.h); };
+    box(bodyHurtbox(this.player.body, FIGHTER.hurtboxInset), '#5bffa0');
+    if (this.combat.dummy.health.alive) box(bodyHurtbox(this.combat.dummy.body, FIGHTER.hurtboxInset), '#5bffa0');
+    for (const w of this.combat.hotbar.slots) {
+      const r = this.combat.resolvers[w.id];
+      if (!r) continue;
+      if (w.combat.kind === 'projectile') for (const p of r.projectiles) box(p.aabb(), '#ffe27f');
+    }
   }
 
   _renderHotbar() {
     const ctx = this.ctx;
-    const slots = this.hotbar.slots;
+    const slots = this.combat.hotbar.slots;
     const size = 52, gap = 10;
     const totalW = slots.length * size + (slots.length - 1) * gap;
     const x0 = (VIEW_W - totalW) / 2;
     const y = VIEW_H - size - 12;
-
     slots.forEach((w, i) => {
       const x = x0 + i * (size + gap);
-      const selected = i === this.hotbar.selected;
-      // Slot background — real Diggerz UI sprite (POCKET) if available, else panel.
-      if (!this.ui.draw(ctx, 'POCKET_PNG', x, y, size, size)) {
-        ctx.fillStyle = 'rgba(8,12,20,0.72)'; ctx.fillRect(x, y, size, size);
-      }
-      // Weapon icon — real Diggerz weapon sprite from tiles.png.
+      const selected = i === this.combat.hotbar.selected;
+      if (!this.ui.draw(ctx, 'POCKET_PNG', x, y, size, size)) { ctx.fillStyle = 'rgba(8,12,20,0.72)'; ctx.fillRect(x, y, size, size); }
       const spr = this.assets.getSprite(w.spriteKey);
       if (spr) {
         const pad = 9, mw = size - pad * 2, mh = size - pad * 2;
@@ -274,51 +292,53 @@ export class ArenaScene {
         const dw = spr.sw * sc, dh = spr.sh * sc;
         ctx.drawImage(spr.image, spr.sx, spr.sy, spr.sw, spr.sh, x + (size - dw) / 2, y + (size - dh) / 2, dw, dh);
       }
-      // Selection highlight + slot number.
       ctx.strokeStyle = selected ? '#ffe27f' : 'rgba(255,255,255,0.22)';
-      ctx.lineWidth = selected ? 3 : 1;
-      ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+      ctx.lineWidth = selected ? 3 : 1; ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
       ctx.fillStyle = selected ? '#ffe27f' : 'rgba(255,255,255,0.5)';
-      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'left';
-      ctx.fillText(String(i + 1), x + 4, y + 13);
+      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'left'; ctx.fillText(String(i + 1), x + 4, y + 13);
     });
-
-    // Selected weapon name above the bar.
-    const sel = this.hotbar.selectedItem;
+    const sel = this.combat.selectedWeapon;
     if (sel) {
+      const note = this.combat.resolvers[sel.id] ? '' : '  (not wired yet)';
       ctx.fillStyle = '#ffe27f'; ctx.font = '14px ui-monospace, monospace'; ctx.textAlign = 'center';
-      ctx.fillText(sel.name, VIEW_W / 2, y - 8);
-      ctx.textAlign = 'left';
+      ctx.fillText(sel.name + note, VIEW_W / 2, y - 8); ctx.textAlign = 'left';
     }
   }
 
   _renderHud() {
     if (!this.hudEl) return;
-    const sel = this.hotbar.selectedItem;
+    const { p1, p2 } = this.combat.match.scores;
     this.hudEl.innerHTML =
-      `<span class="p p1">Diggerz hotbar</span>` +
-      `<span class="vs">use-intent only</span>` +
-      `<span class="p p2">${sel ? sel.name : '—'}</span>`;
+      `<span class="p p1">P1 ${p1}</span><span class="vs">FT${this.combat.match.ftTarget}</span><span class="p p2">${p2} P2</span>`;
+  }
+
+  _renderWin() {
+    if (!this.winEl) return;
+    if (this.combat.match.winner) {
+      this.winEl.querySelector('[data-win-text]').textContent = `${this.combat.match.winner} Wins FT${this.combat.match.ftTarget}`;
+      this.winEl.style.display = 'flex';
+    } else {
+      this.winEl.style.display = 'none';
+    }
   }
 
   _renderDebug() {
     if (!this.debugEl) return;
     const pb = this.player.body;
-    const sel = this.hotbar.selectedItem;
-    const deg = (this.aimAngle * 180 / Math.PI).toFixed(1);
-    const fired = this.simTime - this.lastUseAt < 0.3;
-    const li = this.lastUseIntent;
+    const sel = this.combat.selectedWeapon;
+    const a = this.combat.attacker.health, d = this.combat.dummy.health;
+    const deg = (this.aimAngle * 180 / Math.PI).toFixed(0);
     const f = (n) => (n >= 0 ? ' ' : '') + n.toFixed(0);
     this.debugEl.textContent = [
-      `slot      ${this.hotbar.selected + 1}/${this.hotbar.slots.length}`,
-      `weapon    ${sel ? `${sel.name} (id ${sel.id})` : '—'}`,
-      `aim       ${deg}°  (enc ${encodeAim(this.aimAngle)})`,
-      `use-intent ${this.useIntentCount} fired${fired ? '  <<< FIRED' : ''}`,
-      li ? `  last    op${li.opcode} slot ${li.slot} -> (${f(li.targetX)},${f(li.targetY)})` : `  last    —`,
+      `weapon  ${sel ? `${sel.name} (id ${sel.id})` : '—'}${this.combat.resolvers[sel?.id] ? '' : ' [deferred]'}`,
+      `aim     ${deg}°  (enc ${encodeAim(this.aimAngle)})`,
+      `P1 hp   ${a.hp}/${a.max}`,
+      `P2 hp   ${d.hp}/${d.max} ${d.alive ? '' : '(respawning)'}`,
+      `score   P1 ${this.combat.match.scores.p1} / FT${this.combat.match.ftTarget}`,
       ``,
-      `mouse(w)  ${f(this.aimPoint.x)}, ${f(this.aimPoint.y)}`,
-      `player(w) ${f(pb.x)}, ${f(pb.y)}  facing ${pb.facing > 0 ? 'R' : 'L'}`,
-      `camera    ${f(this.camera.x)}, ${f(this.camera.y)}  zoom ${this.camera.zoom.toFixed(2)}x`,
+      `mouse(w) ${f(this.aimPoint.x)}, ${f(this.aimPoint.y)}`,
+      `player   ${f(pb.x)}, ${f(pb.y)}  facing ${pb.facing > 0 ? 'R' : 'L'}`,
+      `camera   ${f(this.camera.x)}, ${f(this.camera.y)}  zoom ${this.camera.zoom.toFixed(2)}x`,
     ].join('\n');
   }
 }
