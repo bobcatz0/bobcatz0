@@ -1,4 +1,5 @@
 import { ArenaScene } from './game/ArenaScene.js';
+import { TuningPanel } from './game/TuningPanel.js';
 
 const canvas = document.getElementById('game');
 const loadingEl = document.getElementById('loading');
@@ -18,6 +19,12 @@ const scene = new ArenaScene(canvas, {
 // Rematch button on the win banner restarts the FT20 match.
 document.getElementById('rematchBtn')?.addEventListener('click', () => scene.combat.reset(scene.simTime));
 
+// Dev-only playtest tuning panel (toggle button; or open with #tune in the URL).
+const tuning = new TuningPanel(scene, {
+  panelEl: document.getElementById('tuningPanel'),
+  toggleBtn: document.getElementById('tuneBtn'),
+});
+
 // Hold the Diggerz loading screen until the real assets are ready, then start.
 scene.ready.finally(() => {
   if (loadingEl) {
@@ -29,3 +36,4 @@ scene.ready.finally(() => {
 
 // Exposed for automated testing / tinkering in the console.
 window.__arena = scene;
+window.__tuning = tuning;

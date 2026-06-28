@@ -119,6 +119,7 @@ src/
     ArenaScene.js            viewport, game loop, camera, HUD, debug, rendering
     arenaMap.js              the 80x34 arena (floor/walls/platforms) + spawns
     Camera.js                follow camera with smoothing + world clamping
+    TuningPanel.js           dev-only live playtest tuning panel (+ JSON export)
   render/
     AssetStore.js            loads the real Diggerz atlas (tiles.png) if present
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
@@ -184,6 +185,18 @@ left unchanged this pass — tune `moveSpeed` there when we decide to.)
 The combat numbers live in `src/combat/CombatConfig.js` and are likewise
 **PROPOSED standalone PvP values**, not extracted from Diggerz (the server
 combat logic is lost).
+
+### Dev-only tuning panel
+
+Click **⚙ Tuning** (or open the page with `#tune`) for a live playtest panel
+(`src/game/TuningPanel.js`). It exposes — as sliders + number inputs you can
+change *while playing* — move speed, acceleration, friction, gravity, jump
+speed; Fake Sword damage/cooldown/reach; Blue Ray Gun damage/cooldown/speed/
+lifetime; and respawn time + invulnerability time. **Reset to defaults** restores
+the boot values, and **Export JSON** gives you the current set (copy or download)
+to save a good config. The panel only mutates the live objects the sim already
+reads each step — it does **not** change any source defaults, and the exported
+values are PROPOSED standalone PvP values, not extracted Diggerz numbers.
 
 ## Verified
 
