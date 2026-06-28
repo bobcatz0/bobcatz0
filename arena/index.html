@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PvP Arena — Movement Prototype</title>
+  <title>PvP Arena — Combat V1</title>
   <style>
     :root { color-scheme: dark; }
     html, body {
@@ -11,35 +11,31 @@
       background: #0b0f16; color: #e7eef9;
       font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     }
-    .wrap {
-      min-height: 100%;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 14px; padding: 18px;
-      box-sizing: border-box;
-    }
-    #hud {
-      display: flex; align-items: center; gap: 22px;
-      font-size: 22px; font-weight: 700; letter-spacing: 1px;
-    }
-    #hud .vs { opacity: .55; font-size: 15px; padding: 2px 10px;
-      border: 1px solid rgba(255,255,255,.2); border-radius: 999px; }
+    .wrap { min-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; box-sizing: border-box; }
+    #hud { display: flex; align-items: center; gap: 22px; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+    #hud .vs { opacity: .55; font-size: 15px; padding: 2px 10px; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; }
     #hud .p1 { color: #7fffa8; }
-    #hud .p2 { color: #ff9f7f; }
+    #hud .p2 { color: #b9a3ff; }
     .stage { position: relative; }
-    canvas {
-      display: block; border-radius: 10px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.5);
-      image-rendering: pixelated;
-    }
+    canvas { display: block; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); cursor: crosshair; }
     #debug {
-      position: absolute; top: 10px; left: 10px;
-      margin: 0; padding: 10px 12px;
+      position: absolute; top: 10px; left: 10px; margin: 0; padding: 10px 12px;
       background: rgba(8,12,20,.72); border: 1px solid rgba(255,255,255,.08);
-      border-radius: 8px; font-size: 12.5px; line-height: 1.45;
-      white-space: pre; pointer-events: none; color: #b9c7da;
+      border-radius: 8px; font-size: 12.5px; line-height: 1.45; white-space: pre;
+      pointer-events: none; color: #b9c7da;
     }
-    .help { opacity: .6; font-size: 13px; }
+    #winbanner {
+      position: absolute; inset: 0; display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px; border-radius: 10px;
+      background: rgba(8,12,20,.78);
+    }
+    #winbanner .title { font-size: 40px; font-weight: 800; color: #7fffa8; }
+    button { font: inherit; font-size: 14px; cursor: pointer; background: #2a3346; color: #e7eef9; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 7px 14px; }
+    button:hover { background: #354060; }
+    .bar { display: flex; align-items: center; gap: 16px; opacity: .85; font-size: 13px; }
+    .help { opacity: .6; font-size: 13px; text-align: center; }
     .help b { color: #e7eef9; }
+    label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -48,10 +44,18 @@
     <div class="stage">
       <canvas id="game"></canvas>
       <pre id="debug"></pre>
+      <div id="winbanner">
+        <div class="title" data-win-text>P1 Wins FT20</div>
+        <button id="rematchBtn">Reset match</button>
+      </div>
+    </div>
+    <div class="bar">
+      <label><input type="checkbox" id="debugChk" checked /> debug hitboxes</label>
+      <button id="resetBtn">Reset match</button>
     </div>
     <div class="help">
-      Move <b>A</b>/<b>D</b> or <b>←</b>/<b>→</b> &nbsp;·&nbsp; Jump <b>W</b> / <b>↑</b> / <b>Space</b>
-      &nbsp;·&nbsp; hold jump for height, tap for a hop
+      Move <b>A</b>/<b>D</b> or <b>←</b>/<b>→</b> · Jump <b>W</b>/<b>↑</b>/<b>Space</b> · Descend <b>S</b>/<b>↓</b><br />
+      Aim <b>mouse</b> · <b>Left-click</b> use weapon · <b>Mouse wheel</b> select weapon
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>

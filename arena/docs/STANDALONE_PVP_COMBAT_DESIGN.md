@@ -122,25 +122,34 @@ and lives in `DiggerzWeaponCatalog.js`. Its **combat values** (`damage`,
 are **[UNKNOWN] server-side** → they are filled by the **proposed** config
 (§3.4–3.7), clearly marked as proposed, never as extracted.
 
-### 3.4 Melee behavior (proposed)
+### 3.4 Melee behavior — Combat V1 weapon: **Fake Sword** (catalog id 55)
 
-- On use: play `hit` animation; spawn a short-lived **hit arc** in the aim
-  direction for ~`0.12 s`.
-- **Reach** ~`1.0–1.5` tiles; **arc** ~`70°` centered on the aim angle.
-- One target hit per swing (no multi-hit per swing).
-- **Cooldown** ~`0.4 s` (per-weapon).
-- Hit = arc overlaps an enemy hurtbox.
+Identity is **confirmed** (id 55, name "Fake Sword", `SWORD_PNG`). The behavior
+values are **PROPOSED standalone PvP values — NOT extracted from Diggerz** (the
+server logic is gone). All live in `src/combat/CombatConfig.js`:
 
-### 3.5 Projectile behavior (proposed)
+- On use: play `hit`; spawn a short-lived **hit arc** in the aim direction.
+- **[PROPOSED]** reach `46 px`, arc `70°`, active `0.12 s`, cooldown `0.45 s`,
+  damage `34` (→ 3 hits to drop a 100-HP fighter).
+- One target hit per swing.
 
-- On use: play `gun_pose`; spawn a projectile at the muzzle toward the aim
-  angle.
-- Proposed defaults: **speed** ~`600–900 px/s`, **ttl** ~`1.5 s`, optional
-  **gravity** (0 for hitscan-ish guns, >0 for lobbed). Shotgun = N pellets with
-  spread; railgun = fast/instant-ish single shot.
-- Projectile dies on **enemy hit** or **wall hit** (terrain collision) or ttl.
-- **Cooldown / fire-rate** per weapon (e.g. shotgun ~`0.8 s`, railgun ~`1.2 s`).
-- We **spawn projectiles ourselves** (the client never did — §2).
+### 3.5 Projectile behavior — Combat V1 weapon: **Blue Ray Gun** (catalog id 79)
+
+Identity is **confirmed** (id 79, name "Blue Ray Gun", `RAILGUN_PNG`). The
+behavior values are **PROPOSED standalone PvP values — NOT extracted**:
+
+- On use: play `gun_pose`; spawn one straight projectile/ray toward the aim.
+- **[PROPOSED]** speed `900 px/s`, ttl `1.2 s`, no gravity, cooldown `0.6 s`,
+  damage `25` (→ 4 hits to drop a 100-HP fighter), projectile `24×6 px`.
+- Dies on enemy hit, wall hit (terrain), or ttl. We spawn projectiles ourselves
+  (the client never did — §2).
+
+### 3.5b Third weapon (later) — **Shotgun** (catalog id 248)
+
+Added only after the first two work. Per the request, the shotgun's firing
+shape (pellet count / spread) will be taken from the **real client's shotgun
+functions** in `diggerz_v-203.js`, not invented; only the gap values (damage/
+cooldown) remain PROPOSED.
 
 ### 3.6 Digging / building tools (later, gated)
 

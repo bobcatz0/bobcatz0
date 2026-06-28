@@ -5,9 +5,11 @@ feel** as clean, reusable code, plus a set of modules that faithfully recreate
 the **confirmed** Diggerz client systems (input, character rig, items) to build
 the real PvP game on top of.
 
-Single player. No networking. **No combat is implemented yet** — combat is being
-designed first (the original Diggerz combat was server-authoritative and that
-server code is lost; see the docs below).
+Single player. No networking. **Combat V1** is implemented using the confirmed
+Diggerz weapons (Fake Sword + Blue Ray Gun) with the real Diggerz controls.
+Combat *resolution* values (damage/range/cooldown/projectile/respawn) are
+**proposed standalone PvP values**, not extracted (the original server combat
+logic is lost — see the docs).
 
 ![preview](preview.png)
 
@@ -19,15 +21,15 @@ node serve.js          # http://localhost:8080
 ```
 Open the URL.
 
-Controls (the real Diggerz scheme):
+Controls (the real Diggerz scheme — no J/K, no number keys):
 
 - **Move:** `A`/`D` or `←`/`→`
 - **Jump:** `W` / `↑` / `Space` — hold for height, tap for a small hop
 - **Descend:** `S` / `↓`
-
-(Mouse aim, left-mouse use/dig/build, and mouse-wheel hotbar selection are the
-confirmed Diggerz controls and are documented in the audit, but combat is not
-wired up yet — by design.)
+- **Aim:** mouse
+- **Use weapon:** left-click
+- **Select weapon:** mouse wheel
+- Reset match / toggle debug hitboxes: on-screen button + checkbox (not keybinds)
 
 Run the headless logic tests:
 
@@ -46,9 +48,13 @@ npm test
 - Velocity tracking, facing direction, animation-state values
 - FT20 score placeholder in the HUD (no scoring logic yet)
 - Debug overlay: `x, y, vx, vy, grounded, facing, anim`
-- Diggerz-style rendering: grass-topped dirt blocks + stone and an animated
-  character — uses the real Diggerz sprites when `tiles.png` is present (see
-  **Assets**), procedural art otherwise
+- Diggerz-style rendering: real Diggerz tiles + character sprites
+- **Combat V1:** a dummy opponent with health + hurtbox; a hotbar (mouse-wheel
+  select) rendering the real **Fake Sword** + **Blue Ray Gun** sprites;
+  left-click uses the selected weapon; sword = melee arc, ray gun = projectile;
+  health / death / respawn / brief spawn-invulnerability; **FT20 kill scoring**
+  with a win banner; health bars, selected-weapon label, score, and debug
+  hitboxes. All combat numbers are PROPOSED values in `src/combat/CombatConfig.js`.
 
 ## Documentation
 
@@ -84,6 +90,13 @@ src/
     ItemSystem.js            real hotbar/slot model (type, count, wheel select)
     WeaponSystem.js          confirmed "use intent" (opcode 287) + animation only
     CombatController.js      wires the confirmed flow; resolution is delegated
+    DiggerzWeaponCatalog.js  38 confirmed weapons (id, name, sprite, rect)
+  combat/                   ← Combat V1 (confirmed weapons; PROPOSED resolution)
+    CombatConfig.js          all combat numbers (PROPOSED standalone), tunable
+    geometry.js  Health.js  MeleeResolver.js  ProjectileResolver.js
+    MatchState.js            FT20 kill scoring
+    CombatSystem.js          headless orchestrator (local now, server later)
+    CombatInput.js           mouse aim / left-click use / wheel select (DOM)
 assets/
   tiles.atlas.json         recovered sprite rects (698 sprites) — see "Assets"
 serve.js                   zero-dependency static server (ES modules need http)
@@ -122,15 +135,14 @@ speed, accel/friction, jump speed, coyote/buffer times, jump-cut).
 
 ## Verified
 
-- `npm test` — 6 movement + 7 Diggerz-mechanics headless checks (gravity/
-  landing, horizontal accel, jump, wall collision, facing, animation states;
-  real bindings, aim encoding, animation names, hotbar wheel-select, opcode-287
-  intent shape).
-- Browser smoke test (Chromium) — loads with no JS errors and responds to real
-  key input: rests grounded, runs, jumps, lands, stops at walls.
+- `npm test` — 6 movement + 7 Diggerz-mechanics + 9 combat headless checks
+  (movement physics; real bindings/aim/animation names; sword hit/miss, ray gun
+  hit/wall, death, respawn + invulnerability, score, FT20 win, reset).
+- Browser smoke (Chromium) — real assets load; real input drives it: move/jump,
+  wheel-select to the ray gun, sword hits, ray gun hits, kills scored.
 
 ## Not in scope yet (intentionally)
 
-Combat (pending the design doc), multiplayer, ranked, tournaments, cosmetics,
-accounts, rollback. This is the movement foundation plus the confirmed Diggerz
-reference systems only.
+More weapons (Shotgun is next, using the real client's shotgun functions),
+multiplayer, ranked, tournaments, cosmetics, accounts, rollback. Combat V1 is
+local single-player vs a dummy.
