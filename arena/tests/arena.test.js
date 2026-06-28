@@ -187,4 +187,34 @@ const RIGHT = { left: false, right: true, jump: false, jumpHeld: false, jumpPres
   ok('mouse wheel zooms the camera and clamps to [0.75, 2.0]');
 })();
 
+// 12. Zoom only affects rendering — never world coordinates / physics / tiles.
+(function zoomIsRenderOnly() {
+  const t = map.tileSize;
+  const ground = map.floorRow * t - PLAYER_H;
+  // Run identical physics twice; the second run zooms the camera every step.
+  const noCam = body(map.spawns.p1.x, ground);
+  const withCam = body(map.spawns.p1.x, ground);
+  const cam = new Camera(VIEW_W, VIEW_H, map.worldW, map.worldH);
+  const zooms = [1, 1.4, 2, 0.75, 1.1];
+  for (let i = 0; i < 240; i++) {
+    mc.step(noCam, RIGHT, DT, collider);
+    mc.step(withCam, RIGHT, DT, collider);
+    const c = { x: withCam.x + withCam.w / 2, y: withCam.y + withCam.h / 2 };
+    cam.setZoom(zooms[i % zooms.length], c.x, c.y); // zoom churns; world must not care
+    cam.follow(c.x, c.y, DT);
+  }
+  // Body coordinates are byte-identical regardless of camera zoom activity.
+  assert.strictEqual(withCam.x, noCam.x, 'zoom did not change world x');
+  assert.strictEqual(withCam.y, noCam.y, 'zoom did not change world y');
+  assert.strictEqual(withCam.vx, noCam.vx, 'zoom did not change velocity');
+  assert.strictEqual(map.tileSize, t, 'tile size constant under zoom');
+  // The world point under the viewport centre is the same focus at any zoom
+  // (use a world-interior focus so neither zoom hits the bounds clamp).
+  const focus = { x: map.worldW / 2, y: map.worldH / 2 };
+  cam.setZoom(1, focus.x, focus.y); const a = cam.screenToWorld(VIEW_W / 2, VIEW_H / 2);
+  cam.setZoom(2, focus.x, focus.y); const b2 = cam.screenToWorld(VIEW_W / 2, VIEW_H / 2);
+  assert.ok(Math.abs(a.x - b2.x) < 1 && Math.abs(a.y - b2.y) < 1, 'same world centre at 1x and 2x');
+  ok('zoom is render-only: world coordinates / velocity / tile size are unchanged');
+})();
+
 console.log(`\nAll ${passed} arena checks passed.`);

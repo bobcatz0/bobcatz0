@@ -63,4 +63,11 @@ export class MeleeResolver {
     const origin = center(bodyHurtbox(attackerBody));
     return { x: origin.x, y: origin.y, reach: this.w.combat.reach, aim: this._aim, arc: (this.w.combat.arcDegrees * Math.PI) / 180 };
   }
+
+  /** Reset transient swing state (called by CombatSystem.reset for a rematch). */
+  clear() {
+    this._cooldownUntil = 0;
+    this._activeUntil = 0;
+    this._connected = false;
+  }
 }

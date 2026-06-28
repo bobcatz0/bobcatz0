@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { MovementController } from '../src/game/MovementController.js';
 import { CombatSystem } from '../src/combat/CombatSystem.js';
-import { FAKE_SWORD, BLUE_RAY_GUN, FIGHTER, MATCH, RESPAWN } from '../src/combat/CombatConfig.js';
+import { FAKE_SWORD, BLUE_RAY_GUN, SHOTGUN, FIGHTER, MATCH, RESPAWN } from '../src/combat/CombatConfig.js';
 
 // Combat V1 tests (pure logic, no DOM). Confirmed Diggerz weapons (Fake Sword
 // id 55, Blue Ray Gun id 79); combat numbers are the PROPOSED standalone values.
@@ -52,8 +52,8 @@ const AIM_RIGHT = 0;
 // 2. Ray gun hit: projectile travels and damages the dummy.
 (function rayGunHit() {
   const { combat } = setup(180);
-  combat.selectWheel(1); // wheel to Blue Ray Gun
-  assert.strictEqual(combat.selectedWeapon.id, 79, 'ray gun selected after wheel');
+  combat.selectSlot(1); // number key 2 -> Blue Ray Gun
+  assert.strictEqual(combat.selectedWeapon.id, 79, 'ray gun selected on slot 1');
   let now = 5.0;
   combat.use(now, AIM_RIGHT);
   const hp0 = combat.dummy.health.hp;
@@ -69,7 +69,7 @@ const AIM_RIGHT = 0;
   const attacker = { body: MovementController.createBody(100, 100, 24, 36) };
   const dummy = { body: MovementController.createBody(300, 100, 24, 36) };
   const combat = new CombatSystem({ collider: wall, attacker, dummy });
-  combat.selectWheel(1);
+  combat.selectSlot(1);
   let now = 5;
   combat.use(now, AIM_RIGHT);
   for (let i = 0; i < 120; i++) { now += DT; combat.update(DT, now); }
@@ -141,7 +141,36 @@ const AIM_RIGHT = 0;
   assert.strictEqual(combat.match.winner, null, 'winner cleared');
   assert.strictEqual(combat.match.scores.p1, 0, 'score cleared');
   assert.strictEqual(combat.dummy.health.alive, true, 'dummy revived');
-  ok('reset clears scores/winner and revives the dummy');
+
+  // Reset must also clear weapon cooldowns: a swing then an immediate rematch
+  // reset must let a fresh swing connect at the same instant (no stuck cooldown).
+  const c2 = setup(140).combat;
+  c2.use(100, AIM_RIGHT); c2.update(DT, 100); // swing -> on cooldown
+  assert.strictEqual(c2.use(100, AIM_RIGHT), false, 'sword on cooldown right after a swing');
+  c2.reset(100);
+  assert.strictEqual(c2.use(100, AIM_RIGHT), true, 'reset clears the melee cooldown (fresh swing lands)');
+  ok('reset clears scores/winner, revives the dummy, and clears weapon cooldowns');
+})();
+
+// 7. Held weapon follows the selected slot: the sprite ArenaScene draws in the
+//    hand is `selectedWeapon.spriteKey`, so it must track number-key selection
+//    (including the not-yet-wired Shotgun, which is still shown/held).
+(function heldWeaponFollowsSelection() {
+  const { combat } = setup(140);
+  const held = () => { const w = combat.selectedWeapon; return { id: w.id, key: w.spriteKey }; };
+  combat.selectSlot(0);
+  assert.strictEqual(held().id, FAKE_SWORD.id, 'slot 0 holds the Fake Sword');
+  combat.selectSlot(1);
+  assert.strictEqual(held().id, BLUE_RAY_GUN.id, 'slot 1 holds the Blue Ray Gun');
+  combat.selectSlot(2);
+  assert.strictEqual(held().id, SHOTGUN.id, 'slot 2 holds the Shotgun (selectable, inert)');
+  // every held weapon has a real catalog sprite to render in the hand
+  for (let i = 0; i < combat.hotbar.slots.length; i++) {
+    combat.selectSlot(i);
+    assert.ok(combat.selectedWeapon.spriteKey, `slot ${i} has a real sprite key`);
+    assert.ok(combat.selectedWeapon.rect, `slot ${i} has a real atlas rect`);
+  }
+  ok('held weapon follows the selected weapon (sword/ray gun/shotgun)');
 })();
 
 console.log(`\nAll ${passed} combat checks passed.`);

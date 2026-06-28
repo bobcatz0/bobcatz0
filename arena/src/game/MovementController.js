@@ -19,29 +19,12 @@
  *     down); jumpHeld = currently held (drives variable jump height).
  */
 
+import { MOVEMENT_CONFIG } from './MovementConfig.js';
+
 const ANIM_INDEX = { idle: 0, run: 1, jump: 2, fall: 3 };
 
-const DEFAULTS = {
-  // Gravity & fall.
-  gravity: 1900,          // px/s^2
-  maxFallSpeed: 1200,     // px/s
-
-  // Horizontal.
-  moveSpeed: 285,         // px/s target top speed
-  groundAccel: 2600,      // px/s^2 toward target while grounded
-  airAccel: 1700,         // px/s^2 toward target while airborne
-  groundFriction: 2700,   // px/s^2 decel when no input, grounded
-  airFriction: 600,       // px/s^2 decel when no input, airborne
-
-  // Jump.
-  jumpSpeed: 720,         // px/s initial upward velocity
-  jumpCutMultiplier: 0.45,// releasing jump early scales remaining up-velocity
-  coyoteTime: 0.09,       // s of grace to jump after leaving a ledge
-  jumpBufferTime: 0.10,   // s a jump press is remembered before landing
-
-  // Animation.
-  runThreshold: 12,       // px/s above which grounded movement reads as "run"
-};
+// All movement values live in MovementConfig.js (the one clear config file).
+const DEFAULTS = MOVEMENT_CONFIG;
 
 export class MovementController {
   constructor(config = {}) {

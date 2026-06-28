@@ -111,6 +111,7 @@ npm test
 src/
   main.js                  boot the scene
   game/
+    MovementConfig.js       ALL movement values (one clear config file)
     MovementController.js   the "feel": gravity, accel, jump, anim — PURE logic
     TileCollision.js        AABB-vs-tile resolution + ground snap — PURE logic
     PlayerController.js      binds input + body + movement
@@ -173,24 +174,37 @@ The 38 confirmed weapons (verified against the real `tiles.png`) are in
 
 ## Tuning the feel
 
-All movement constants live in `MovementController.DEFAULTS` (gravity, move
-speed, accel/friction, jump speed, coyote/buffer times, jump-cut).
+All movement constants — gravity, move speed, accel/friction, jump speed,
+coyote/buffer times, jump-cut — live in **one clear config file**,
+`src/game/MovementConfig.js` (`MovementController` imports it as its defaults).
+These are the prototype's tunable standalone feel values, not extracted server
+numbers. (Playtest note: movement reads a touch faster than the original; it's
+left unchanged this pass — tune `moveSpeed` there when we decide to.)
+
+The combat numbers live in `src/combat/CombatConfig.js` and are likewise
+**PROPOSED standalone PvP values**, not extracted from Diggerz (the server
+combat logic is lost).
 
 ## Verified
 
-- `npm test` — 6 movement + 11 arena + 7 Diggerz-mechanics + 3 hotbar + 9 combat
-  headless checks (movement physics; arena size/spawns/landing/traversal/
+- `npm test` — 6 movement + 12 arena + 7 Diggerz-mechanics + 3 hotbar + 10
+  combat headless checks (movement physics; arena size/spawns/landing/traversal/
   boundary-walls/jump-reachability/camera-clamp/zoom-clamp/facing-sign/
-  number-key weapon select/wheel-zoom; real bindings/aim/animation; hotbar;
-  sword + ray gun hits, death, respawn + invulnerability, score, FT20 win,
-  reset).
-- Browser smoke (Chromium) — real assets load; the camera follows + zooms and
-  clamps to bounds; the player holds the selected weapon aimed at the mouse; and
-  Combat V1 resolves end to end (sword 34 dmg, ray gun 25 dmg + wall block,
-  dummy death → +1 score, respawn at full HP, shotgun selectable but inert).
+  number-key weapon select/wheel-zoom/**zoom-is-render-only**; real bindings/aim/
+  animation; hotbar; sword + ray gun hits, wall-blocked ray, death, respawn +
+  invulnerability, score, FT20 win, reset + cooldown-clear, **held-weapon-follows-
+  selection**).
+- Browser smoke (Chromium) — real assets load; facing tracks movement (right→R,
+  left→L, no moonwalk); the held weapon rotates to the mouse aim (incl. aiming
+  behind) and stays attached to the hand; the camera follows + wheel-zooms and
+  clamps without changing world coordinates; the sword hitbox shows under debug;
+  and Combat V1 resolves end to end (sword 34 dmg, ray gun 25 dmg + wall block,
+  dummy death → +1 score, respawn at full HP with invuln, FT20 banner + rematch,
+  shotgun selectable but inert).
 
 ## Not in scope yet (intentionally)
 
-More weapons (Shotgun is next, using the real client's shotgun functions),
-multiplayer, ranked, tournaments, cosmetics, accounts, rollback. Combat V1 is
-local single-player vs a dummy.
+Shotgun *behavior* (its damage/spread/cooldown were server-side and are **lost**;
+it stays selectable but inert until that logic can be shown in the decompiled
+client — we won't invent it), more weapons, multiplayer, ranked, tournaments,
+cosmetics, accounts, rollback. Combat V1 is local single-player vs a dummy.

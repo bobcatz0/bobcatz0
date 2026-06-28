@@ -271,13 +271,25 @@ export class ArenaScene {
 
   _drawCombatDebug() {
     const ctx = this.ctx;
+    const now = this.simTime;
     const box = (b, color) => { if (!b) return; ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w, b.h); };
+    // Hurtboxes (green).
     box(bodyHurtbox(this.player.body, FIGHTER.hurtboxInset), '#5bffa0');
     if (this.combat.dummy.health.alive) box(bodyHurtbox(this.combat.dummy.body, FIGHTER.hurtboxInset), '#5bffa0');
+    // Hitboxes (yellow): ray-gun projectile AABBs + the live Fake Sword wedge.
     for (const w of this.combat.hotbar.slots) {
       const r = this.combat.resolvers[w.id];
       if (!r) continue;
       if (w.combat.kind === 'projectile') for (const p of r.projectiles) box(p.aabb(), '#ffe27f');
+      if (w.combat.kind === 'melee') {
+        const arc = r.debugArc(now, this.player.body);
+        if (arc) {
+          ctx.strokeStyle = '#ffe27f'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(arc.x, arc.y);
+          ctx.arc(arc.x, arc.y, arc.reach, arc.aim - arc.arc / 2, arc.aim + arc.arc / 2);
+          ctx.closePath(); ctx.stroke();
+        }
+      }
     }
   }
 

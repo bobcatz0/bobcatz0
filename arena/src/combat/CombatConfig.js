@@ -67,10 +67,18 @@ export const BLUE_RAY_GUN = weapon(79, {
 });
 
 // 3. Shotgun (id 248) — in the hotbar, but resolution is DEFERRED.
-// Per the request, the shotgun's firing shape (pellet count / spread) will come
-// from the real client's shotgun functions in diggerz_v-203.js, not invented —
-// so it is selectable but does not resolve yet (kind 'unimplemented').
-export const SHOTGUN = weapon(248, { kind: 'unimplemented' });
+//
+// PROVENANCE / what is actually known:
+//   - CONFIRMED: only the identity (id 248, name, sprite, atlas rect) from the
+//     real catalog — i.e. that the Shotgun exists and is a Diggerz weapon.
+//   - MISSING (server-side, lost): its damage, pellet count, spread, range and
+//     cooldown. Diggerz resolved combat on the server; that logic is NOT in the
+//     repo, so these numbers are NOT extracted and are deliberately absent.
+//
+// We will NOT invent them and will NOT claim client/server shotgun logic exists
+// unless it can be shown in the decompiled client. Until then the Shotgun is
+// selectable/held but inert (kind 'unimplemented' -> no resolver, no damage).
+export const SHOTGUN = weapon(248, { kind: 'unimplemented' }); // combat numbers: MISSING (server-side)
 
 // The Combat V1 loadout, in hotbar order. Sword + Ray Gun resolve; Shotgun is
 // shown/selectable but not yet wired (no damage).
