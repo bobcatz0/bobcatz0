@@ -39,7 +39,12 @@ npm test
 
 ## What's implemented
 
-- One hand-authored arena map (`src/game/arenaMap.js`)
+- A large PvP arena (**80×34 tiles = 3200×1360 world**) with a wide floor,
+  boundary walls, an open centre, and reachable multi-height platforms
+  (`src/game/arenaMap.js`); spawn points (P1 left, P2 right) stored in the map
+- A **follow camera** (`src/game/Camera.js`): fixed 1000×640 viewport, smooth
+  (non-floaty) follow, clamped to the world bounds; HUD/hotbar/debug stay fixed
+  to the screen; the debug overlay shows true world coords + camera x/y
 - One controllable player
 - Gravity + capped fall speed
 - Accelerated horizontal movement with ground/air friction
@@ -77,8 +82,9 @@ src/
     TileCollision.js        AABB-vs-tile resolution + ground snap — PURE logic
     PlayerController.js      binds input + body + movement
     InputState.js            keyboard -> movement intents
-    ArenaScene.js            canvas, game loop, HUD, debug overlay, tile classify
-    arenaMap.js              the one arena, as ASCII -> collision grid
+    ArenaScene.js            viewport, game loop, camera, HUD, debug, rendering
+    arenaMap.js              the 80x34 arena (floor/walls/platforms) + spawns
+    Camera.js                follow camera with smoothing + world clamping
   render/
     AssetStore.js            loads the real Diggerz atlas (tiles.png) if present
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
@@ -135,11 +141,12 @@ speed, accel/friction, jump speed, coyote/buffer times, jump-cut).
 
 ## Verified
 
-- `npm test` — 6 movement + 7 Diggerz-mechanics + 9 combat headless checks
-  (movement physics; real bindings/aim/animation names; sword hit/miss, ray gun
-  hit/wall, death, respawn + invulnerability, score, FT20 win, reset).
-- Browser smoke (Chromium) — real assets load; real input drives it: move/jump,
-  wheel-select to the ray gun, sword hits, ray gun hits, kills scored.
+- `npm test` — 6 movement + 7 arena + 7 Diggerz-mechanics + 9 combat headless
+  checks (movement physics; arena size/spawns/landing/traversal/boundary-walls/
+  jump-reachability/camera-clamp; real bindings/aim/animation; sword + ray gun
+  hits, death, respawn + invulnerability, score, FT20 win, reset).
+- Browser smoke (Chromium) — real assets load; the camera follows the player
+  across the large arena and clamps to bounds; combat input still works.
 
 ## Not in scope yet (intentionally)
 

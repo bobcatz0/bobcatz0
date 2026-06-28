@@ -11,7 +11,7 @@ const collider = new TileCollision(map);
 const mc = new MovementController();
 const DT = 1 / 120;
 
-const FLOOR_TOP = (map.rows - 1) * map.tileSize;
+const FLOOR_TOP = map.floorRow * map.tileSize; // top of the (now 2-tile) floor
 const PLAYER_H = 36;
 const RESTING_Y = FLOOR_TOP - PLAYER_H;
 
@@ -94,20 +94,23 @@ function run(b, input, seconds) {
   ok('facing direction tracks input');
 })();
 
-// 6. Animation states
+// 6. Animation states (use the open left column so the jump is unobstructed).
 (function anim() {
-  const b = body(200, RESTING_Y);
+  const b = body(80, RESTING_Y);
   run(b, NONE, 0.3);
   assert.strictEqual(b.anim, 'idle', 'idle when still on ground');
 
   run(b, RIGHT, 0.3);
   assert.strictEqual(b.anim, 'run', 'run when moving on ground');
 
-  mc.step(b, { left: false, right: false, jumpHeld: true, jumpPressed: true }, DT, collider);
-  assert.strictEqual(b.anim, 'jump', 'jump while rising');
+  // Jump straight up from a clear column (no horizontal drift into platforms).
+  const j = body(80, RESTING_Y);
+  run(j, NONE, 0.05);
+  mc.step(j, { left: false, right: false, jumpHeld: true, jumpPressed: true }, DT, collider);
+  assert.strictEqual(j.anim, 'jump', 'jump while rising');
 
-  run(b, { left: false, right: false, jumpHeld: true, jumpPressed: false }, 0.4);
-  assert.strictEqual(b.anim, 'fall', 'fall while descending');
+  run(j, { left: false, right: false, jumpHeld: true, jumpPressed: false }, 0.4);
+  assert.strictEqual(j.anim, 'fall', 'fall while descending');
   ok('animation state values reflect idle / run / jump / fall');
 })();
 
