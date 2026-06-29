@@ -1,17 +1,26 @@
 /**
- * CharacterSprite — draws the Diggerz character.
+ * CharacterSprite — draws the assembled Diggerz character.
  *
  * When tiles.png is loaded it assembles a fuller character from the REAL
  * Diggerz body-part sprites (head, eyes, torso, pants, legs, feet, arms, hands)
- * using approximate standalone offsets from CharacterRig (the original skeleton
- * offsets aren't in the repo). It also draws the equipped weapon in the front
- * hand, rotated toward the mouse aim and flipped with facing. Facing right ->
- * faces right; facing left -> faces left (mirror). No invented character art.
+ * using the standalone calibrated offsets in CharacterRigConfig, and draws the
+ * equipped weapon in the front hand with a PER-WEAPON grip/rotation/scale so the
+ * sword is held like a sword and the guns like guns. Facing right -> faces
+ * right; facing left -> the whole body mirrors. The front arm + weapon rotate to
+ * the real mouse aim (and flip to stay upright when aiming behind). No invented
+ * art — only placement. Falls back to a procedural character if the atlas isn't
+ * loaded.
  *
- * Falls back to a procedural character if the atlas isn't loaded.
+ * draw(ctx, state, nowSec, opts):
+ *   opts.palette    — procedural fallback colours
+ *   opts.aim        — aim angle (radians); the weapon/arm point here
+ *   opts.weapon     — the weapon sprite {image,sx,sy,sw,sh} (or null)
+ *   opts.weaponKey  — the weapon's atlas key (selects its per-weapon rig)
+ *   opts.debugRig   — draw rig anchors (head/hand/weapon pivot/body centre/facing)
  */
 
-import { PART_SPRITES, RIG_LAYOUT, SHOULDER, ARM_LENGTH, facingScale } from '../diggerz/CharacterRig.js';
+import { PART_SPRITES, facingScale } from '../diggerz/CharacterRig.js';
+import { RIG, ARM, HEAD_ANCHOR, BODY_CENTER, weaponRig } from './CharacterRigConfig.js';
 
 const TEAM = {
   body: '#ef8c3a', bodyDark: '#c96f25', outline: '#23160b',
@@ -23,11 +32,6 @@ export class CharacterSprite {
     this.assets = assets;
   }
 
-  /**
-   * @param state { x, y, width, height, vx, vy, grounded, facing, anim }
-   * @param nowSec animation clock
-   * @param opts  { palette?, aim?: number (radians), weapon?: {image,sx,sy,sw,sh} }
-   */
   draw(ctx, state, nowSec, opts = {}) {
     if (this.assets && this.assets.ready) this._drawReal(ctx, state, nowSec, opts);
     else this._drawProcedural(ctx, state, nowSec, { ...TEAM, ...(opts.palette || {}) });
@@ -54,65 +58,112 @@ export class CharacterSprite {
       ctx.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, cx + p.dx + dxExtra, feetY + p.dy - bob, p.w, p.h);
     };
 
-    // ── Body, mirrored for facing-left ──
+    // ── Body, mirrored for facing-left (head/eyes/torso/legs/feet) ──
     ctx.save();
     if (facing < 0) { ctx.translate(cx, 0); ctx.scale(-1, 1); ctx.translate(-cx, 0); }
-    drawPart(RIG_LAYOUT.backFoot, legSwing);
-    drawPart(RIG_LAYOUT.backLeg, legSwing);
-    this._backArm(ctx, cx, feetY - bob); // behind torso
-    drawPart(RIG_LAYOUT.torso);
-    drawPart(RIG_LAYOUT.pants);
-    drawPart(RIG_LAYOUT.frontFoot, -legSwing);
-    drawPart(RIG_LAYOUT.frontLeg, -legSwing);
-    drawPart(RIG_LAYOUT.head);
-    drawPart(RIG_LAYOUT.eyes); // front-shifted -> reads as "looking forward"
+    drawPart(RIG.backFoot, legSwing);
+    drawPart(RIG.backLeg, legSwing);
+    this._backArm(ctx, cx, feetY - bob);
+    drawPart(RIG.torso);
+    drawPart(RIG.pants);
+    drawPart(RIG.frontFoot, -legSwing);
+    drawPart(RIG.frontLeg, -legSwing);
+    drawPart(RIG.head);
+    drawPart(RIG.eyes);
     ctx.restore();
 
-    // ── Front arm + held weapon (uses the REAL aim, on the facing side) ──
-    this._frontArmWeapon(ctx, cx, feetY - bob, facing, opts.aim, opts.weapon);
+    // ── Front arm + held weapon (real aim, on the facing side) ──
+    const anchors = this._frontArmWeapon(ctx, cx, feetY - bob, facing, opts.aim, opts.weapon, opts.weaponKey);
+
+    if (opts.debugRig) this._drawRigDebug(ctx, cx, feetY - bob, facing, opts.aim, anchors);
   }
 
   _backArm(ctx, cx, feetY) {
     const sp = this.assets.getSprite(PART_SPRITES.armBack);
     if (!sp) return;
-    ctx.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, cx - 11, feetY - 25, 10, 8);
+    const a = ARM.backArm;
+    ctx.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, cx + a.dx, feetY + a.dy, a.w, a.h);
   }
 
-  _frontArmWeapon(ctx, cx, feetY, facing, aim, weapon) {
+  _frontArmWeapon(ctx, cx, feetY, facing, aim, weapon, weaponKey) {
     // Shoulder pivot on the front (facing) side.
-    const sx = cx + facing * SHOULDER.dx;
-    const sy = feetY + SHOULDER.dy;
+    const sx = cx + facing * ARM.shoulder.dx;
+    const sy = feetY + ARM.shoulder.dy;
     // Arm points toward the aim if we have one, else rests slightly down-forward.
     const armAngle = (aim == null) ? (facing >= 0 ? 0.5 : Math.PI - 0.5) : aim;
-    const hx = sx + Math.cos(armAngle) * ARM_LENGTH;
-    const hy = sy + Math.sin(armAngle) * ARM_LENGTH;
+    const hx = sx + Math.cos(armAngle) * ARM.length;
+    const hy = sy + Math.sin(armAngle) * ARM.length;
+    const flip = Math.cos(armAngle) < 0; // aiming behind -> flip vertically to stay upright
 
-    // Front arm sprite, rotated along the aim.
+    // Front upper-arm sprite, rotated along the aim.
     const arm = this.assets.getSprite(PART_SPRITES.arm);
     if (arm) {
       ctx.save();
       ctx.translate(sx, sy); ctx.rotate(armAngle);
-      if (Math.cos(armAngle) < 0) ctx.scale(1, -1); // keep upright when pointing left
-      ctx.drawImage(arm.image, arm.sx, arm.sy, arm.sw, arm.sh, -2, -4, 12, 9);
+      if (flip) ctx.scale(1, -1);
+      ctx.drawImage(arm.image, arm.sx, arm.sy, arm.sw, arm.sh, -2, -ARM.armSprite.h / 2, ARM.armSprite.w, ARM.armSprite.h);
       ctx.restore();
     }
 
-    // Held weapon, rotated to aim, flipped vertically when pointing left.
+    // Held weapon: per-weapon grip pinned to the hand. Rotate to the aim, flip
+    // vertically across the aim axis when pointing behind (so it stays upright),
+    // THEN apply the per-weapon rotation offset that aligns the business end to
+    // the aim, then scale and draw with the grip at the origin.
     if (weapon) {
-      const maxDim = Math.max(weapon.sw, weapon.sh);
-      const sc = 26 / maxDim;
-      const w = weapon.sw * sc, h = weapon.sh * sc;
+      const rig = weaponRig(weaponKey);
       ctx.save();
-      ctx.translate(hx, hy); ctx.rotate(armAngle);
-      if (Math.cos(armAngle) < 0) ctx.scale(1, -1);
-      // grip near the back-left of the sprite, centred vertically
-      ctx.drawImage(weapon.image, weapon.sx, weapon.sy, weapon.sw, weapon.sh, -w * 0.22, -h * 0.5, w, h);
+      ctx.translate(hx, hy);
+      ctx.rotate(armAngle);
+      if (flip) ctx.scale(1, -1);
+      ctx.rotate(rig.rot);
+      ctx.scale(rig.scale, rig.scale);
+      ctx.drawImage(weapon.image, weapon.sx, weapon.sy, weapon.sw, weapon.sh,
+        -rig.grip.x * weapon.sw, -rig.grip.y * weapon.sh, weapon.sw, weapon.sh);
       ctx.restore();
     }
 
     // Front hand at the arm end.
     const hand = this.assets.getSprite(PART_SPRITES.hand);
-    if (hand) ctx.drawImage(hand.image, hand.sx, hand.sy, hand.sw, hand.sh, hx - 5, hy - 4, 10, 8);
+    if (hand) {
+      const hw = ARM.handSprite.w, hh = ARM.handSprite.h;
+      ctx.drawImage(hand.image, hand.sx, hand.sy, hand.sw, hand.sh, hx - hw / 2, hy - hh / 2, hw, hh);
+    }
+    return { sx, sy, hx, hy };
+  }
+
+  // ── Rig debug overlay ───────────────────────────────────────────────────────
+  _drawRigDebug(ctx, cx, feetY, facing, aim, anchors) {
+    const head = { x: cx + facing * HEAD_ANCHOR.dx, y: feetY + HEAD_ANCHOR.dy };
+    const body = { x: cx + facing * BODY_CENTER.dx, y: feetY + BODY_CENTER.dy };
+    const mark = (p, color, label) => {
+      ctx.save();
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(p.x - 4, p.y); ctx.lineTo(p.x + 4, p.y);
+      ctx.moveTo(p.x, p.y - 4); ctx.lineTo(p.x, p.y + 4); ctx.stroke();
+      ctx.font = '8px ui-monospace, monospace'; ctx.fillText(label, p.x + 5, p.y - 3);
+      ctx.restore();
+    };
+    // body centre + facing arrow
+    mark(body, '#7fd1ff', 'body');
+    ctx.save();
+    ctx.strokeStyle = '#7fd1ff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(body.x, body.y); ctx.lineTo(body.x + facing * 16, body.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(body.x + facing * 16, body.y);
+    ctx.lineTo(body.x + facing * 11, body.y - 3); ctx.lineTo(body.x + facing * 11, body.y + 3); ctx.closePath();
+    ctx.fillStyle = '#7fd1ff'; ctx.fill();
+    ctx.restore();
+    mark(head, '#9bff9b', 'head');
+    if (anchors) {
+      mark({ x: anchors.sx, y: anchors.sy }, '#ffd27f', 'shoulder');
+      mark({ x: anchors.hx, y: anchors.hy }, '#ff7fd1', 'hand');
+      // weapon pivot = hand anchor; draw the aim ray from it
+      if (aim != null) {
+        ctx.save(); ctx.strokeStyle = 'rgba(255,127,209,.7)'; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(anchors.hx, anchors.hy);
+        ctx.lineTo(anchors.hx + Math.cos(aim) * 22, anchors.hy + Math.sin(aim) * 22); ctx.stroke();
+        ctx.restore();
+      }
+    }
   }
 
   // ── Procedural fallback (facing-correct) ────────────────────────────────────

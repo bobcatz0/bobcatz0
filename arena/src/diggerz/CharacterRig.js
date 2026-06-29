@@ -36,29 +36,10 @@ export const PART_SPRITES = {
   handBack: 'HAND_BACK_PNG',// [183,386,20,16]
 };
 
-/**
- * Standalone APPROXIMATE rig layout (the original skeleton/bone offsets are not
- * in the repo — see RIG_NOTES). Offsets are in destination pixels for a 24x36
- * body, relative to the feet centre (cx, feetY); facing-right orientation. The
- * scene mirrors the whole rig for facing-left and draws the held weapon arm
- * separately (so it rotates to the real aim). NOT extracted — tunable.
- */
-export const RIG_LAYOUT = {
-  // each: { key, w, h, dx, dy }  — dx from cx (left edge), dy from feetY (top edge)
-  backLeg:   { key: 'legBack', w: 13, h: 9,  dx: -9, dy: -11 },
-  frontLeg:  { key: 'leg',     w: 13, h: 9,  dx: -2, dy: -11 },
-  backFoot:  { key: 'foot',    w: 13, h: 7,  dx: -11, dy: -4 },
-  frontFoot: { key: 'foot',    w: 13, h: 7,  dx: -2, dy: -4 },
-  pants:     { key: 'pants',   w: 20, h: 6,  dx: -10, dy: -13 },
-  torso:     { key: 'torso',   w: 21, h: 17, dx: -10, dy: -28 },
-  head:      { key: 'head',    w: 30, h: 27, dx: -13, dy: -49 },
-  eyes:      { key: 'eyes',    w: 16, h: 10, dx: 1,  dy: -39 }, // front-shifted
-};
-
-// Front-arm shoulder pivot (where the aiming arm + weapon attach), relative to
-// (cx, feetY), facing-right. The arm/weapon rotate to the aim from here.
-export const SHOULDER = { dx: 3, dy: -26 };
-export const ARM_LENGTH = 11; // px, hand distance from the shoulder
+// The standalone APPROXIMATE rig layout — body-part offsets, arm/hand anchors,
+// and the per-weapon held grip/rotation/scale — lives in the renderer at
+// render/CharacterRigConfig.js (visual calibration, not confirmed Diggerz data).
+// PART_SPRITES above are the confirmed atlas keys those offsets place.
 
 // Confirmed animation-state names (i33._38("name"); current = i33.Z28).
 // NOTE: real names — there is no "run"/"fall"; movement is "walk", leaving the

@@ -10,6 +10,7 @@ const scene = new ArenaScene(canvas, {
   winEl: document.getElementById('winbanner'),
   resetBtn: document.getElementById('resetBtn'),
   debugChk: document.getElementById('debugChk'),
+  rigChk: document.getElementById('rigChk'),
   zoomInBtn: document.getElementById('zoomInBtn'),
   zoomOutBtn: document.getElementById('zoomOutBtn'),
   zoomResetBtn: document.getElementById('zoomResetBtn'),

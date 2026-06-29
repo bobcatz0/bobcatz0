@@ -32,7 +32,8 @@ Controls:
   (`Numpad1/2/3` too)
 - **Zoom camera:** **mouse wheel** — up = in, down = out (clamped 0.75×–2.0×);
   `0` resets to 1.0× (`+`/`−` also nudge it, or use the on-screen buttons)
-- Reset / toggle aim+debug: on-screen button + checkbox (not keybinds)
+- Reset / toggle aim+debug / **rig anchors**: on-screen button + checkboxes
+  (not keybinds)
 
 > **Standalone control change (intentional):** Diggerz used the mouse wheel for
 > hotbar selection. For this PvP prototype the wheel **zooms the camera** and
@@ -78,8 +79,14 @@ npm test
   world mouse/player/camera + zoom, and the live **hurtboxes/hitboxes**
 - Diggerz-style rendering: real Diggerz tiles + a fuller character assembled
   from the real body-part sprites (head, eyes, torso, pants, legs, feet, arms,
-  hands) with correct facing (right→right, left→left) and the equipped weapon
-  held in the front hand, rotated toward the mouse aim
+  hands) with **calibrated rig offsets** (`src/render/CharacterRigConfig.js`):
+  eyes sit on the face, the body mirrors correctly (right→right, left→left), and
+  the equipped weapon is held in the front hand with a **per-weapon grip /
+  rotation / scale** (so the sword is held like a sword and the guns like guns)
+  that rotates toward the mouse aim and stays attached when aiming behind. Body
+  facing follows the **aim while actively using**, else movement (idle keeps the
+  last facing). A **rig anchors** debug toggle shows the head/hand/shoulder/body
+  anchors + facing arrow.
 - Camera **zoom** (0.75×–2.0×, keeps the player centred) on the **mouse wheel**
   (`0` resets; `+`/`−` also nudge it)
 - **Diggerz hotbar + Combat V1 resolution (wired):** a 3-slot hotbar using the
@@ -123,7 +130,9 @@ src/
   render/
     AssetStore.js            loads the real Diggerz atlas (tiles.png) if present
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
-    CharacterSprite.js       real torso+head sprite, else procedural character
+    CharacterSprite.js       assembles the real body parts + held weapon
+    CharacterRigConfig.js    rig calibration: part offsets, arm/hand anchors,
+                             per-weapon grip/rotation/scale, body-facing rule
     SpriteAnimation.js       reusable sprite-sheet frame stepper
     Background.js            real bknd.png parallax backdrop (mountains/hills/moon)
   diggerz/                  ← faithful recreations of CONFIRMED client systems
@@ -147,6 +156,7 @@ tests/arena.test.js        arena size/spawns/camera/zoom/facing-sign
 tests/diggerz.test.js      headless checks of the confirmed Diggerz systems
 tests/hotbar.test.js       hotbar selection + confirmed use-intent shape
 tests/combat.test.js       Combat V1 resolution (sword/ray gun/death/respawn/FT20)
+tests/rig.test.js          character rig offsets + per-weapon held config + facing
 ```
 
 The `src/diggerz/` modules contain **only confirmed** client behavior — no
@@ -201,19 +211,22 @@ values are PROPOSED standalone PvP values, not extracted Diggerz numbers.
 ## Verified
 
 - `npm test` — 6 movement + 12 arena + 7 Diggerz-mechanics + 3 hotbar + 10
-  combat headless checks (movement physics; arena size/spawns/landing/traversal/
-  boundary-walls/jump-reachability/camera-clamp/zoom-clamp/facing-sign/
+  combat + 4 rig headless checks (movement physics; arena size/spawns/landing/
+  traversal/boundary-walls/jump-reachability/camera-clamp/zoom-clamp/facing-sign/
   number-key weapon select/wheel-zoom/**zoom-is-render-only**; real bindings/aim/
   animation; hotbar; sword + ray gun hits, wall-blocked ray, death, respawn +
   invulnerability, score, FT20 win, reset + cooldown-clear, **held-weapon-follows-
-  selection**).
-- Browser smoke (Chromium) — real assets load; facing tracks movement (right→R,
-  left→L, no moonwalk); the held weapon rotates to the mouse aim (incl. aiming
-  behind) and stays attached to the hand; the camera follows + wheel-zooms and
-  clamps without changing world coordinates; the sword hitbox shows under debug;
-  and Combat V1 resolves end to end (sword 34 dmg, ray gun 25 dmg + wall block,
-  dummy death → +1 score, respawn at full HP with invuln, FT20 banner + rematch,
-  shotgun selectable but inert).
+  selection**; **rig offsets/eyes-on-head/per-weapon held config/body-facing
+  rule**).
+- Browser smoke (Chromium) — real assets load; eyes sit on the face; the body
+  mirrors correctly (right→R, left→L, no moonwalk) and faces the aim while using;
+  each weapon (sword/ray gun/shotgun) is held in the hand with its own grip and
+  rotates to the mouse through the full circle (incl. aiming behind) without
+  detaching; the camera follows + wheel-zooms and clamps without changing world
+  coordinates; the sword hitbox + rig anchors show under debug; and Combat V1
+  resolves end to end (sword 34 dmg, ray gun 25 dmg + wall block, dummy death →
+  +1 score, respawn at full HP with invuln, FT20 banner + rematch, shotgun
+  selectable but inert).
 
 ## Not in scope yet (intentionally)
 

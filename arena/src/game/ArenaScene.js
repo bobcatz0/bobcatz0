@@ -9,6 +9,7 @@ import { TileSprites } from '../render/TileSprites.js';
 import { CharacterSprite } from '../render/CharacterSprite.js';
 import { Background } from '../render/Background.js';
 import { aimAngle as computeAim, encodeAim } from '../diggerz/CharacterRig.js';
+import { bodyRenderFacing } from '../render/CharacterRigConfig.js';
 import { hotbarSlotForCode } from '../diggerz/InputBindings.js';
 import { CombatInput } from '../combat/CombatInput.js';
 import { CombatSystem } from '../combat/CombatSystem.js';
@@ -30,14 +31,16 @@ const P2_PALETTE = { body: '#8a6bff', bodyDark: '#5e45c9', head: '#c3b2ff', limb
  * are PROPOSED standalone values (src/combat/CombatConfig.js).
  */
 export class ArenaScene {
-  constructor(canvas, { debugEl, hudEl, winEl, resetBtn, debugChk, zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel } = {}) {
+  constructor(canvas, { debugEl, hudEl, winEl, resetBtn, debugChk, rigChk, zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.debugEl = debugEl;
     this.hudEl = hudEl;
     this.winEl = winEl;
     this.debugChk = debugChk;
+    this.rigChk = rigChk;
     this.zoomLabel = zoomLabel;
+    this._renderFacing = 1; // body render facing (movement/aim rule); see _facing()
 
     this.map = buildArenaMap(40);
     canvas.width = VIEW_W;
@@ -182,7 +185,10 @@ export class ArenaScene {
     // ── Player (P1): holding the selected weapon, aimed at the mouse.
     const sel = this.combat.selectedWeapon;
     const weaponSprite = sel ? this.assets.getSprite(sel.spriteKey) : null;
-    this.character.draw(ctx, this.player.state, now, { aim: this.aimAngle, weapon: weaponSprite });
+    const pstate = { ...this.player.state, facing: this._facing() };
+    this.character.draw(ctx, pstate, now, {
+      aim: this.aimAngle, weapon: weaponSprite, weaponKey: sel ? sel.spriteKey : null, debugRig: this._rigOn(),
+    });
     this._healthBar(this.player.body, this.combat.attacker.health);
 
     // ── Projectiles (ray gun) + melee swing visual (sword).
@@ -212,6 +218,20 @@ export class ArenaScene {
   }
 
   _debugOn() { return this.debugChk ? this.debugChk.checked : true; }
+  _rigOn() { return this.rigChk ? this.rigChk.checked : false; }
+
+  /**
+   * Body render facing (visual only — does not touch physics). See
+   * bodyRenderFacing: aim direction while actively using, else movement/idle-last.
+   */
+  _facing() {
+    this._renderFacing = bodyRenderFacing({
+      using: this.combatInput.using,
+      aimAngle: this.aimAngle,
+      movementFacing: this.player.body.facing,
+    });
+    return this._renderFacing;
+  }
 
   _healthBar(body, health) {
     const ctx = this.ctx;
@@ -356,7 +376,7 @@ export class ArenaScene {
       `score   P1 ${this.combat.match.scores.p1} / FT${this.combat.match.ftTarget}`,
       ``,
       `mouse(w) ${f(this.aimPoint.x)}, ${f(this.aimPoint.y)}`,
-      `player   ${f(pb.x)}, ${f(pb.y)}  facing ${pb.facing > 0 ? 'R' : 'L'}`,
+      `player   ${f(pb.x)}, ${f(pb.y)}  move ${pb.facing > 0 ? 'R' : 'L'} / view ${this._renderFacing > 0 ? 'R' : 'L'}`,
       `camera   ${f(this.camera.x)}, ${f(this.camera.y)}  zoom ${this.camera.zoom.toFixed(2)}x`,
     ].join('\n');
   }
