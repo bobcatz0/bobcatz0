@@ -77,10 +77,15 @@ npm test
 - Health bars over both fighters; respawn marker; muzzle/swing visuals
 - Debug overlay (toggle "show aim + debug"): weapon, aim, P1/P2 HP, score,
   world mouse/player/camera + zoom, and the live **hurtboxes/hitboxes**
-- Diggerz-style rendering: real Diggerz tiles + a fuller character assembled
-  from the real body-part sprites (head, eyes, torso, pants, legs, feet, arms,
-  hands) with **calibrated rig offsets** (`src/render/CharacterRigConfig.js`):
-  eyes sit on the face, the body mirrors correctly (right→right, left→left), and
+- Diggerz-style rendering: real Diggerz tiles + a **compact, big-headed**
+  character (matched to the small in-game Diggerz guy) assembled from the real
+  body-part sprites with **calibrated rig offsets** (`src/render/
+  CharacterRigConfig.js`): a large head over a small **dark-navy torso**, short
+  **blue/purple legs/pants** and small **purple shoes** (the body colours come
+  from multiply-**tinting** the real white base parts — `LEG_WHITE`,
+  `PANTS_WHITE`, `FOOT_WHITE` — the way the game colours characters, no invented
+  art). Eyes sit high and forward on the face, the body mirrors correctly
+  (right→right, left→left), and
   the equipped weapon is held in the front hand with a **per-weapon grip /
   rotation / scale** (so the sword is held like a sword and the guns like guns)
   that rotates toward the mouse aim and stays attached when aiming behind. Body

@@ -18,37 +18,44 @@
 
 const D2R = Math.PI / 180;
 
-// ── Body part layout (facing-right) ──────────────────────────────────────────
-// Stacked feet -> legs -> pants -> torso -> head, with the front limbs on +x.
+// Tints (multiply on the WHITE base sprites) so the body matches the small
+// in-game reference: dark-navy torso, blue/purple legs+pants, purple shoes.
+const BLUE = '#4d47be';      // legs + pants (blue-purple)
+const BLUE_BACK = '#403a99'; // back leg (a touch darker for depth)
+const PURPLE = '#7b6ce0';    // shoes
+
+// ── Body part layout (facing-right) — COMPACT, big-headed in-game character ───
+// Matches the reference: a large (not loading-screen-huge) head sitting directly
+// above a small dark torso, short blue/purple legs and small purple shoes close
+// to the body. Front limbs on +x; the whole body mirrors for facing-left.
 export const RIG = {
-  backFoot:  { key: 'foot',    w: 13, h: 7,  dx: -12, dy: -7 },
-  frontFoot: { key: 'foot',    w: 13, h: 7,  dx: -1,  dy: -7 },
-  backLeg:   { key: 'legBack', w: 11, h: 7,  dx: -9,  dy: -15 },
-  frontLeg:  { key: 'leg',     w: 11, h: 8,  dx: -2,  dy: -16 },
-  pants:     { key: 'pants',   w: 20, h: 5,  dx: -10, dy: -20 },
-  torso:     { key: 'torso',   w: 20, h: 16, dx: -10, dy: -33 },
-  head:      { key: 'head',    w: 22, h: 20, dx: -11, dy: -49 },
-  // Eyes embedded ON the upper face, a little smaller (close to the original
-  // size) and roughly centred so there is head visible on BOTH sides (and above)
-  // — a side profile then reads correctly (some face in front of the eye),
-  // instead of the eye jammed against the front edge. Mirror when facing left.
-  eyes:      { key: 'eyes',    w: 15, h: 9,  dx: -8,  dy: -47 },
+  backFoot:  { key: 'footWhite',    w: 12, h: 6,  dx: -11, dy: -6,  tint: PURPLE },
+  frontFoot: { key: 'footWhite',    w: 12, h: 6,  dx: -1,  dy: -6,  tint: PURPLE },
+  backLeg:   { key: 'legBackWhite', w: 10, h: 7,  dx: -9,  dy: -12, tint: BLUE_BACK },
+  frontLeg:  { key: 'legWhite',     w: 10, h: 8,  dx: -2,  dy: -13, tint: BLUE },
+  pants:     { key: 'pantsWhite',   w: 18, h: 5,  dx: -9,  dy: -16, tint: BLUE },
+  torso:     { key: 'torso',        w: 18, h: 15, dx: -9,  dy: -27 },               // TORSO_PNG = dark navy
+  head:      { key: 'head',         w: 21, h: 19, dx: -10, dy: -44 },
+  // Eyes HIGH on the head and pushed toward the FRONT face (+x), like the
+  // reference — on the face (head visible in front of + behind them), not low,
+  // not centred, not floating. Mirror with the body when facing left.
+  eyes:      { key: 'eyes',         w: 14, h: 9,  dx: -4,  dy: -42 },
 };
 
 // ── Front (aiming) arm + hand ────────────────────────────────────────────────
 // The front arm/weapon are drawn OUTSIDE the body mirror so they rotate to the
 // real mouse aim. The shoulder pivot is relative to (cx, feetY), facing-right.
 export const ARM = {
-  shoulder: { dx: 3, dy: -27 },   // where the aiming arm attaches
-  length: 9,                       // hand distance from the shoulder along aim
-  armSprite:  { w: 12, h: 10 },    // front upper-arm sprite draw size
-  handSprite: { w: 9,  h: 7 },     // front hand sprite draw size
-  backArm:    { w: 11, h: 8, dx: -9, dy: -28 }, // static arm behind the torso
+  shoulder: { dx: 3, dy: -23 },   // where the aiming arm attaches (compact torso)
+  length: 8,                       // hand distance from the shoulder along aim
+  armSprite:  { w: 11, h: 9 },     // front upper-arm sprite draw size
+  handSprite: { w: 8,  h: 6 },     // front hand sprite draw size
+  backArm:    { w: 10, h: 7, dx: -8, dy: -24 }, // static arm behind the torso
 };
 
 // Head anchor (head centre) for the rig debug overlay.
-export const HEAD_ANCHOR = { dx: 0, dy: -39 };   // relative to (cx, feetY)
-export const BODY_CENTER = { dx: 0, dy: -25 };   // torso centre
+export const HEAD_ANCHOR = { dx: 0, dy: -35 };   // relative to (cx, feetY)
+export const BODY_CENTER = { dx: 0, dy: -20 };   // torso centre
 
 // ── Per-weapon held config ───────────────────────────────────────────────────
 // Each weapon's sprite has a different native orientation in tiles.png, so each

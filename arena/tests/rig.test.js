@@ -43,12 +43,11 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   assert.ok(ey1 <= hy1, 'eye bottom is inside the head');
   const overlap = Math.min(ey1, hy1) - Math.max(ey0, hy0);
   assert.ok(overlap >= eyes.h * 0.7, 'most of the eye (>=70%) overlaps the head vertically');
-  // roughly centred horizontally so there is head on BOTH sides of the eyes
-  // (a correct-reading side profile), not jammed against the front edge
-  assert.ok(Math.abs(eMidX - hMidX) <= head.w * 0.2, 'eyes roughly centred on the head horizontally (on the face)');
-  // attached horizontally: both edges stay within the head (no edge bulge)
-  assert.ok(eyes.dx >= hx0, 'eye back edge stays within the head');
-  assert.ok(eyes.dx + eyes.w <= hx1 + 1, 'eye front edge stays on the face');
+  // pushed toward the FRONT (+x) face, but still ON the face: there is head both
+  // in front of and behind the eyes (not jammed against / past the front edge)
+  assert.ok(eMidX > hMidX, 'eyes pushed toward the front (+x) of the head');
+  assert.ok(eyes.dx >= hx0, 'eye back edge stays within the head (head behind the eyes)');
+  assert.ok(eyes.dx + eyes.w <= hx1 + 1, 'eye front edge stays on the face (head in front of the eyes)');
   ok('eyes sit high + forward, embedded on the upper-front face (loading-screen placement)');
 })();
 

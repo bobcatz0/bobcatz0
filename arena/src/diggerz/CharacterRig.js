@@ -34,6 +34,13 @@ export const PART_SPRITES = {
   armBack: 'ARM_BACK_PNG', // [0,34,17,14]
   hand: 'HAND_PNG',        // [2027,4,20,16]   front hand
   handBack: 'HAND_BACK_PNG',// [183,386,20,16]
+  // Tintable WHITE/greyscale base variants — the real game colours the body by
+  // tinting these (player colour customisation). Used for the blue/purple legs,
+  // pants and shoes so we match a coloured character without inventing art.
+  legWhite: 'LEG_WHITE_PNG',         // [176,1877,24,17]
+  legBackWhite: 'LEG_BACK_WHITE_PNG',// [1887,45,24,15]
+  pantsWhite: 'PANTS_WHITE_PNG',     // [520,52,34,8]
+  footWhite: 'FOOT_WHITE_PNG',       // [1155,43,32,16]
 };
 
 // The standalone APPROXIMATE rig layout — body-part offsets, arm/hand anchors,

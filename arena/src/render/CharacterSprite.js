@@ -30,6 +30,31 @@ const TEAM = {
 export class CharacterSprite {
   constructor(assets) {
     this.assets = assets;
+    this._tintCache = {}; // atlasKey|tint -> { canvas, sw, sh }
+  }
+
+  /**
+   * Multiply-tint a WHITE/greyscale base sprite to a colour (cached). This is how
+   * the real game colours the body — tinting the white base parts — so we get
+   * blue/purple legs/shoes from real art without inventing pixels.
+   */
+  _tinted(atlasKey, tint) {
+    const ck = atlasKey + '|' + tint;
+    if (this._tintCache[ck]) return this._tintCache[ck];
+    const sp = this.assets.getSprite(atlasKey);
+    if (!sp) return null;
+    const c = document.createElement('canvas');
+    c.width = sp.sw; c.height = sp.sh;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, 0, 0, sp.sw, sp.sh);
+    g.globalCompositeOperation = 'multiply';
+    g.fillStyle = tint; g.fillRect(0, 0, sp.sw, sp.sh);
+    g.globalCompositeOperation = 'destination-in'; // mask back to the sprite shape
+    g.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, 0, 0, sp.sw, sp.sh);
+    const out = { canvas: c, sw: sp.sw, sh: sp.sh };
+    this._tintCache[ck] = out;
+    return out;
   }
 
   draw(ctx, state, nowSec, opts = {}) {
@@ -51,11 +76,16 @@ export class CharacterSprite {
       bob = Math.sin(now * 3) * 0.6;
     }
 
-    const get = (key) => this.assets.getSprite(PART_SPRITES[key]);
     const drawPart = (p, dxExtra = 0) => {
-      const sp = get(p.key);
-      if (!sp) return;
-      ctx.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, cx + p.dx + dxExtra, feetY + p.dy - bob, p.w, p.h);
+      const atlasKey = PART_SPRITES[p.key];
+      const dx = cx + p.dx + dxExtra, dy = feetY + p.dy - bob;
+      if (p.tint) {
+        const t = this._tinted(atlasKey, p.tint);
+        if (t) ctx.drawImage(t.canvas, 0, 0, t.sw, t.sh, dx, dy, p.w, p.h);
+        return;
+      }
+      const sp = this.assets.getSprite(atlasKey);
+      if (sp) ctx.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, dx, dy, p.w, p.h);
     };
 
     // ── Body, mirrored for facing-left (head/eyes/torso/legs/feet) ──
