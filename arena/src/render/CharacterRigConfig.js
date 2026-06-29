@@ -28,11 +28,11 @@ export const RIG = {
   pants:     { key: 'pants',   w: 20, h: 5,  dx: -10, dy: -20 },
   torso:     { key: 'torso',   w: 20, h: 16, dx: -10, dy: -33 },
   head:      { key: 'head',    w: 22, h: 20, dx: -11, dy: -49 },
-  // Eyes like the LOADING-SCREEN character: big eyes embedded ON the upper face,
-  // roughly centred so there is head visible on BOTH sides (and above) — a side
-  // profile then reads correctly (some face in front of the eye), instead of the
-  // eye jammed against the front edge. Mirror with the body when facing left.
-  eyes:      { key: 'eyes',    w: 18, h: 11, dx: -9,  dy: -47 },
+  // Eyes embedded ON the upper face, a little smaller (close to the original
+  // size) and roughly centred so there is head visible on BOTH sides (and above)
+  // — a side profile then reads correctly (some face in front of the eye),
+  // instead of the eye jammed against the front edge. Mirror when facing left.
+  eyes:      { key: 'eyes',    w: 15, h: 9,  dx: -8,  dy: -47 },
 };
 
 // ── Front (aiming) arm + hand ────────────────────────────────────────────────
