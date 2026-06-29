@@ -1,28 +1,28 @@
 /**
- * CharacterSprite — draws the REAL Diggerz character from the extracted Spine
- * skeleton (render/guySkeleton.js), not a hand-invented rig.
+ * CharacterSprite — draws the character from the REAL in-game reference image.
  *
- * It runs a tiny static forward-kinematics pass over the skeleton's idle pose,
- * draws each part with the real tiles.png sprites (tinting the WHITE base parts
- * navy/blue/purple the way the game colours bodies), mirrors the whole skeleton
- * for facing-left, and draws the equipped weapon at the front hand (rotated to
- * the mouse aim). Falls back to a simple procedural character if the atlas isn't
- * loaded.
+ * Per the visual-correctness pass, the character is a static sprite cropped from
+ * the actual Diggerz in-game character screenshot (assets/generated/
+ * default-diggerz-character-idle.png, background masked out), placed by its
+ * metadata anchors. The whole sprite mirrors for facing-left; the equipped
+ * weapon is drawn on top at the approximate hand anchor (rotated to the mouse
+ * aim). Health bars + hurtbox/collision are handled elsewhere and unchanged.
+ *
+ * The Spine skeleton path is kept in the repo (guySkeleton.js + the tests) for a
+ * future real skeletal-animation pass, but is no longer used to render.
  *
  * draw(ctx, state, nowSec, opts):
- *   opts.palette    — procedural fallback colours
- *   opts.aim        — aim angle (radians); the held weapon points here
- *   opts.weapon     — the weapon sprite {image,sx,sy,sw,sh} (or null)
- *   opts.weaponKey  — the weapon's atlas key (selects its per-weapon rig)
- *   opts.debugRig   — draw the hand anchor + facing arrow
+ *   opts.aim / opts.weapon / opts.weaponKey  — held weapon overlay
+ *   opts.debugRig  — draw the ground/head/hand anchors
+ *   opts.palette   — procedural fallback colours (until the sprite has loaded)
  */
 
 import { facingScale } from '../diggerz/CharacterRig.js';
-import { GUY_SKELETON } from './guySkeleton.js';
-import { weaponRig, BODY_TINTS, PART_SCALE } from './CharacterRigConfig.js';
+import { weaponRig } from './CharacterRigConfig.js';
 
-const D2R = Math.PI / 180;
-const TARGET_H = 52; // rendered character height in px (head-top to feet)
+const SPRITE_URL = 'assets/generated/default-diggerz-character-idle.png';
+const META_URL = 'assets/generated/default-diggerz-character-idle.json';
+const TARGET_H = 50; // rendered character height in px (feet-to-head)
 
 const TEAM = {
   body: '#ef8c3a', bodyDark: '#c96f25', outline: '#23160b',
@@ -32,103 +32,57 @@ const TEAM = {
 export class CharacterSprite {
   constructor(assets) {
     this.assets = assets;
-    this._tintCache = {};
-    this._rig = null; // built lazily once the atlas is ready
+    this.sprite = null;
+    this.meta = null;
+    this.ready = false;
+    this._load();
+  }
+
+  async _load() {
+    try {
+      const meta = await fetch(META_URL).then((r) => r.json());
+      const img = new Image();
+      img.src = SPRITE_URL;
+      await img.decode();
+      this.meta = meta;
+      this.sprite = img;
+      this.ready = true;
+    } catch (e) {
+      // leave !ready -> procedural fallback keeps the game drawable
+      console.warn('[character] reference sprite not loaded:', e && e.message);
+    }
   }
 
   draw(ctx, state, nowSec, opts = {}) {
-    if (this.assets && this.assets.ready) this._drawReal(ctx, state, opts);
+    if (this.ready) this._drawSprite(ctx, state, opts);
     else this._drawProcedural(ctx, state, nowSec, { ...TEAM, ...(opts.palette || {}) });
   }
 
-  // ── Real Spine-skeleton character ───────────────────────────────────────────
-  _drawReal(ctx, s, opts) {
-    const rig = this._rig || (this._rig = this._buildRig());
-    if (!rig) { this._drawProcedural(ctx, s, 0, TEAM); return; }
-
+  // ── Reference-image sprite ──────────────────────────────────────────────────
+  _drawSprite(ctx, s, opts) {
+    const m = this.meta;
     const cx = s.x + s.width / 2;
     const feetY = s.y + s.height;
-    const facing = facingScale(s.facing); // +1 right, -1 left
-    const S = TARGET_H / rig.spanY;        // skeleton units -> screen px
-    const midX = (rig.minX + rig.maxX) / 2;
+    const facing = facingScale(s.facing); // +1 right (source orientation), -1 left
+    const S = TARGET_H / m.height;
+    const gx = m.groundAnchor.x, gy = m.groundAnchor.y;
 
     ctx.save();
     ctx.translate(cx, feetY);
-    if (facing < 0) ctx.scale(-1, 1);
-    ctx.scale(S, -S);                 // Spine is y-up; flip to screen y-down
-    ctx.translate(-midX, -rig.minY);  // centre x, feet on the ground line
-    for (const d of rig.draws) {
-      ctx.save();
-      ctx.translate(d.wx, d.wy); ctx.rotate(d.rotation); ctx.scale(1, -1);
-      if (d.tint) {
-        const t = this._tinted(d.tint.white, d.tint.tint);
-        if (t) ctx.drawImage(t.canvas, 0, 0, t.sw, t.sh, -d.w / 2, -d.h / 2, d.w, d.h);
-      } else if (d.sp) {
-        ctx.drawImage(d.sp.image, d.sp.sx, d.sp.sy, d.sp.sw, d.sp.sh, -d.w / 2, -d.h / 2, d.w, d.h);
-      }
-      ctx.restore();
-    }
+    if (facing < 0) ctx.scale(-1, 1);          // mirror the whole sprite for facing-left
+    ctx.scale(S, S);
+    ctx.translate(-gx, -gy);                    // pin the ground anchor to (cx, feetY)
+    const prev = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = true;           // it's a downscaled screenshot, smooth it
+    ctx.drawImage(this.sprite, 0, 0);
+    ctx.imageSmoothingEnabled = prev;
     ctx.restore();
 
-    // Front-hand position in screen space (for the held weapon + debug).
-    const handX = cx + facing * ((rig.hand.x - midX) * S);
-    const handY = feetY - (rig.hand.y - rig.minY) * S;
+    // Held weapon at the approximate hand anchor (mirrors with facing).
+    const handX = cx + facing * ((m.handAnchor.x - gx) * S);
+    const handY = feetY + (m.handAnchor.y - gy) * S;
     if (opts.weapon) this._drawWeapon(ctx, handX, handY, opts.aim, opts.weapon, opts.weaponKey);
-    if (opts.debugRig) this._drawDebug(ctx, cx, feetY, facing, handX, handY, opts.aim);
-  }
-
-  /** Build the static idle-pose draw list (forward kinematics) once. */
-  _buildRig() {
-    const sk = GUY_SKELETON;
-    const map = {}, world = {};
-    for (const b of sk.bones) map[b.name] = b;
-    const fk = (name) => {
-      if (world[name]) return world[name];
-      const b = map[name];
-      const r = b.rotation * D2R;
-      const la = Math.cos(r) * b.scaleX, lb = -Math.sin(r) * b.scaleY;
-      const lc = Math.sin(r) * b.scaleX, ld = Math.cos(r) * b.scaleY;
-      let t;
-      if (!b.parent) t = { a: la, b: lb, c: lc, d: ld, wx: b.x, wy: b.y };
-      else {
-        const p = fk(b.parent);
-        t = {
-          a: p.a * la + p.b * lc, b: p.a * lb + p.b * ld,
-          c: p.c * la + p.d * lc, d: p.c * lb + p.d * ld,
-          wx: p.a * b.x + p.b * b.y + p.wx, wy: p.c * b.x + p.d * b.y + p.wy,
-        };
-      }
-      world[name] = t; return t;
-    };
-    for (const b of sk.bones) fk(b.name);
-
-    const regionXform = (bone, ax, ay, arot) => {
-      const w = world[bone]; const ar = arot * D2R;
-      const wx = w.a * ax + w.b * ay + w.wx, wy = w.c * ax + w.d * ay + w.wy;
-      const ra = w.a * Math.cos(ar) + w.b * Math.sin(ar), rc = w.c * Math.cos(ar) + w.d * Math.sin(ar);
-      return { wx, wy, rotation: Math.atan2(rc, ra) };
-    };
-
-    const draws = [];
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for (const slot of sk.slots) {
-      const sp = this.assets.getSprite(slot.img);
-      const tint = BODY_TINTS[slot.img] || null;
-      if (!sp && !tint) continue;
-      const x = regionXform(slot.bone, slot.x, slot.y, slot.rotation);
-      const ps = PART_SCALE[slot.img] || 1; // visual calibration (eyes/head)
-      const w = slot.w * ps, h = slot.h * ps;
-      draws.push({ img: slot.img, tint, sp, w, h, ...x });
-      // tight-ish bbox from the rotated region corners
-      const cosr = Math.cos(x.rotation), sinr = Math.sin(x.rotation);
-      for (const [ex, ey] of [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]]) {
-        const px = x.wx + ex * cosr - ey * sinr, py = x.wy + ex * sinr + ey * cosr;
-        if (px < minX) minX = px; if (px > maxX) maxX = px;
-        if (py < minY) minY = py; if (py > maxY) maxY = py;
-      }
-    }
-    const hand = world[sk.handBone] || { wx: 0, wy: 0 };
-    return { draws, minX, maxX, minY, maxY, spanY: maxY - minY, hand: { x: hand.wx, y: hand.wy } };
+    if (opts.debugRig) this._drawDebug(ctx, cx, feetY, facing, handX, handY, S, m);
   }
 
   _drawWeapon(ctx, hx, hy, aim, weapon, weaponKey) {
@@ -146,43 +100,19 @@ export class CharacterSprite {
     ctx.restore();
   }
 
-  _drawDebug(ctx, cx, feetY, facing, hx, hy, aim) {
-    ctx.save();
-    ctx.strokeStyle = '#ff7fd1'; ctx.fillStyle = '#ff7fd1'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(hx - 4, hy); ctx.lineTo(hx + 4, hy); ctx.moveTo(hx, hy - 4); ctx.lineTo(hx, hy + 4); ctx.stroke();
-    ctx.font = '8px ui-monospace, monospace'; ctx.fillText('hand', hx + 5, hy - 3);
-    const bcy = feetY - 22;
-    ctx.strokeStyle = '#7fd1ff';
-    ctx.beginPath(); ctx.moveTo(cx, bcy); ctx.lineTo(cx + facing * 16, bcy); ctx.stroke();
-    if (aim != null) {
-      ctx.strokeStyle = 'rgba(255,127,209,.6)'; ctx.setLineDash([3, 3]);
-      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + Math.cos(aim) * 22, hy + Math.sin(aim) * 22); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    ctx.restore();
+  _drawDebug(ctx, cx, feetY, facing, hx, hy, S, m) {
+    const pt = (ax, ay) => ({ x: cx + facing * ((ax - m.groundAnchor.x) * S), y: feetY + (ay - m.groundAnchor.y) * S });
+    const mark = (px, py, color, label) => {
+      ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px - 4, py); ctx.lineTo(px + 4, py); ctx.moveTo(px, py - 4); ctx.lineTo(px, py + 4); ctx.stroke();
+      ctx.font = '8px ui-monospace, monospace'; ctx.fillText(label, px + 5, py - 3); ctx.restore();
+    };
+    mark(cx, feetY, '#7fffa8', 'ground');
+    const h = pt(m.headAnchor.x, m.headAnchor.y); mark(h.x, h.y, '#9bff9b', 'head');
+    mark(hx, hy, '#ff7fd1', 'hand');
   }
 
-  // ── Tint a WHITE base sprite by multiply (cached) ───────────────────────────
-  _tinted(atlasKey, tint) {
-    const ck = atlasKey + '|' + tint;
-    if (this._tintCache[ck]) return this._tintCache[ck];
-    const sp = this.assets.getSprite(atlasKey);
-    if (!sp) return null;
-    const c = document.createElement('canvas');
-    c.width = sp.sw; c.height = sp.sh;
-    const g = c.getContext('2d');
-    g.imageSmoothingEnabled = false;
-    g.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, 0, 0, sp.sw, sp.sh);
-    g.globalCompositeOperation = 'multiply';
-    g.fillStyle = tint; g.fillRect(0, 0, sp.sw, sp.sh);
-    g.globalCompositeOperation = 'destination-in';
-    g.drawImage(sp.image, sp.sx, sp.sy, sp.sw, sp.sh, 0, 0, sp.sw, sp.sh);
-    const out = { canvas: c, sw: sp.sw, sh: sp.sh };
-    this._tintCache[ck] = out;
-    return out;
-  }
-
-  // ── Procedural fallback (facing-correct) ────────────────────────────────────
+  // ── Procedural fallback (until the sprite loads) ────────────────────────────
   _drawProcedural(ctx, s, nowSec, pal) {
     const dir = facingScale(s.facing);
     const cx = s.x + s.width / 2;
