@@ -28,11 +28,11 @@ export const RIG = {
   pants:     { key: 'pants',   w: 20, h: 5,  dx: -10, dy: -20 },
   torso:     { key: 'torso',   w: 20, h: 16, dx: -10, dy: -33 },
   head:      { key: 'head',    w: 22, h: 20, dx: -11, dy: -49 },
-  // Eyes like the LOADING-SCREEN character: big bulging eyes that sit at the very
-  // TOP of the head, protruding up and toward the FRONT (+x) face surface — they
-  // overhang the head's top edge rather than being tucked inside, centred on the
-  // upper-front of the face. Mirror with the body when facing left.
-  eyes:      { key: 'eyes',    w: 18, h: 11, dx: -6,  dy: -53 },
+  // Eyes like the LOADING-SCREEN character: big eyes embedded in the UPPER-FRONT
+  // face — head visible above (forehead) and around them so they sit ON the face,
+  // not floating above the head, pushed toward the FRONT (+x). They overlap the
+  // head fully (a small front-edge bulge). Mirror with the body when facing left.
+  eyes:      { key: 'eyes',    w: 18, h: 11, dx: -6,  dy: -47 },
 };
 
 // ── Front (aiming) arm + hand ────────────────────────────────────────────────

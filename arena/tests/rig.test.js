@@ -25,9 +25,10 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   ok('rig config has head/eyes/torso/pants/legs/feet offsets + arm/hand anchors');
 })();
 
-// 2. Eyes sit HIGH and FORWARD on the head and bulge over the top-front edge,
-//    like the loading-screen character — not centred, and still attached (most
-//    of the eye overlaps the head; only a modest overhang past the top/front).
+// 2. Eyes sit HIGH and FORWARD, embedded ON the upper-front face (head visible
+//    above + around them) like the loading-screen character — not centred, not
+//    floating above the head: the eye overlaps the head and only its front edge
+//    may bulge a little past the face.
 (function eyesOnHead() {
   const head = RIG.head, eyes = RIG.eyes;
   const hx0 = head.dx, hx1 = head.dx + head.w, hy0 = head.dy, hy1 = head.dy + head.h;
@@ -36,19 +37,19 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   const eMidY = eyes.dy + eyes.h / 2, eMidX = eyes.dx + eyes.w / 2;
   // high on the head: eye centre is in the UPPER half (not vertically centred)
   assert.ok(eMidY < hMidY, 'eyes sit in the upper half of the head (not centred)');
-  // bulging at the TOP: the eyes may overhang the head's top edge a little...
-  assert.ok(ey0 >= hy0 - 6, 'eyes overhang the head top by at most a little');
-  // ...but stay attached — the eye bottom is inside the head, with big overlap
+  // on the face, not floating: the eye top is within the head (a small overhang
+  // tolerance) and the eye bottom is inside the head, with most of the eye on it
+  assert.ok(ey0 >= hy0 - 2, 'eye top is on the head (not floating above)');
   assert.ok(ey1 <= hy1, 'eye bottom is inside the head');
   const overlap = Math.min(ey1, hy1) - Math.max(ey0, hy0);
-  assert.ok(overlap >= eyes.h * 0.4, 'at least ~40% of the eye overlaps the head vertically');
+  assert.ok(overlap >= eyes.h * 0.7, 'most of the eye (>=70%) overlaps the head vertically');
   // front-shifted: eye centre is forward (+x) of the head centre
   assert.ok(eMidX > hMidX, 'eyes shifted to the front (+x) of the head');
   // attached horizontally: the back edge stays within the head; the front edge
   // may protrude slightly past the front face (bulging eyes), but only a little
   assert.ok(eyes.dx >= hx0, 'eye back edge stays within the head');
   assert.ok(eyes.dx + eyes.w <= hx1 + 3, 'eye front edge protrudes at most slightly past the face');
-  ok('eyes sit high + forward, bulging over the top-front of the head (loading-screen placement)');
+  ok('eyes sit high + forward, embedded on the upper-front face (loading-screen placement)');
 })();
 
 // 3. Each Combat V1 weapon has its own held rig (grip/rotation/scale), and they
