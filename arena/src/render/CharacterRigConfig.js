@@ -22,15 +22,26 @@ const BLUE_BACK = '#3a3597'; // back leg (a touch darker for depth)
 const PURPLE = '#7b6ce0'; // shoes
 
 // Map a skeleton part's atlas key -> { white: tintable base key, tint: colour }.
-// Parts not listed draw with their natural sprite colour.
+// Parts not listed draw with their natural sprite colour. Hands are tinted navy
+// like the body so the resting front hand blends in (no skin-tone belly blob).
 export const BODY_TINTS = {
-  TORSO_PNG:    { white: 'WHITE_TORSO_PNG',   tint: NAVY },
-  ARM_PNG:      { white: 'WHITE_ARM_PNG',     tint: NAVY },
-  ARM_BACK_PNG: { white: 'WHITE_ARM_PNG',     tint: NAVY },
-  LEG_PNG:      { white: 'LEG_WHITE_PNG',     tint: BLUE },
-  LEG_BACK_PNG: { white: 'LEG_BACK_WHITE_PNG', tint: BLUE_BACK },
-  PANTS_PNG:    { white: 'PANTS_WHITE_PNG',   tint: BLUE },
-  FOOT_PNG:     { white: 'FOOT_WHITE_PNG',    tint: PURPLE },
+  TORSO_PNG:     { white: 'WHITE_TORSO_PNG',   tint: NAVY },
+  ARM_PNG:       { white: 'WHITE_ARM_PNG',     tint: NAVY },
+  ARM_BACK_PNG:  { white: 'WHITE_ARM_PNG',     tint: NAVY },
+  HAND_PNG:      { white: 'HAND_WHITE_PNG',    tint: NAVY },
+  HAND_BACK_PNG: { white: 'HAND_WHITE_PNG',    tint: NAVY },
+  LEG_PNG:       { white: 'LEG_WHITE_PNG',     tint: BLUE },
+  LEG_BACK_PNG:  { white: 'LEG_BACK_WHITE_PNG', tint: BLUE_BACK },
+  PANTS_PNG:     { white: 'PANTS_WHITE_PNG',   tint: BLUE },
+  FOOT_PNG:      { white: 'FOOT_WHITE_PNG',    tint: PURPLE },
+};
+
+// Small VISUAL calibration on top of the real skeleton (per-part draw scale,
+// applied around each part's own anchor so it stays in place): slightly smaller
+// eyes (less bug-eyed) and a slightly more compact head, to match the reference.
+export const PART_SCALE = {
+  EYES_PNG: 0.8,
+  HEAD_PNG: 0.92,
 };
 
 // ── Per-weapon held config ───────────────────────────────────────────────────

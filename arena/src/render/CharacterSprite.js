@@ -19,7 +19,7 @@
 
 import { facingScale } from '../diggerz/CharacterRig.js';
 import { GUY_SKELETON } from './guySkeleton.js';
-import { weaponRig, BODY_TINTS } from './CharacterRigConfig.js';
+import { weaponRig, BODY_TINTS, PART_SCALE } from './CharacterRigConfig.js';
 
 const D2R = Math.PI / 180;
 const TARGET_H = 52; // rendered character height in px (head-top to feet)
@@ -116,7 +116,8 @@ export class CharacterSprite {
       const tint = BODY_TINTS[slot.img] || null;
       if (!sp && !tint) continue;
       const x = regionXform(slot.bone, slot.x, slot.y, slot.rotation);
-      const w = slot.w, h = slot.h;
+      const ps = PART_SCALE[slot.img] || 1; // visual calibration (eyes/head)
+      const w = slot.w * ps, h = slot.h * ps;
       draws.push({ img: slot.img, tint, sp, w, h, ...x });
       // tight-ish bbox from the rotated region corners
       const cosr = Math.cos(x.rotation), sinr = Math.sin(x.rotation);

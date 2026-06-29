@@ -83,8 +83,10 @@ npm test
   not an invented rig. A tiny forward-kinematics pass (`CharacterSprite`) poses
   the idle frame and draws each part with the real `tiles.png` sprites; the body
   is coloured by multiply-**tinting** the white base parts (`WHITE_TORSO`,
-  `LEG_WHITE`, …) navy + blue/purple + purple shoes, the way the game colours
-  characters. The skeleton mirrors for facing (right→right, left→left), and
+  `LEG_WHITE`, …) navy + blue/purple + purple shoes (the hands too, so the
+  resting hand blends into the body), the way the game colours characters, with a
+  small visual calibration (slightly smaller eyes + head) to match the reference.
+  The skeleton mirrors for facing (right→right, left→left), and
   the equipped weapon is held in the front hand with a **per-weapon grip /
   rotation / scale** (so the sword is held like a sword and the guns like guns)
   that rotates toward the mouse aim and stays attached when aiming behind. Body
