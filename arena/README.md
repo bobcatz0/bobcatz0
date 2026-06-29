@@ -77,15 +77,14 @@ npm test
 - Health bars over both fighters; respawn marker; muzzle/swing visuals
 - Debug overlay (toggle "show aim + debug"): weapon, aim, P1/P2 HP, score,
   world mouse/player/camera + zoom, and the live **hurtboxes/hitboxes**
-- Diggerz-style rendering: real Diggerz tiles + a **compact, big-headed**
-  character (matched to the small in-game Diggerz guy) assembled from the real
-  body-part sprites with **calibrated rig offsets** (`src/render/
-  CharacterRigConfig.js`): a large head over a small **dark-navy torso**, short
-  **blue/purple legs/pants** and small **purple shoes** (the body colours come
-  from multiply-**tinting** the real white base parts — `LEG_WHITE`,
-  `PANTS_WHITE`, `FOOT_WHITE` — the way the game colours characters, no invented
-  art). Eyes sit high and forward on the face, the body mirrors correctly
-  (right→right, left→left), and
+- Diggerz-style rendering: real Diggerz tiles + the **real character**, drawn
+  from the **actual Spine skeleton** (`"guy_anims"`/`"guyskin"`, Spine 3.6.53)
+  extracted verbatim from the decompiled client (`src/render/guySkeleton.js`) —
+  not an invented rig. A tiny forward-kinematics pass (`CharacterSprite`) poses
+  the idle frame and draws each part with the real `tiles.png` sprites; the body
+  is coloured by multiply-**tinting** the white base parts (`WHITE_TORSO`,
+  `LEG_WHITE`, …) navy + blue/purple + purple shoes, the way the game colours
+  characters. The skeleton mirrors for facing (right→right, left→left), and
   the equipped weapon is held in the front hand with a **per-weapon grip /
   rotation / scale** (so the sword is held like a sword and the guns like guns)
   that rotates toward the mouse aim and stays attached when aiming behind. Body
@@ -135,9 +134,9 @@ src/
   render/
     AssetStore.js            loads the real Diggerz atlas (tiles.png) if present
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
-    CharacterSprite.js       assembles the real body parts + held weapon
-    CharacterRigConfig.js    rig calibration: part offsets, arm/hand anchors,
-                             per-weapon grip/rotation/scale, body-facing rule
+    guySkeleton.js           the REAL character Spine skeleton (from the client)
+    CharacterSprite.js       poses the skeleton's idle frame + draws + held weapon
+    CharacterRigConfig.js    per-weapon held rigs, body colour tints, facing rule
     SpriteAnimation.js       reusable sprite-sheet frame stepper
     Background.js            real bknd.png parallax backdrop (mountains/hills/moon)
   diggerz/                  ← faithful recreations of CONFIRMED client systems

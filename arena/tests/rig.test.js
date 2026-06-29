@@ -1,58 +1,53 @@
 import assert from 'node:assert';
-import {
-  RIG, ARM, WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, bodyRenderFacing,
-} from '../src/render/CharacterRigConfig.js';
+import { GUY_SKELETON } from '../src/render/guySkeleton.js';
+import { WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, BODY_TINTS, bodyRenderFacing } from '../src/render/CharacterRigConfig.js';
 import { byId } from '../src/diggerz/DiggerzWeaponCatalog.js';
 
-// Character rig calibration config + facing rule (pure, no DOM). Visual only —
-// these guard the offsets/anchors and the body-facing rule against regressions.
+// Character = the REAL Spine skeleton extracted from the client (guySkeleton.js).
+// These guard the skeleton data, the held-weapon rigs, the body tints, and the
+// facing rule. Pure, no DOM.
 
 let passed = 0;
 const ok = (l) => { console.log('  ok -', l); passed++; };
 
-// 1. The rig config exposes every body part the renderer needs, with sizes.
-(function rigParts() {
-  for (const key of ['backFoot', 'frontFoot', 'backLeg', 'frontLeg', 'pants', 'torso', 'head', 'eyes']) {
-    const p = RIG[key];
-    assert.ok(p, `RIG.${key} exists`);
-    assert.ok(p.key && p.w > 0 && p.h > 0, `RIG.${key} has sprite key + size`);
-    assert.ok(Number.isFinite(p.dx) && Number.isFinite(p.dy), `RIG.${key} has offsets`);
+// 1. The extracted skeleton is well-formed (real bone hierarchy + draw order).
+(function skeleton() {
+  const sk = GUY_SKELETON;
+  assert.ok(Array.isArray(sk.bones) && sk.bones.length >= 14, 'has the real bones');
+  assert.ok(Array.isArray(sk.slots) && sk.slots.length >= 10, 'has the draw-order slots');
+  const names = new Set(sk.bones.map((b) => b.name));
+  // every non-root bone references a parent that exists (valid FK tree)
+  let roots = 0;
+  for (const b of sk.bones) {
+    if (!b.parent) { roots++; continue; }
+    assert.ok(names.has(b.parent), `bone ${b.name} parent ${b.parent} exists`);
   }
-  // arm/hand anchors present
-  assert.ok(ARM.shoulder && Number.isFinite(ARM.shoulder.dx) && Number.isFinite(ARM.shoulder.dy), 'shoulder anchor');
-  assert.ok(ARM.length > 0, 'arm length');
-  assert.ok(ARM.handSprite && ARM.armSprite, 'arm + hand sprite sizes');
-  ok('rig config has head/eyes/torso/pants/legs/feet offsets + arm/hand anchors');
+  assert.strictEqual(roots, 1, 'exactly one root bone');
+  // key parts are present in the draw order, head before the front arm
+  const slotImgs = sk.slots.map((s) => s.img);
+  for (const need of ['HEAD_PNG', 'TORSO_PNG', 'LEG_PNG', 'EYES_PNG'])
+    assert.ok(slotImgs.includes(need), `draws ${need}`);
+  const headI = sk.slots.findIndex((s) => s.img === 'HEAD_PNG');
+  const eyesI = sk.slots.findIndex((s) => s.img === 'EYES_PNG');
+  assert.ok(eyesI > headI, 'eyes draw on top of the head');
+  assert.ok(sk.handBone && names.has(sk.handBone), 'front hand bone exists for the weapon');
+  ok('real Spine skeleton: valid bone tree, draw order, head+eyes+body parts');
 })();
 
-// 2. Eyes sit HIGH and FORWARD, embedded ON the upper-front face (head visible
-//    above + around them) like the loading-screen character — not centred, not
-//    floating above the head: the eye overlaps the head and only its front edge
-//    may bulge a little past the face.
-(function eyesOnHead() {
-  const head = RIG.head, eyes = RIG.eyes;
-  const hx0 = head.dx, hx1 = head.dx + head.w, hy0 = head.dy, hy1 = head.dy + head.h;
-  const hMidY = head.dy + head.h / 2, hMidX = head.dx + head.w / 2;
-  const ey0 = eyes.dy, ey1 = eyes.dy + eyes.h;
-  const eMidY = eyes.dy + eyes.h / 2, eMidX = eyes.dx + eyes.w / 2;
-  // high on the head: eye centre is in the UPPER half (not vertically centred)
-  assert.ok(eMidY < hMidY, 'eyes sit in the upper half of the head (not centred)');
-  // on the face, not floating: the eye top is within the head (a small overhang
-  // tolerance) and the eye bottom is inside the head, with most of the eye on it
-  assert.ok(ey0 >= hy0 - 2, 'eye top is on the head (not floating above)');
-  assert.ok(ey1 <= hy1, 'eye bottom is inside the head');
-  const overlap = Math.min(ey1, hy1) - Math.max(ey0, hy0);
-  assert.ok(overlap >= eyes.h * 0.7, 'most of the eye (>=70%) overlaps the head vertically');
-  // pushed toward the FRONT (+x) face, but still ON the face: there is head both
-  // in front of and behind the eyes (not jammed against / past the front edge)
-  assert.ok(eMidX > hMidX, 'eyes pushed toward the front (+x) of the head');
-  assert.ok(eyes.dx >= hx0, 'eye back edge stays within the head (head behind the eyes)');
-  assert.ok(eyes.dx + eyes.w <= hx1 + 1, 'eye front edge stays on the face (head in front of the eyes)');
-  ok('eyes sit high + forward, embedded on the upper-front face (loading-screen placement)');
+// 2. Body tints colour the WHITE base parts (navy body, blue/purple legs/shoes).
+(function tints() {
+  for (const key of ['TORSO_PNG', 'LEG_PNG', 'PANTS_PNG', 'FOOT_PNG']) {
+    const t = BODY_TINTS[key];
+    assert.ok(t && t.white && /WHITE/.test(t.white), `${key} tints a WHITE base part`);
+    assert.ok(/^#[0-9a-f]{6}$/i.test(t.tint), `${key} has a colour`);
+  }
+  // legs/pants share the blue; shoes are a distinct purple; torso is the navy
+  assert.notStrictEqual(BODY_TINTS.FOOT_PNG.tint, BODY_TINTS.LEG_PNG.tint, 'shoes differ from legs');
+  assert.notStrictEqual(BODY_TINTS.TORSO_PNG.tint, BODY_TINTS.LEG_PNG.tint, 'torso differs from legs');
+  ok('body tints recolour the white base parts (navy torso, blue legs, purple shoes)');
 })();
 
-// 3. Each Combat V1 weapon has its own held rig (grip/rotation/scale), and they
-//    differ — the sword, ray gun and shotgun cannot share one rule.
+// 3. Each Combat V1 weapon has its own held rig; unknown -> default.
 (function perWeapon() {
   const sword = byId(55).spriteKey, ray = byId(79).spriteKey, shot = byId(248).spriteKey;
   for (const key of [sword, ray, shot]) {
@@ -62,10 +57,8 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
     assert.ok(Number.isFinite(r.rot), `${key} has a rotation offset`);
     assert.ok(r.scale > 0 && r.scale < 2, `${key} has a sane scale`);
   }
-  // the three rotation offsets are genuinely different (sword vs the two guns)
   assert.notStrictEqual(WEAPON_RIG[sword].rot, WEAPON_RIG[ray].rot, 'sword vs ray gun rotation differ');
   assert.notStrictEqual(WEAPON_RIG[ray].rot, WEAPON_RIG[shot].rot, 'ray gun vs shotgun rotation differ');
-  // unknown weapon falls back to the default rig
   assert.strictEqual(weaponRig('NOPE_PNG'), DEFAULT_WEAPON_RIG, 'unknown weapon -> default rig');
   assert.strictEqual(weaponRig(sword), WEAPON_RIG[sword], 'known weapon -> its rig');
   ok('each weapon (sword/ray gun/shotgun) has its own grip/rotation/scale; unknown -> default');
@@ -73,11 +66,9 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
 
 // 4. Body-facing rule: aim direction while using, else movement; idle keeps last.
 (function facingRule() {
-  // using -> follow the aim's horizontal sign
   assert.strictEqual(bodyRenderFacing({ using: true, aimAngle: 0, movementFacing: -1 }), 1, 'using + aim right -> face right');
   assert.strictEqual(bodyRenderFacing({ using: true, aimAngle: Math.PI, movementFacing: 1 }), -1, 'using + aim left -> face left');
   assert.strictEqual(bodyRenderFacing({ using: true, aimAngle: -Math.PI / 4, movementFacing: -1 }), 1, 'using + aim up-right -> face right');
-  // not using -> follow movement facing (which carries the last facing while idle)
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: Math.PI, movementFacing: 1 }), 1, 'idle keeps movement facing R (ignores aim)');
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: 0, movementFacing: -1 }), -1, 'idle keeps movement facing L (ignores aim)');
   ok('body facing follows aim while using, else movement (idle keeps last)');
