@@ -15,34 +15,33 @@
 
 const D2R = Math.PI / 180;
 
-// ── Body colours (multiply tints on the WHITE base parts) ────────────────────
-const NAVY = '#2b2f57';   // torso + arms
-const BLUE = '#4d47be';   // front leg + pants
-const BLUE_BACK = '#3a3597'; // back leg (a touch darker for depth)
-const PURPLE = '#7b6ce0'; // shoes
+// ── Body colours — the REAL client `h4` colour palette ───────────────────────
+// The client tints the WHITE body parts with a per-channel multiply (r,g,b) from
+// a fixed palette indexed by the player's colour `P4 % 10` (see
+// docs/ORIGINAL_CHARACTER_RENDER_PATH.md). These are those exact palette values
+// (not invented hex). The bare default is grey torso + green legs; the reference
+// screenshot is a customised colour, so we pick the real palette indices that
+// match it: torso/arms idx5 near-black, legs/pants idx6 blue-purple, shoes idx18
+// dark purple. Hands take the body colour so the resting front hand blends in.
+const H4 = (r, g, b) => '#' + [r, g, b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+const DARK = H4(0.2, 0.2, 0.2);    // idx 5
+const BLUE = H4(0.6, 0.3, 1.0);    // idx 6
+const PURPLE = H4(0.3, 0.15, 0.5); // idx 18
 
-// Map a skeleton part's atlas key -> { white: tintable base key, tint: colour }.
-// Parts not listed draw with their natural sprite colour. Hands are tinted navy
-// like the body so the resting front hand blends in (no skin-tone belly blob).
 export const BODY_TINTS = {
-  TORSO_PNG:     { white: 'WHITE_TORSO_PNG',   tint: NAVY },
-  ARM_PNG:       { white: 'WHITE_ARM_PNG',     tint: NAVY },
-  ARM_BACK_PNG:  { white: 'WHITE_ARM_PNG',     tint: NAVY },
-  HAND_PNG:      { white: 'HAND_WHITE_PNG',    tint: NAVY },
-  HAND_BACK_PNG: { white: 'HAND_WHITE_PNG',    tint: NAVY },
-  LEG_PNG:       { white: 'LEG_WHITE_PNG',     tint: BLUE },
-  LEG_BACK_PNG:  { white: 'LEG_BACK_WHITE_PNG', tint: BLUE_BACK },
-  PANTS_PNG:     { white: 'PANTS_WHITE_PNG',   tint: BLUE },
-  FOOT_PNG:      { white: 'FOOT_WHITE_PNG',    tint: PURPLE },
+  TORSO_PNG:     { white: 'WHITE_TORSO_PNG',    tint: DARK },
+  ARM_PNG:       { white: 'WHITE_ARM_PNG',      tint: DARK },
+  ARM_BACK_PNG:  { white: 'WHITE_ARM_PNG',      tint: DARK },
+  HAND_PNG:      { white: 'HAND_WHITE_PNG',     tint: DARK },
+  HAND_BACK_PNG: { white: 'HAND_WHITE_PNG',     tint: DARK },
+  LEG_PNG:       { white: 'LEG_WHITE_PNG',      tint: BLUE },
+  LEG_BACK_PNG:  { white: 'LEG_BACK_WHITE_PNG', tint: BLUE },
+  PANTS_PNG:     { white: 'PANTS_WHITE_PNG',    tint: BLUE },
+  FOOT_PNG:      { white: 'FOOT_WHITE_PNG',     tint: PURPLE },
 };
 
-// Small VISUAL calibration on top of the real skeleton (per-part draw scale,
-// applied around each part's own anchor so it stays in place): slightly smaller
-// eyes (less bug-eyed) and a slightly more compact head, to match the reference.
-export const PART_SCALE = {
-  EYES_PNG: 0.8,
-  HEAD_PNG: 0.92,
-};
+// No hand-tuned per-part scaling — draw the real skeleton sizes.
+export const PART_SCALE = {};
 
 // ── Per-weapon held config ───────────────────────────────────────────────────
 // Each weapon's sprite has a different native orientation in tiles.png, so each
