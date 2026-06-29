@@ -28,9 +28,11 @@ export const RIG = {
   pants:     { key: 'pants',   w: 20, h: 5,  dx: -10, dy: -20 },
   torso:     { key: 'torso',   w: 20, h: 16, dx: -10, dy: -33 },
   head:      { key: 'head',    w: 22, h: 20, dx: -11, dy: -49 },
-  // Eyes sit on the head's face, shifted toward the front (+x) so the character
-  // reads as looking forward; mirrored with the body when facing left.
-  eyes:      { key: 'eyes',    w: 14, h: 8,  dx: -3,  dy: -41 },
+  // Eyes sit HIGH on the head's front face (upper third) and pushed toward the
+  // front (+x) — like the loading-screen character — not centred in the head.
+  // They protrude slightly past the front edge (eyes are bulging balls) and
+  // mirror with the body when facing left.
+  eyes:      { key: 'eyes',    w: 14, h: 8,  dx: -2,  dy: -47 },
 };
 
 // ── Front (aiming) arm + hand ────────────────────────────────────────────────

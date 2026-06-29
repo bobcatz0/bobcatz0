@@ -25,17 +25,25 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   ok('rig config has head/eyes/torso/pants/legs/feet offsets + arm/hand anchors');
 })();
 
-// 2. Eyes sit on the head's box (so they read as attached to the face).
+// 2. Eyes sit HIGH and FORWARD on the head (loading-screen placement), still
+//    attached — not centred and not floating off.
 (function eyesOnHead() {
   const head = RIG.head, eyes = RIG.eyes;
   const hx0 = head.dx, hx1 = head.dx + head.w, hy0 = head.dy, hy1 = head.dy + head.h;
-  const ex0 = eyes.dx, ex1 = eyes.dx + eyes.w, ey0 = eyes.dy, ey1 = eyes.dy + eyes.h;
-  assert.ok(ex0 >= hx0 && ex1 <= hx1, 'eyes within the head horizontally');
-  assert.ok(ey0 >= hy0 && ey1 <= hy1, 'eyes within the head vertically');
-  // and shifted toward the front (+x) so the character reads as looking forward
-  const eyeMid = eyes.dx + eyes.w / 2, headMid = head.dx + head.w / 2;
-  assert.ok(eyeMid > headMid, 'eyes shifted to the front (+x) of the head');
-  ok('eyes are positioned on the head and front-shifted (no floating)');
+  const hMidY = head.dy + head.h / 2, hMidX = head.dx + head.w / 2;
+  const ey0 = eyes.dy, ey1 = eyes.dy + eyes.h;
+  const eMidY = eyes.dy + eyes.h / 2, eMidX = eyes.dx + eyes.w / 2;
+  // high on the head: eye centre is in the UPPER half (not vertically centred)
+  assert.ok(eMidY < hMidY, 'eyes sit in the upper half of the head (not centred)');
+  // attached vertically: the eyes stay within the head top/bottom
+  assert.ok(ey0 >= hy0 && ey1 <= hy1, 'eyes within the head vertically (attached to the face)');
+  // front-shifted: eye centre is forward (+x) of the head centre
+  assert.ok(eMidX > hMidX, 'eyes shifted to the front (+x) of the head');
+  // attached horizontally: the back edge stays within the head; the front edge
+  // may protrude slightly past the front face (bulging eyes), but only a little
+  assert.ok(eyes.dx >= hx0, 'eye back edge stays within the head');
+  assert.ok(eyes.dx + eyes.w <= hx1 + 3, 'eye front edge protrudes at most slightly past the face');
+  ok('eyes sit high + forward on the head (loading-screen placement), still attached');
 })();
 
 // 3. Each Combat V1 weapon has its own held rig (grip/rotation/scale), and they
