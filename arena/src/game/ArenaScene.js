@@ -15,6 +15,7 @@ import { CombatInput } from '../combat/CombatInput.js';
 import { CombatSystem } from '../combat/CombatSystem.js';
 import { bodyHurtbox } from '../combat/geometry.js';
 import { FIGHTER } from '../combat/CombatConfig.js';
+import { HitFx } from './HitFx.js';
 
 const FIXED_DT = 1 / 120;
 const MAX_FRAME = 0.25;
@@ -93,6 +94,11 @@ export class ArenaScene {
     const pb = this.player.body;
     this.camera.snap(pb.x + pb.w / 2, pb.y + pb.h / 2);
 
+    // Hit/death feedback (visual only; observes combat, never drives it).
+    this.hitfx = new HitFx();
+    const dh = this.combat.dummy.health, ah = this.combat.attacker.health;
+    this._fxPrev = { dHp: dh.hp, pHp: ah.hp, dAlive: dh.alive, pAlive: ah.alive };
+
     this.simTime = 0;
     this._acc = 0;
     this._last = 0;
@@ -126,12 +132,19 @@ export class ArenaScene {
     else if (wheel > 0) this.zoomBy(1 / 1.15);
     if (this.combatInput.consumeUsePress()) this.combat.use(this.simTime, this.aimAngle);
 
-    this._acc += frame;
-    while (this._acc >= FIXED_DT) {
-      this.player.update(FIXED_DT);
-      this.combat.update(FIXED_DT, this.simTime);
-      this.simTime += FIXED_DT;
-      this._acc -= FIXED_DT;
+    // Tiny hit-stop: briefly freeze the sim on a hit (visual juice only).
+    if (this.hitfx.frozen()) {
+      this.hitfx.update(frame);
+    } else {
+      this._acc += frame;
+      while (this._acc >= FIXED_DT) {
+        this.player.update(FIXED_DT);
+        this.combat.update(FIXED_DT, this.simTime);
+        this.simTime += FIXED_DT;
+        this._acc -= FIXED_DT;
+      }
+      this._detectFx();          // observe HP/alive changes -> spawn feedback
+      this.hitfx.update(frame);
     }
     this.camera.follow(pcx, pcy, frame);
 
@@ -199,6 +212,11 @@ export class ArenaScene {
       if (w.combat.kind === 'melee') { const arc = r.debugArc(now, this.player.body); if (arc) this._drawSwing(arc); }
     }
 
+    // ── Hit feedback: character flash + sparks / damage numbers / rings.
+    if (d.health.alive) this._drawHitFlash(d.body, this.hitfx.flashAmt('p2'));
+    this._drawHitFlash(this.player.body, this.hitfx.flashAmt('p1'));
+    this.hitfx.render(ctx);
+
     // Aim line + debug hitboxes.
     if (this._debugOn()) { this._drawAim(); this._drawCombatDebug(); }
 
@@ -246,6 +264,36 @@ export class ArenaScene {
     const ctx = this.ctx;
     ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#fff';
     ctx.fillRect(body.x - 3, body.y - 8, body.w + 6, body.h + 10); ctx.restore();
+  }
+
+  // ── Hit feedback (observes combat; never changes it) ─────────────────────────
+  _detectFx() {
+    const d = this.combat.dummy, p = this.combat.attacker;
+    const dh = d.health.hp, ph = p.health.hp;
+    const prev = this._fxPrev;
+    if (dh < prev.dHp) this._spawnDamage(d.body, prev.dHp - dh, 'p2');
+    if (ph < prev.pHp) this._spawnDamage(p.body, prev.pHp - ph, 'p1');
+    if (prev.dAlive && !d.health.alive) this.hitfx.death(d.body.x + d.body.w / 2, d.body.y + d.body.h / 2);
+    if (prev.pAlive && !p.health.alive) this.hitfx.death(p.body.x + p.body.w / 2, p.body.y + p.body.h / 2);
+    if (!prev.dAlive && d.health.alive) this.hitfx.respawn(d.spawn.x + d.body.w / 2, d.spawn.y + d.body.h / 2);
+    if (!prev.pAlive && p.health.alive) this.hitfx.respawn(p.body.x + p.body.w / 2, p.body.y + p.body.h / 2);
+    prev.dHp = dh; prev.pHp = ph; prev.dAlive = d.health.alive; prev.pAlive = p.health.alive;
+  }
+
+  _spawnDamage(body, amount, id) {
+    this.hitfx.damage(body.x + body.w / 2, body.y + body.h * 0.35, Math.round(amount), id);
+  }
+
+  /** Soft red/white glow over a character while its hit-flash is active. */
+  _drawHitFlash(body, amt) {
+    if (amt <= 0) return;
+    const ctx = this.ctx;
+    const cx = body.x + body.w / 2, cy = body.y + body.h / 2 - 6, R = 24;
+    const col = amt > 0.5 ? '255,255,255' : '255,90,90'; // white -> red as it fades
+    const grd = ctx.createRadialGradient(cx, cy, 2, cx, cy, R);
+    grd.addColorStop(0, `rgba(${col},${0.6 * amt})`);
+    grd.addColorStop(1, `rgba(${col},0)`);
+    ctx.save(); ctx.fillStyle = grd; ctx.fillRect(cx - R, cy - R, R * 2, R * 2); ctx.restore();
   }
 
   _respawnMarker(d) {
