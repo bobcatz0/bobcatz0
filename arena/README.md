@@ -191,8 +191,9 @@ The 38 confirmed weapons (verified against the real `tiles.png`) are in
 
 ## Tuning the feel
 
-All movement constants — gravity, move speed, accel/friction, jump speed,
-coyote/buffer times, jump-cut — live in **one clear config file**,
+All movement constants — gravity, move speed, accel/friction, jump power
+(`jumpSpeed`, the upward launch velocity), coyote/buffer times, jump-cut — live
+in **one clear config file**,
 `src/game/MovementConfig.js` (`MovementController` imports it as its defaults).
 These are the prototype's tunable standalone feel values, not extracted server
 numbers. (Playtest note: movement reads a touch faster than the original; it's
@@ -206,9 +207,11 @@ combat logic is lost).
 
 Click **⚙ Tuning** (or open the page with `#tune`) for a live playtest panel
 (`src/game/TuningPanel.js`). It exposes — as sliders + number inputs you can
-change *while playing* — move speed, acceleration, friction, gravity, jump
-speed; Fake Sword damage/cooldown/reach; Blue Ray Gun damage/cooldown/speed/
-lifetime; and respawn time + invulnerability time. **Reset to defaults** restores
+change *while playing* — move speed, acceleration, friction, gravity, **jump
+power**; Fake Sword damage/cooldown/reach; Blue Ray Gun damage/cooldown/speed/
+lifetime; and respawn time + invulnerability time. (**jump power** is the jump's
+upward launch velocity, in px/s — higher = higher jump, lower = lower jump; it
+maps to the `jumpSpeed` movement constant.) **Reset to defaults** restores
 the boot values, and **Export JSON** gives you the current set (copy or download)
 to save a good config. The panel only mutates the live objects the sim already
 reads each step — it does **not** change any source defaults, and the exported

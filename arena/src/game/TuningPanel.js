@@ -41,7 +41,7 @@ export class TuningPanel {
     const onObj = (obj, key) => ({ get: () => obj[key], set: (v) => { obj[key] = v; } });
     const onHealth = (key) => ({ get: () => healths[0][key], set: (v) => healths.forEach((h) => { h[key] = v; }) });
 
-    const F = (id, label, group, range, accessor, unit = '') => ({ id, label, group, unit, ...range, ...accessor });
+    const F = (id, label, group, range, accessor, unit = '', title = '') => ({ id, label, group, unit, title, ...range, ...accessor });
 
     const fields = [
       // ── Movement (MovementController.cfg) ──
@@ -49,7 +49,8 @@ export class TuningPanel {
       F('acceleration', 'acceleration', 'Movement', { min: 200, max: 6000, step: 50 }, onCfg('groundAccel'), 'px/s²'),
       F('friction', 'friction', 'Movement', { min: 0, max: 6000, step: 50 }, onCfg('groundFriction'), 'px/s²'),
       F('gravity', 'gravity', 'Movement', { min: 200, max: 4000, step: 50 }, onCfg('gravity'), 'px/s²'),
-      F('jumpSpeed', 'jump speed', 'Movement', { min: 200, max: 1400, step: 10 }, onCfg('jumpSpeed'), 'px/s'),
+      F('jumpSpeed', 'jump power', 'Movement', { min: 200, max: 1400, step: 10 }, onCfg('jumpSpeed'), 'px/s',
+        'Upward launch velocity. Higher = higher jump, lower = lower jump.'),
     ];
     if (sword) {
       fields.push(
@@ -129,6 +130,7 @@ export class TuningPanel {
 
   _row(f) {
     const row = document.createElement('label'); row.className = 'tuning-row';
+    if (f.title) row.title = f.title; // hover tooltip explaining the control
     const name = document.createElement('span'); name.className = 'tuning-label'; name.textContent = f.label;
     const range = document.createElement('input'); range.type = 'range'; range.min = f.min; range.max = f.max; range.step = f.step;
     const num = document.createElement('input'); num.type = 'number'; num.min = f.min; num.max = f.max; num.step = f.step; num.className = 'tuning-num';

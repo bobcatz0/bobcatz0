@@ -93,8 +93,8 @@ tap = small hop) · **S/↓** descend · **mouse** aim · **left-click** use wea
 ## 9. Tuning panel (⚙ Tuning, or `#tune` in the URL)
 - [ ] Panel is hidden by default; the button (or `#tune`) opens/closes it.
 - [ ] Sliders/inputs exist for: move speed, acceleration, friction, gravity, jump
-      speed; sword damage/cooldown/reach; ray gun damage/cooldown/speed/lifetime;
-      respawn time; invulnerability time.
+      power (upward launch velocity); sword damage/cooldown/reach; ray gun
+      damage/cooldown/speed/lifetime; respawn time; invulnerability time.
 - [ ] Changing a value affects play **immediately** (move speed, weapon stats, etc.).
 - [ ] **Reset to defaults** restores every value and updates the inputs.
 - [ ] **Export JSON** shows the current config; Copy / Download work.
