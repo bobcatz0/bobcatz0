@@ -70,6 +70,14 @@ export function weaponRig(spriteKey) {
   return WEAPON_RIG[spriteKey] || DEFAULT_WEAPON_RIG;
 }
 
+// Held-weapon layering: when the aim points up steeper than this (sin(aim) below
+// it), the weapon is drawn BEHIND the character so the blade/barrel can never
+// sweep across the face/eyes; horizontal/down it stays in front (held in hand).
+export const WEAPON_BEHIND_SIN = -0.3;
+export function weaponBehind(aim) {
+  return aim != null && Math.sin(aim) < WEAPON_BEHIND_SIN;
+}
+
 /**
  * Body render facing rule (visual only — never touches physics):
  *   - actively using/aiming the weapon -> face the aim's horizontal direction

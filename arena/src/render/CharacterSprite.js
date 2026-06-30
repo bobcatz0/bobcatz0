@@ -18,7 +18,7 @@
  */
 
 import { facingScale } from '../diggerz/CharacterRig.js';
-import { weaponRig } from './CharacterRigConfig.js';
+import { weaponRig, weaponBehind } from './CharacterRigConfig.js';
 
 const SPRITE_URL = 'assets/generated/default-diggerz-character-idle.png';
 const META_URL = 'assets/generated/default-diggerz-character-idle.json';
@@ -67,6 +67,15 @@ export class CharacterSprite {
     const S = TARGET_H / m.height;
     const gx = m.groundAnchor.x, gy = m.groundAnchor.y;
 
+    // Held weapon anchor at the hand (mirrors with facing).
+    const handX = cx + facing * ((m.handAnchor.x - gx) * S);
+    const handY = feetY + (m.handAnchor.y - gy) * S;
+    const aim = opts.aim;
+    // Aiming up -> draw the weapon BEHIND the character so it never covers the
+    // face/eyes; horizontal/down -> in front, so it reads as held in the hand.
+    const behind = !!opts.weapon && weaponBehind(aim);
+    if (behind) this._drawWeapon(ctx, handX, handY, aim, opts.weapon, opts.weaponKey);
+
     ctx.save();
     ctx.translate(cx, feetY);
     if (facing < 0) ctx.scale(-1, 1);          // mirror the whole sprite for facing-left
@@ -78,10 +87,7 @@ export class CharacterSprite {
     ctx.imageSmoothingEnabled = prev;
     ctx.restore();
 
-    // Held weapon at the approximate hand anchor (mirrors with facing).
-    const handX = cx + facing * ((m.handAnchor.x - gx) * S);
-    const handY = feetY + (m.handAnchor.y - gy) * S;
-    if (opts.weapon) this._drawWeapon(ctx, handX, handY, opts.aim, opts.weapon, opts.weaponKey);
+    if (opts.weapon && !behind) this._drawWeapon(ctx, handX, handY, aim, opts.weapon, opts.weaponKey);
     if (opts.debugRig) this._drawDebug(ctx, cx, feetY, facing, handX, handY, S, m);
   }
 

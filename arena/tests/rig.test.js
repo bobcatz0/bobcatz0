@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { GUY_SKELETON } from '../src/render/guySkeleton.js';
-import { WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, BODY_TINTS, bodyRenderFacing } from '../src/render/CharacterRigConfig.js';
+import { WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, BODY_TINTS, bodyRenderFacing, weaponBehind } from '../src/render/CharacterRigConfig.js';
 import { byId } from '../src/diggerz/DiggerzWeaponCatalog.js';
 
 // Character = the REAL Spine skeleton extracted from the client (guySkeleton.js).
@@ -72,6 +72,26 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: Math.PI, movementFacing: 1 }), 1, 'idle keeps movement facing R (ignores aim)');
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: 0, movementFacing: -1 }), -1, 'idle keeps movement facing L (ignores aim)');
   ok('body facing follows aim while using, else movement (idle keeps last)');
+})();
+
+// 5. Held-weapon layering: aiming up draws the weapon BEHIND the character (so
+//    it can't cover the face); horizontal/down draws it in front.
+(function weaponLayering() {
+  const D = Math.PI / 180;
+  // straight up / up-left / up-right -> behind (face stays readable)
+  assert.strictEqual(weaponBehind(-90 * D), true, 'aim straight up -> behind');
+  assert.strictEqual(weaponBehind(-135 * D), true, 'aim up-left -> behind');
+  assert.strictEqual(weaponBehind(-45 * D), true, 'aim up-right -> behind');
+  // horizontal + downward -> in front (held in hand)
+  assert.strictEqual(weaponBehind(0), false, 'aim straight right -> in front');
+  assert.strictEqual(weaponBehind(Math.PI), false, 'aim straight left -> in front');
+  assert.strictEqual(weaponBehind(45 * D), false, 'aim down-right -> in front');
+  assert.strictEqual(weaponBehind(90 * D), false, 'aim straight down -> in front');
+  // a shallow upward aim near horizontal stays in front (no flicker at the edge)
+  assert.strictEqual(weaponBehind(-10 * D), false, 'aim slightly up (shallow) -> still in front');
+  // null aim (no aim) -> not behind
+  assert.strictEqual(weaponBehind(null), false, 'no aim -> in front');
+  ok('held weapon draws behind the character when aiming up, in front otherwise');
 })();
 
 console.log(`\nAll ${passed} rig checks passed.`);

@@ -21,6 +21,9 @@ const FIXED_DT = 1 / 120;
 const MAX_FRAME = 0.25;
 const VIEW_W = 1000;
 const VIEW_H = 640;
+// Hold the aim when the cursor is within this world distance of the player so a
+// cursor on/near the character doesn't whip the held weapon through the face.
+const MIN_AIM_DIST = 28;
 
 const COLORS = { sky0: '#11161f', sky1: '#1b2433', grid: 'rgba(255,255,255,0.03)' };
 const P2_PALETTE = { body: '#8a6bff', bodyDark: '#5e45c9', head: '#c3b2ff', limb: '#5e45c9' };
@@ -124,7 +127,11 @@ export class ArenaScene {
     this.aimPoint = this.camera.screenToWorld(this.combatInput.aimX, this.combatInput.aimY);
     const pb = this.player.body;
     const pcx = pb.x + pb.w / 2, pcy = pb.y + pb.h / 2;
-    this.aimAngle = computeAim(pcx, pcy, this.aimPoint.x, this.aimPoint.y);
+    // Minimum aim distance: ignore the cursor while it's right on the character
+    // (keep the last stable aim) so the weapon doesn't jitter/point through the face.
+    if (Math.hypot(this.aimPoint.x - pcx, this.aimPoint.y - pcy) >= MIN_AIM_DIST) {
+      this.aimAngle = computeAim(pcx, pcy, this.aimPoint.x, this.aimPoint.y);
+    }
 
     // Mouse wheel zooms the camera (wheel up = in, down = out), centred on P1.
     const wheel = this.combatInput.consumeWheel();
