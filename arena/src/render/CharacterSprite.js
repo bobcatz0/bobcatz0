@@ -22,7 +22,7 @@ import { weaponRig } from './CharacterRigConfig.js';
 
 const SPRITE_URL = 'assets/generated/default-diggerz-character-idle.png';
 const META_URL = 'assets/generated/default-diggerz-character-idle.json';
-const TARGET_H = 50; // rendered character height in px (feet-to-head)
+const TARGET_H = 56; // rendered character height in px (feet-to-head)
 
 const TEAM = {
   body: '#ef8c3a', bodyDark: '#c96f25', outline: '#23160b',

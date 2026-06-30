@@ -17,8 +17,8 @@
     "y": 17
   },
   "handAnchor": {
-    "x": 33,
-    "y": 68
+    "x": 30,
+    "y": 71
   },
   "note": "Temporary visual sprite. Anchors are in source-image pixels (origin top-left). Mirror x for facing left."
 }
