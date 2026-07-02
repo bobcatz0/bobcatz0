@@ -28,6 +28,9 @@ export const MOVEMENT_CONFIG = {
   airFriction: 600,       // px/s^2 deceleration with no input, airborne
 
   // ── Jump ────────────────────────────────────────────────────────────────────
+  // TARGET (visual reference, Coaster Town screenshot): jump apex ≈ 4 blocks.
+  // Current apex = jumpSpeed²/(2·gravity) = 720²/3800 ≈ 136px ≈ 3.4 tiles @40px.
+  // Documented only — physics intentionally unchanged this pass.
   jumpSpeed: 720,         // px/s initial upward velocity (jump height)
   jumpCutMultiplier: 0.45,// releasing jump early scales remaining up-velocity
   coyoteTime: 0.09,       // s of grace to still jump just after leaving a ledge

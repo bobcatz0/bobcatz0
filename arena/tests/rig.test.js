@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import {
   WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, weaponBehind, bodyRenderFacing,
+  AIR_POSE, airPoseState,
 } from '../src/render/CharacterRigConfig.js';
 import { byId } from '../src/diggerz/DiggerzWeaponCatalog.js';
 
@@ -73,6 +74,22 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: Math.PI, movementFacing: 1 }), 1, 'idle keeps movement facing R (ignores aim)');
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: 0, movementFacing: -1 }), -1, 'idle keeps movement facing L (ignores aim)');
   ok('body facing follows aim while using, else movement (idle keeps last)');
+})();
+
+// 5. Airborne pose states: grounded -> normal, rising -> jump, descending -> fall.
+(function airPose() {
+  assert.strictEqual(airPoseState({ grounded: true, vy: 0 }), null, 'grounded -> normal pose');
+  assert.strictEqual(airPoseState({ grounded: true, vy: -500 }), null, 'grounded ignores vy');
+  assert.strictEqual(airPoseState({ grounded: false, vy: -300 }), 'jump', 'airborne + rising -> jump pose');
+  assert.strictEqual(airPoseState({ grounded: false, vy: 200 }), 'fall', 'airborne + descending -> fall pose');
+  assert.strictEqual(airPoseState({ grounded: false, vy: 0 }), 'fall', 'apex (vy=0) counts as fall');
+  // pose config: one arm raised (negative = up), the other lower; jump != fall
+  assert.ok(AIR_POSE.jump.front < 0, 'rising: lead arm raised up');
+  assert.ok(AIR_POSE.jump.back > AIR_POSE.jump.front, 'rising: other arm lower than the raised one');
+  assert.ok(AIR_POSE.fall.front < 0 && AIR_POSE.fall.back < 0, 'falling: arms up (flail)');
+  assert.notDeepStrictEqual(AIR_POSE.jump, AIR_POSE.fall, 'jump and fall poses differ');
+  assert.ok(AIR_POSE.shoulderFront.x > AIR_POSE.shoulderBack.x, 'front shoulder on the facing side');
+  ok('airborne pose: grounded/jump/fall states + raised-arm pose config');
 })();
 
 console.log(`\nAll ${passed} rig checks passed.`);

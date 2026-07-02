@@ -18,8 +18,8 @@
  *   opts.palette   — procedural fallback colours (until the sprite has loaded)
  */
 
-import { facingScale } from '../diggerz/CharacterRig.js';
-import { weaponRig, weaponBehind } from './CharacterRigConfig.js';
+import { facingScale, PART_SPRITES } from '../diggerz/CharacterRig.js';
+import { weaponRig, weaponBehind, AIR_POSE, airPoseState } from './CharacterRigConfig.js';
 import { SKELETON_H } from '../combat/swordSwing.js';
 
 const SPRITE_URL = 'assets/generated/default-diggerz-character-idle.png';
@@ -85,6 +85,10 @@ export class CharacterSprite {
     };
     if (opts.weapon && behind) drawWeapon();
 
+    // Airborne pose (visual only): rising/falling arm overlay from real parts.
+    const air = airPoseState({ grounded: s.grounded, vy: s.vy });
+    if (air) this._drawAirArm(ctx, cx, feetY, facing, S, m, AIR_POSE.shoulderBack, AIR_POSE[air].back);
+
     ctx.save();
     ctx.translate(cx, feetY);
     if (facing < 0) ctx.scale(-1, 1);          // mirror the whole sprite for facing-left
@@ -96,8 +100,30 @@ export class CharacterSprite {
     ctx.imageSmoothingEnabled = prev;
     ctx.restore();
 
+    if (air) this._drawAirArm(ctx, cx, feetY, facing, S, m, AIR_POSE.shoulderFront, AIR_POSE[air].front);
     if (opts.weapon && !behind) drawWeapon();
     if (opts.debugRig) this._drawDebug(ctx, cx, feetY, facing, handX, handY, S, m);
+  }
+
+  /**
+   * One overlay arm+hand (real ARM_PNG/HAND_PNG) at a shoulder anchor, pointing
+   * along `deg` (canvas degrees, right-facing convention; mirrors with facing).
+   */
+  _drawAirArm(ctx, cx, feetY, facing, S, m, shoulder, deg) {
+    const arm = this.assets && this.assets.getSprite(PART_SPRITES.arm);
+    const hand = this.assets && this.assets.getSprite(PART_SPRITES.hand);
+    if (!arm || !hand) return;
+    const gx = m.groundAnchor.x, gy = m.groundAnchor.y;
+    const P = AIR_POSE;
+    ctx.save();
+    ctx.translate(cx, feetY);
+    if (facing < 0) ctx.scale(-1, 1);           // mirror with the body
+    ctx.translate((shoulder.x - gx) * S, (shoulder.y - gy) * S);
+    ctx.rotate(deg * Math.PI / 180);
+    // arm stretched from the shoulder along +x, hand at the end (past the head)
+    ctx.drawImage(arm.image, arm.sx, arm.sy, arm.sw, arm.sh, -2, -P.armH / 2, P.armLen + 2, P.armH);
+    ctx.drawImage(hand.image, hand.sx, hand.sy, hand.sw, hand.sh, P.armLen - 2, -P.hand.h / 2, P.hand.w, P.hand.h);
+    ctx.restore();
   }
 
   /** Sword rest pose points up-back over the shoulder -> tuck it behind the body. */

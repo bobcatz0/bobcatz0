@@ -86,8 +86,12 @@ npm test
   sword and the guns like guns) that rotates toward the mouse aim; aiming
   upward layers the weapon **behind** the body so it never covers the face.
   Body facing follows the **aim while actively using**, else movement (idle
-  keeps the last facing). A **rig anchors** debug toggle shows the
-  ground/head/hand anchors + facing arrow. Why a sprite and not a
+  keeps the last facing). While **airborne** the character gets a lightweight
+  jump/fall pose (one hand thrown up while rising, both arms up while falling —
+  real Diggerz arm/hand parts overlaid on the sprite; a PROPOSED visual, not a
+  rig). Target visual jump height (Coaster Town reference): ~4 blocks; current
+  apex ≈ 3.4 tiles — documented in `MovementConfig.js`, physics unchanged. A
+  **rig anchors** debug toggle shows the ground/head/hand anchors + facing arrow. Why a sprite and not a
   reconstructed rig: **`docs/CHARACTER_RENDERING.md`** (the original game has
   no finished character image; it assembles Spine parts + per-player colour
   data at runtime, and reproducing that never visually matched).

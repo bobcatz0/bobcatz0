@@ -57,3 +57,29 @@ export function bodyRenderFacing({ using, aimAngle, movementFacing }) {
   if (using && aimAngle != null) return Math.cos(aimAngle) >= 0 ? 1 : -1;
   return movementFacing >= 0 ? 1 : -1;
 }
+
+// ── Airborne pose (visual only — Coaster Town/Diggerz-style jump) ─────────────
+// While airborne the reference sprite gets a lightweight ARM OVERLAY drawn from
+// the real Diggerz parts (ARM_PNG + HAND_PNG): one arm raised, the other lower —
+// rising and falling get slightly different angles. This is a PROPOSED visual
+// pose (the reference jump look), NOT a skeleton rig; physics untouched.
+export const AIR_POSE = {
+  // canvas degrees for a right-facing character (0 = forward, negative = up)
+  jump: { front: -72, back: 50 },    // rising: lead hand thrown up, back arm trailing low
+  fall: { front: -80, back: -102 },  // falling: both arms up (flail), clear of the face
+  // shoulder anchors in sprite-space px (the 54x95 reference sprite)
+  shoulderFront: { x: 38, y: 58 },
+  shoulderBack: { x: 14, y: 58 },
+  armLen: 22,                         // screen px, shoulder -> hand (clears the head)
+  armH: 6,                            // drawn arm thickness (stretched limb)
+  hand: { w: 10, h: 8 },              // drawn hand size
+};
+
+/**
+ * Airborne pose state from the movement body (pure):
+ *   grounded -> null (normal pose) · rising (vy < 0) -> 'jump' · else -> 'fall'.
+ */
+export function airPoseState({ grounded, vy }) {
+  if (grounded) return null;
+  return vy < 0 ? 'jump' : 'fall';
+}
