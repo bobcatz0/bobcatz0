@@ -56,16 +56,22 @@ export class MeleeResolver {
 
   /**
    * Resolve the strike (once per swing): the strike point is tested against
-   * each target's hurtbox; first containment hits. Calls onHit(target, damage).
+   * each target's hurtbox, expanded by `proposedStrikeRadius` (a PROPOSED
+   * standalone forgiveness value — 0 keeps the pure authentic point test).
+   * First hit wins. Calls onHit(target, damage).
    */
   resolve(now, attackerBody, targets, hurtboxInset, onHit) {
     if (this._struck || !this.isSwinging(now)) return;
     this._struck = true; // the client sends the strike once, instantly
     const p = this.strikePoint(attackerBody);
+    const r = this.w.combat.proposedStrikeRadius || 0;
     for (const t of targets) {
       if (t.health && !t.health.alive) continue;
       const hb = bodyHurtbox(t.body, hurtboxInset);
-      if (p.x >= hb.x && p.x <= hb.x + hb.w && p.y >= hb.y && p.y <= hb.y + hb.h) {
+      // distance from the strike point to the hurtbox rect <= radius
+      const dx = Math.max(hb.x - p.x, 0, p.x - (hb.x + hb.w));
+      const dy = Math.max(hb.y - p.y, 0, p.y - (hb.y + hb.h));
+      if (dx * dx + dy * dy <= r * r) {
         onHit(t, this.w.combat.damage);
         return;
       }

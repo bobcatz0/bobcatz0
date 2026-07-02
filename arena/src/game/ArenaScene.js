@@ -18,6 +18,7 @@ import { FIGHTER } from '../combat/CombatConfig.js';
 import { HitFx } from './HitFx.js';
 import { swordSwingAt, swordHoldPose, SWING_DURATION } from '../combat/swordSwing.js';
 import { h4css, tintSprite } from '../render/h4Palette.js';
+import { ShotFx, tracerThickness, tracerAlpha, laserAlpha } from './ShotFx.js';
 
 const FIXED_DT = 1 / 120;
 const MAX_FRAME = 0.25;
@@ -103,7 +104,7 @@ export class ArenaScene {
     this.hitfx = new HitFx();
     // Shot visuals (real client style): live projectile origins + fading fx.
     this._shotLive = new Map();   // projectile -> { ox, oy, lx, ly }
-    this._shotFx = [];            // { x1,y1,x2,y2, t0, tint } tracer + laser pairs
+    this.shotfx = new ShotFx();   // tracer + laser entries (pure; rendered here)
     this._tintCache = {};         // weaponKey -> tinted sprite
     const dh = this.combat.dummy.health, ah = this.combat.attacker.health;
     this._fxPrev = { dHp: dh.hp, pHp: ah.hp, dAlive: dh.alive, pAlive: ah.alive };
@@ -359,34 +360,33 @@ export class ArenaScene {
       }
       for (const [p, rec] of this._shotLive) {
         if (!alive.has(p)) {
-          this._shotFx.push({ x1: rec.ox, y1: rec.oy, x2: rec.lx, y2: rec.ly, t0: now, tint: rec.tint });
+          this.shotfx.add(rec.ox, rec.oy, rec.lx, rec.ly, rec.tint, now);
           this._shotLive.delete(p);
         }
       }
     }
-    // cull finished fx (tracer 500ms is the longest)
-    this._shotFx = this._shotFx.filter((f) => now - f.t0 < 0.5);
+    this.shotfx.update(now); // cull finished fx (tracer 500ms is the longest)
   }
 
   _drawShotFx(now) {
     const ctx = this.ctx;
     const beam = this.assets.getSprite('BEAM_PNG');
-    for (const f of this._shotFx) {
+    for (const f of this.shotfx.fx) {
       const age = now - f.t0;
       const ang = Math.atan2(f.y2 - f.y1, f.x2 - f.x1);
       const dist = Math.hypot(f.x2 - f.x1, f.y2 - f.y1);
       if (dist < 2) continue;
       // tracer: stretched line, thickness 3 -> 1, tinted, fading over 500ms
-      const k = Math.min(1, age / 0.5);
       ctx.save();
       ctx.translate((f.x1 + f.x2) / 2, (f.y1 + f.y2) / 2); ctx.rotate(ang);
-      ctx.globalAlpha = 1 - k;
+      ctx.globalAlpha = tracerAlpha(age);
       ctx.fillStyle = h4css(f.tint);
-      const th = 3 - 2 * k; // yScale 3 -> 1
+      const th = tracerThickness(age);
       ctx.fillRect(-dist / 2, -th / 2, dist, th);
       // type-28 laser: BEAM_PNG stretched, alpha .7 -> 0 over 200ms
-      if (beam && age < 0.2) {
-        ctx.globalAlpha = 0.7 * (1 - age / 0.2);
+      const la = laserAlpha(age);
+      if (beam && la > 0) {
+        ctx.globalAlpha = la;
         ctx.drawImage(beam.image, beam.sx, beam.sy, beam.sw, beam.sh, -dist / 2, -7, dist, 14);
       }
       ctx.restore();

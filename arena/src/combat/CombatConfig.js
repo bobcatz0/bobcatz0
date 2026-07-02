@@ -56,12 +56,18 @@ export const FAKE_SWORD = weapon(55, {
   swingDuration: 0.2,       // s — CONFIRMED (zswing animation length)
   cooldownTicks: 9,         // CONFIRMED (client o33 = 9 game ticks)
   cooldown: 9 / TICK_RATE_ASSUMED, // s — 9 ticks confirmed, tick RATE assumed 30/s
+  // Playability knob: the strike point is tested against the hurtbox EXPANDED
+  // by this radius (px). 0 = the pure authentic point. NOT extracted from
+  // Diggerz — the server's real tolerance/hit logic is lost, so this is a
+  // PROPOSED standalone forgiveness value, tunable in the playtest panel.
+  proposedStrikeRadius: 6,  // px — PROPOSED (not extracted)
   provenance: {
     damage: 'PROPOSED (server-side, lost)',
     reach: 'CONFIRMED (client strike point: tileSize/1.5 in facing direction)',
     strikeYOffset: 'CONFIRMED (client: y - 10)',
     swingDuration: 'CONFIRMED (zswing 0.200s)',
     cooldown: 'CONFIRMED 9 game ticks; tick rate ASSUMED 30/s',
+    proposedStrikeRadius: 'PROPOSED (not extracted — server hit tolerance unknown)',
     note: 'NOT a real client hitbox — the client sent a strike point via op 287 mode 25; hit resolution was server-side.',
   },
 });

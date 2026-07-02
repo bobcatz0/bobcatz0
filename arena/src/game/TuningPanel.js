@@ -55,8 +55,12 @@ export class TuningPanel {
     if (sword) {
       fields.push(
         F('swordDamage', 'sword damage', 'Fake Sword', { min: 1, max: 100, step: 1 }, onObj(sword, 'damage'), 'hp'),
-        F('swordCooldown', 'sword cooldown', 'Fake Sword', { min: 0.05, max: 2, step: 0.05 }, onObj(sword, 'cooldown'), 's'),
-        F('swordReach', 'sword reach', 'Fake Sword', { min: 10, max: 150, step: 2 }, onObj(sword, 'reach'), 'px'),
+        F('swordCooldown', 'sword cooldown', 'Fake Sword', { min: 0.05, max: 2, step: 0.05 }, onObj(sword, 'cooldown'), 's',
+          'CONFIRMED 9 game ticks; tick rate assumed 30/s (0.3s).'),
+        F('swordReach', 'sword reach', 'Fake Sword', { min: 10, max: 150, step: 2 }, onObj(sword, 'reach'), 'px',
+          'CONFIRMED client strike distance: tileSize/1.5 ≈ 26.7px.'),
+        F('swordStrikeRadius', 'strike radius', 'Fake Sword', { min: 0, max: 30, step: 1 }, onObj(sword, 'proposedStrikeRadius'), 'px',
+          'PROPOSED forgiveness around the strike point — NOT extracted from Diggerz. 0 = pure authentic point.'),
       );
     }
     if (ray) {
@@ -178,7 +182,7 @@ export class TuningPanel {
     const cfg = {
       movement: { moveSpeed: v('moveSpeed'), acceleration: v('acceleration'), friction: v('friction'), gravity: v('gravity'), jumpSpeed: v('jumpSpeed') },
     };
-    if (this.fieldById.swordDamage) cfg.fakeSword = { damage: v('swordDamage'), cooldown: v('swordCooldown'), reach: v('swordReach') };
+    if (this.fieldById.swordDamage) cfg.fakeSword = { damage: v('swordDamage'), cooldown: v('swordCooldown'), reach: v('swordReach'), proposedStrikeRadius: v('swordStrikeRadius') };
     if (this.fieldById.rayDamage) cfg.blueRayGun = { damage: v('rayDamage'), cooldown: v('rayCooldown'), speed: v('raySpeed'), lifetime: v('rayTtl'), range: round(v('raySpeed') * v('rayTtl')) };
     cfg.respawn = { time: v('respawnTime'), invulnerability: v('invuln') };
     cfg._note = 'PROPOSED standalone PvP tuning values (not extracted Diggerz server values).';

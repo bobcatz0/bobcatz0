@@ -4,6 +4,7 @@ import { CombatSystem } from '../src/combat/CombatSystem.js';
 import { FAKE_SWORD, BLUE_RAY_GUN, SHOTGUN, FIGHTER, MATCH, RESPAWN } from '../src/combat/CombatConfig.js';
 import { swordSwingAt, swordHoldPose, SWING_DURATION } from '../src/combat/swordSwing.js';
 import { h4 } from '../src/render/h4Palette.js';
+import { ShotFx, tracerThickness, tracerAlpha, laserAlpha, TRACER_FADE_S, LASER_FADE_S } from '../src/game/ShotFx.js';
 
 // Combat V1 tests (pure logic, no DOM). Confirmed Diggerz weapons (Fake Sword
 // id 55, Blue Ray Gun id 79); combat numbers are the PROPOSED standalone values.
@@ -229,14 +230,68 @@ const AIM_RIGHT = 0;
   ok('Blue Ray Gun uses the real h4(4) tint + muzzle point metadata');
 })();
 
-// 11. Damage (and gun cooldown) stay marked PROPOSED — server values are lost.
+// 11. Damage (and gun cooldown) stay marked PROPOSED — server values are lost,
+//     and nothing claims the server damage/hitbox logic was recovered.
 (function provenance() {
   assert.ok(FAKE_SWORD.combat.provenance.damage.startsWith('PROPOSED'), 'sword damage PROPOSED');
   assert.ok(BLUE_RAY_GUN.combat.provenance.damage.startsWith('PROPOSED'), 'ray damage PROPOSED');
   assert.ok(BLUE_RAY_GUN.combat.provenance.cooldown.startsWith('PROPOSED'), 'ray cooldown PROPOSED');
   assert.ok(FAKE_SWORD.combat.provenance.reach.startsWith('CONFIRMED'), 'strike reach CONFIRMED');
   assert.ok(FAKE_SWORD.combat.provenance.note.includes('NOT a real client hitbox'), 'strike point ≠ hitbox, stated');
-  ok('damage stays PROPOSED standalone; confirmed fields are labelled CONFIRMED');
+  // no recovery claims: damage provenance must never read CONFIRMED
+  assert.ok(!FAKE_SWORD.combat.provenance.damage.includes('CONFIRMED'), 'no sword-damage recovery claim');
+  assert.ok(!BLUE_RAY_GUN.combat.provenance.damage.includes('CONFIRMED'), 'no ray-damage recovery claim');
+  assert.ok(FAKE_SWORD.combat.provenance.proposedStrikeRadius.startsWith('PROPOSED'), 'strike radius PROPOSED (not extracted)');
+  ok('damage stays PROPOSED standalone; no claim server damage/hitboxes were recovered');
+})();
+
+// 12. Sword cooldown: a second swing is blocked until the cooldown elapses.
+(function swordCooldown() {
+  const { combat } = setup(132);
+  const cd = FAKE_SWORD.combat.cooldown;
+  assert.strictEqual(combat.use(30.0, AIM_RIGHT), true, 'first swing fires');
+  assert.strictEqual(combat.use(30.0 + cd - 0.01, AIM_RIGHT), false, 'blocked during cooldown');
+  assert.strictEqual(combat.use(30.0 + cd + 0.01, AIM_RIGHT), true, 'fires again after cooldown');
+  ok('sword cooldown blocks re-swing until 9 ticks (0.3s assumed) elapse');
+})();
+
+// 13. proposedStrikeRadius: PROPOSED forgiveness expands the point test; 0 = pure point.
+(function strikeRadius() {
+  const saved = FAKE_SWORD.combat.proposedStrikeRadius;
+  // dummy just OUT of point reach: strike x = 112 + 26.67 = 138.67; hurtbox starts at dummy.x+2
+  const mk = (dx) => setup(dx).combat;
+  FAKE_SWORD.combat.proposedStrikeRadius = 0;
+  let c = mk(141); // hurtbox [143..163] — point 138.67 misses by ~4.3px
+  c.use(1.0, AIM_RIGHT); c.update(DT, 1.0);
+  assert.strictEqual(c.dummy.health.hp, FIGHTER.maxHealth, 'radius 0: pure point misses');
+  FAKE_SWORD.combat.proposedStrikeRadius = 6;
+  c = mk(141);
+  c.use(1.0, AIM_RIGHT); c.update(DT, 1.0);
+  assert.strictEqual(c.dummy.health.hp, FIGHTER.maxHealth - FAKE_SWORD.combat.damage, 'radius 6: same target hits');
+  FAKE_SWORD.combat.proposedStrikeRadius = saved;
+  ok('proposedStrikeRadius (PROPOSED) adds forgiveness; 0 keeps the authentic point');
+})();
+
+// 14. Shot fx: tracer + laser entries with the real client timings.
+(function shotFx() {
+  const fx = new ShotFx();
+  fx.add(0, 0, 100, 0, 4, 10.0);
+  assert.strictEqual(fx.fx.length, 1, 'tracer created on shot completion');
+  assert.strictEqual(fx.fx[0].tint, 4, 'tracer carries the shot colour (u41=4 blue)');
+  // real timings: tracer 3->1 thickness + fade over 500ms; laser .7->0 over 200ms
+  assert.strictEqual(TRACER_FADE_S, 0.5, 'tracer window 500ms (CONFIRMED)');
+  assert.strictEqual(LASER_FADE_S, 0.2, 'laser window 200ms (CONFIRMED)');
+  assert.strictEqual(tracerThickness(0), 3, 'tracer starts at thickness 3');
+  assert.strictEqual(tracerThickness(0.5), 1, 'tracer ends at thickness 1');
+  assert.ok(Math.abs(tracerAlpha(0.25) - 0.5) < 1e-9, 'tracer alpha fades linearly');
+  assert.ok(Math.abs(laserAlpha(0) - 0.7) < 1e-9, 'laser starts at alpha .7');
+  assert.ok(Math.abs(laserAlpha(0.1) - 0.35) < 1e-9, 'laser halfway at .35');
+  assert.strictEqual(laserAlpha(0.2), 0, 'laser gone after 200ms');
+  fx.update(10.49);
+  assert.strictEqual(fx.fx.length, 1, 'tracer alive within 500ms');
+  fx.update(10.51);
+  assert.strictEqual(fx.fx.length, 0, 'tracer culled after 500ms');
+  ok('tracer/beam fx created with the real client fade timings (500ms / 200ms)');
 })();
 
 console.log(`\nAll ${passed} combat checks passed.`);
