@@ -20,6 +20,7 @@
 
 import { facingScale } from '../diggerz/CharacterRig.js';
 import { weaponRig, weaponBehind } from './CharacterRigConfig.js';
+import { SKELETON_H } from '../combat/swordSwing.js';
 
 const SPRITE_URL = 'assets/generated/default-diggerz-character-idle.png';
 const META_URL = 'assets/generated/default-diggerz-character-idle.json';
@@ -72,10 +73,17 @@ export class CharacterSprite {
     const handX = cx + facing * ((m.handAnchor.x - gx) * S);
     const handY = feetY + (m.handAnchor.y - gy) * S;
     const aim = opts.aim;
+    // swordPose = real sword_pose/zswing sample {deg,dx,dy} — replaces aim.
+    const pose = opts.swordPose;
     // Aiming up -> draw the weapon BEHIND the character so it never covers the
-    // face/eyes; horizontal/down -> in front, so it reads as held in the hand.
-    const behind = !!opts.weapon && weaponBehind(aim);
-    if (behind) this._drawWeapon(ctx, handX, handY, aim, opts.weapon, opts.weaponKey);
+    // face/eyes. For the sword pose: behind while cocked at rest (blade over the
+    // shoulder), in front while the swing sweeps forward.
+    const behind = !!opts.weapon && (pose ? this._poseBehind(pose) : weaponBehind(aim));
+    const drawWeapon = () => {
+      if (pose) this._drawSwordPose(ctx, cx, feetY, facing, pose, opts.weapon, opts.weaponKey);
+      else this._drawWeapon(ctx, handX, handY, aim, opts.weapon, opts.weaponKey);
+    };
+    if (opts.weapon && behind) drawWeapon();
 
     ctx.save();
     ctx.translate(cx, feetY);
@@ -88,8 +96,34 @@ export class CharacterSprite {
     ctx.imageSmoothingEnabled = prev;
     ctx.restore();
 
-    if (opts.weapon && !behind) this._drawWeapon(ctx, handX, handY, aim, opts.weapon, opts.weaponKey);
+    if (opts.weapon && !behind) drawWeapon();
     if (opts.debugRig) this._drawDebug(ctx, cx, feetY, facing, handX, handY, S, m);
+  }
+
+  /** Sword rest pose points up-back over the shoulder -> tuck it behind the body. */
+  _poseBehind(pose) {
+    const d = ((pose.deg % 360) + 360) % 360;
+    return d > 90 && d < 270; // blade pointing backwards (up-back / down-back)
+  }
+
+  /**
+   * Draw the sword at the REAL sword_pose / zswing sample: `pose` = {deg,dx,dy}
+   * from swordSwing.js — the sword-CENTRE world transform derived from the
+   * skeleton (attachment rotation + the client's wear offset), scaled to the
+   * sprite height and mirrored for facing-left. (Weapon-only animation — the
+   * reference-sprite body is untouched, per the no-cursed-skeleton rule.)
+   */
+  _drawSwordPose(ctx, cx, feetY, facing, pose, weapon) {
+    const k = TARGET_H / SKELETON_H;             // skeleton units -> screen px
+    const px = cx + facing * pose.dx * k;
+    const py = feetY - pose.dy * k;
+    const w = weapon.sw * k, h = weapon.sh * k;  // real proportional sword size
+    ctx.save();
+    ctx.translate(px, py);
+    if (facing < 0) ctx.scale(-1, 1);
+    ctx.rotate(pose.deg * Math.PI / 180);
+    ctx.drawImage(weapon.image, weapon.sx, weapon.sy, weapon.sw, weapon.sh, -w / 2, -h / 2, w, h);
+    ctx.restore();
   }
 
   _drawWeapon(ctx, hx, hy, aim, weapon, weaponKey) {

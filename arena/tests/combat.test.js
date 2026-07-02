@@ -2,6 +2,8 @@ import assert from 'node:assert';
 import { MovementController } from '../src/game/MovementController.js';
 import { CombatSystem } from '../src/combat/CombatSystem.js';
 import { FAKE_SWORD, BLUE_RAY_GUN, SHOTGUN, FIGHTER, MATCH, RESPAWN } from '../src/combat/CombatConfig.js';
+import { swordSwingAt, swordHoldPose, SWING_DURATION } from '../src/combat/swordSwing.js';
+import { h4 } from '../src/render/h4Palette.js';
 
 // Combat V1 tests (pure logic, no DOM). Confirmed Diggerz weapons (Fake Sword
 // id 55, Blue Ray Gun id 79); combat numbers are the PROPOSED standalone values.
@@ -29,15 +31,16 @@ const AIM_RIGHT = 0;
   ok('weapons are the confirmed Diggerz Fake Sword (55) + Blue Ray Gun (79)');
 })();
 
-// 1. Sword hit: melee swing in reach damages the dummy.
+// 1. Sword hit: strike point in the target hurtbox damages the dummy.
+//    (Real client strike point = centre + tile/1.5 forward = ~26.7px reach.)
 (function swordHit() {
-  const { combat } = setup(140); // ~40px away, within sword reach (46)
+  const { combat } = setup(132); // dummy 32px away — inside the real strike reach
   assert.strictEqual(combat.selectedWeapon.id, 55, 'sword selected by default');
   const hp0 = combat.dummy.health.hp;
   combat.use(1.0, AIM_RIGHT);
   combat.update(DT, 1.0);
   assert.strictEqual(combat.dummy.health.hp, hp0 - FAKE_SWORD.combat.damage, 'dummy took sword damage');
-  ok('sword hit: melee swing in reach reduces dummy HP');
+  ok('sword hit: strike point in the hurtbox reduces dummy HP');
 })();
 
 // 1b. Sword miss: target out of reach takes no damage.
@@ -80,7 +83,7 @@ const AIM_RIGHT = 0;
 
 // 3. Death + score: enough sword hits kill the dummy and award P1 a kill.
 (function deathAndScore() {
-  const { combat } = setup(140);
+  const { combat } = setup(132); // within the real strike reach
   let now = 1.0;
   const hits = Math.ceil(FIGHTER.maxHealth / FAKE_SWORD.combat.damage);
   for (let h = 0; h < hits; h++) {
@@ -171,6 +174,69 @@ const AIM_RIGHT = 0;
     assert.ok(combat.selectedWeapon.rect, `slot ${i} has a real atlas rect`);
   }
   ok('held weapon follows the selected weapon (sword/ray gun/shotgun)');
+})();
+
+// ── Weapon-authenticity pass (docs/WEAPON_FUNCTION_AUDIT.md) ──────────────────
+
+// 8. Fake Sword swing: starts on use and ends after the real 0.200s.
+(function swingTiming() {
+  const { combat } = setup(132);
+  const r = combat.resolvers[55];
+  assert.strictEqual(SWING_DURATION, 0.2, 'zswing duration is 0.200s (CONFIRMED)');
+  assert.strictEqual(FAKE_SWORD.combat.swingDuration, 0.2, 'config carries the real duration');
+  combat.use(10.0, AIM_RIGHT);
+  assert.strictEqual(r.isSwinging(10.0), true, 'swing starts at use');
+  assert.strictEqual(r.isSwinging(10.19), true, 'still swinging at 0.19s');
+  assert.strictEqual(r.isSwinging(10.21), false, 'swing over after 0.200s');
+  assert.ok(Math.abs(r.swingProgress(10.1) - 0.5) < 1e-9, 'progress 0.5 mid-swing');
+  // real swing keyframes: rest 157.8°, overhead chop 327.5° at t=0.10, back to rest
+  assert.ok(Math.abs(swordSwingAt(0).deg - 157.8) < 1e-9, 'rest = sword_pose 157.8°');
+  assert.ok(Math.abs(swordSwingAt(0.10).deg - 327.5) < 1e-9, 'chop at 327.5°');
+  assert.ok(Math.abs(swordSwingAt(0.20).deg - 157.8) < 1e-9, 'returns to the hold pose');
+  assert.strictEqual(swordHoldPose().deg, swordSwingAt(0).deg, 'hold pose = swing rest key');
+  ok('Fake Sword swing starts on use and ends after the real 0.200s (zswing keys)');
+})();
+
+// 9. Fake Sword uses the real client strike point formula (NOT a client hitbox —
+//    the client sent this point via op 287 mode 25; the server resolved hits).
+(function strikeFormula() {
+  const { combat, attacker } = setup(132);
+  const r = combat.resolvers[55];
+  const b = attacker.body;
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  combat.use(20.0, AIM_RIGHT); // facing right
+  let sp = r.debugStrike(20.05, b);
+  assert.ok(Math.abs(sp.x - (cx + 40 / 1.5)) < 1e-9, 'x = cx + tileSize/1.5 * facing (right)');
+  assert.ok(Math.abs(sp.y - (cy - 10)) < 1e-9, 'y = cy - 10');
+  // facing left (aim left)
+  combat.use(21.0, Math.PI);
+  sp = r.debugStrike(21.05, b);
+  assert.ok(Math.abs(sp.x - (cx - 40 / 1.5)) < 1e-9, 'x = cx - tileSize/1.5 (facing left)');
+  assert.strictEqual(FAKE_SWORD.combat.cooldownTicks, 9, 'cooldown = 9 game ticks (CONFIRMED count)');
+  ok('Fake Sword uses the real strike point formula (x ± tile/1.5, y − 10)');
+})();
+
+// 10. Blue Ray Gun carries the real visual metadata: h4(4) blue tint + muzzle.
+(function rayVisualMeta() {
+  const v = BLUE_RAY_GUN.visual;
+  assert.ok(v, 'Blue Ray Gun has a visual block');
+  assert.strictEqual(v.tintIndex, 4, 'tint = h4(4) (CONFIRMED item table)');
+  assert.deepStrictEqual(h4(4), [0.3, 0.3, 1], 'h4(4) is the real blue multiply');
+  assert.deepStrictEqual(v.muzzle, { x: 0, y: 0 }, 'muzzle = weapon origin (CONFIRMED P29)');
+  assert.strictEqual(v.shotColor, 4, 'tracer colour u41 = 4 (blue)');
+  assert.strictEqual(v.tracerFadeMs, 500, 'tracer fade 500ms (CONFIRMED ul)');
+  assert.strictEqual(v.laserFadeMs, 200, 'type-28 laser fade 200ms (CONFIRMED ul)');
+  ok('Blue Ray Gun uses the real h4(4) tint + muzzle point metadata');
+})();
+
+// 11. Damage (and gun cooldown) stay marked PROPOSED — server values are lost.
+(function provenance() {
+  assert.ok(FAKE_SWORD.combat.provenance.damage.startsWith('PROPOSED'), 'sword damage PROPOSED');
+  assert.ok(BLUE_RAY_GUN.combat.provenance.damage.startsWith('PROPOSED'), 'ray damage PROPOSED');
+  assert.ok(BLUE_RAY_GUN.combat.provenance.cooldown.startsWith('PROPOSED'), 'ray cooldown PROPOSED');
+  assert.ok(FAKE_SWORD.combat.provenance.reach.startsWith('CONFIRMED'), 'strike reach CONFIRMED');
+  assert.ok(FAKE_SWORD.combat.provenance.note.includes('NOT a real client hitbox'), 'strike point ≠ hitbox, stated');
+  ok('damage stays PROPOSED standalone; confirmed fields are labelled CONFIRMED');
 })();
 
 console.log(`\nAll ${passed} combat checks passed.`);

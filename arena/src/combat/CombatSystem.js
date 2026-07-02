@@ -60,7 +60,9 @@ export class CombatSystem {
     const r = this.resolvers[w.id];
     if (!r) { this.lastEvent = { type: 'unimplemented', weapon: w.name }; return false; } // e.g. Shotgun
     if (w.combat.kind === 'melee') {
-      return r.use(now, aimAngle);
+      // Real client melee is facing-based (strike point in the facing
+      // direction), so the aim only picks which way the swing faces.
+      return r.use(now, Math.cos(aimAngle) >= 0 ? 1 : -1);
     }
     // projectile muzzle: from attacker centre, nudged toward the aim
     const b = this.attacker.body;

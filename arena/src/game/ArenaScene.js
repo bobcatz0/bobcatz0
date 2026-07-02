@@ -16,6 +16,8 @@ import { CombatSystem } from '../combat/CombatSystem.js';
 import { bodyHurtbox } from '../combat/geometry.js';
 import { FIGHTER } from '../combat/CombatConfig.js';
 import { HitFx } from './HitFx.js';
+import { swordSwingAt, swordHoldPose, SWING_DURATION } from '../combat/swordSwing.js';
+import { h4css, tintSprite } from '../render/h4Palette.js';
 
 const FIXED_DT = 1 / 120;
 const MAX_FRAME = 0.25;
@@ -99,6 +101,10 @@ export class ArenaScene {
 
     // Hit/death feedback (visual only; observes combat, never drives it).
     this.hitfx = new HitFx();
+    // Shot visuals (real client style): live projectile origins + fading fx.
+    this._shotLive = new Map();   // projectile -> { ox, oy, lx, ly }
+    this._shotFx = [];            // { x1,y1,x2,y2, t0, tint } tracer + laser pairs
+    this._tintCache = {};         // weaponKey -> tinted sprite
     const dh = this.combat.dummy.health, ah = this.combat.attacker.health;
     this._fxPrev = { dHp: dh.hp, pHp: ah.hp, dAlive: dh.alive, pAlive: ah.alive };
 
@@ -202,22 +208,33 @@ export class ArenaScene {
       this._respawnMarker(d);
     }
 
-    // ── Player (P1): holding the selected weapon, aimed at the mouse.
+    // ── Player (P1): holding the selected weapon. The sword uses the REAL
+    // sword_pose hold + zswing swing (weapon-only animation); guns aim at the
+    // mouse. The Blue Ray Gun sprite is tinted its real h4(4) blue.
     const sel = this.combat.selectedWeapon;
-    const weaponSprite = sel ? this.assets.getSprite(sel.spriteKey) : null;
+    const weaponSprite = sel ? this._weaponSprite(sel) : null;
     const pstate = { ...this.player.state, facing: this._facing() };
+    let swordPose = null;
+    if (sel && sel.combat.kind === 'melee') {
+      const r = this.combat.resolvers[sel.id];
+      swordPose = r.isSwinging(now)
+        ? swordSwingAt(r.swingProgress(now) * SWING_DURATION)
+        : swordHoldPose();
+    }
     this.character.draw(ctx, pstate, now, {
-      aim: this.aimAngle, weapon: weaponSprite, weaponKey: sel ? sel.spriteKey : null, debugRig: this._rigOn(),
+      aim: this.aimAngle, weapon: weaponSprite, weaponKey: sel ? sel.spriteKey : null,
+      swordPose, debugRig: this._rigOn(),
     });
     this._healthBar(this.player.body, this.combat.attacker.health);
 
-    // ── Projectiles (ray gun) + melee swing visual (sword).
+    // ── Projectiles (ray gun) + shot tracers/laser (real client-style visuals).
+    this._trackShots();
     for (const w of this.combat.hotbar.slots) {
       const r = this.combat.resolvers[w.id];
       if (!r) continue;
-      if (w.combat.kind === 'projectile') for (const p of r.projectiles) this._drawProjectile(p);
-      if (w.combat.kind === 'melee') { const arc = r.debugArc(now, this.player.body); if (arc) this._drawSwing(arc); }
+      if (w.combat.kind === 'projectile') for (const p of r.projectiles) this._drawProjectile(p, w);
     }
+    this._drawShotFx(now);
 
     // ── Hit feedback: character flash + sparks / damage numbers / rings.
     if (d.health.alive) this._drawHitFlash(d.body, this.hitfx.flashAmt('p2'));
@@ -314,22 +331,76 @@ export class ArenaScene {
     ctx.restore();
   }
 
-  _drawProjectile(p) {
-    const ctx = this.ctx;
-    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
-    ctx.fillStyle = '#7fd1ff'; ctx.strokeStyle = '#2a6f9e'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.ellipse(0, 0, p.w / 2, p.h / 2, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.globalAlpha = 0.4; ctx.fillRect(-p.w, -1, p.w, 2);
-    ctx.restore();
+  /** Held/hotbar sprite for a weapon, tinted by its real h4 index (cached). */
+  _weaponSprite(w) {
+    const base = this.assets.getSprite(w.spriteKey);
+    const idx = w.visual && w.visual.tintIndex;
+    if (!base || idx == null) return base;
+    const ck = w.spriteKey + '|' + idx;
+    return this._tintCache[ck] || (this._tintCache[ck] = tintSprite(base, idx));
   }
 
-  _drawSwing(arc) {
+  // ── Shot visuals (real client style — docs/WEAPON_FUNCTION_AUDIT.md §3) ─────
+  // Track ray-gun projectiles: remember each one's muzzle origin, and when it
+  // dies (hit/wall/expire) spawn the client-style visuals: a tinted TRACER
+  // stretched muzzle->impact (yScale 3->1, fade 500ms) + the type-28 LASER
+  // (BEAM_PNG stretched, alpha .7->0 over 200ms).
+  _trackShots() {
+    const now = this.simTime;
+    for (const w of this.combat.hotbar.slots) {
+      if (w.combat.kind !== 'projectile') continue;
+      const r = this.combat.resolvers[w.id];
+      if (!r) continue;
+      const alive = new Set(r.projectiles);
+      for (const p of r.projectiles) {
+        const rec = this._shotLive.get(p);
+        if (!rec) this._shotLive.set(p, { ox: p.x, oy: p.y, lx: p.x, ly: p.y, tint: (w.visual && w.visual.shotColor) ?? 4 });
+        else { rec.lx = p.x; rec.ly = p.y; }
+      }
+      for (const [p, rec] of this._shotLive) {
+        if (!alive.has(p)) {
+          this._shotFx.push({ x1: rec.ox, y1: rec.oy, x2: rec.lx, y2: rec.ly, t0: now, tint: rec.tint });
+          this._shotLive.delete(p);
+        }
+      }
+    }
+    // cull finished fx (tracer 500ms is the longest)
+    this._shotFx = this._shotFx.filter((f) => now - f.t0 < 0.5);
+  }
+
+  _drawShotFx(now) {
     const ctx = this.ctx;
-    ctx.save();
-    ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-    ctx.beginPath(); ctx.moveTo(arc.x, arc.y);
-    ctx.arc(arc.x, arc.y, arc.reach, arc.aim - arc.arc / 2, arc.aim + arc.arc / 2);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
+    const beam = this.assets.getSprite('BEAM_PNG');
+    for (const f of this._shotFx) {
+      const age = now - f.t0;
+      const ang = Math.atan2(f.y2 - f.y1, f.x2 - f.x1);
+      const dist = Math.hypot(f.x2 - f.x1, f.y2 - f.y1);
+      if (dist < 2) continue;
+      // tracer: stretched line, thickness 3 -> 1, tinted, fading over 500ms
+      const k = Math.min(1, age / 0.5);
+      ctx.save();
+      ctx.translate((f.x1 + f.x2) / 2, (f.y1 + f.y2) / 2); ctx.rotate(ang);
+      ctx.globalAlpha = 1 - k;
+      ctx.fillStyle = h4css(f.tint);
+      const th = 3 - 2 * k; // yScale 3 -> 1
+      ctx.fillRect(-dist / 2, -th / 2, dist, th);
+      // type-28 laser: BEAM_PNG stretched, alpha .7 -> 0 over 200ms
+      if (beam && age < 0.2) {
+        ctx.globalAlpha = 0.7 * (1 - age / 0.2);
+        ctx.drawImage(beam.image, beam.sx, beam.sy, beam.sw, beam.sh, -dist / 2, -7, dist, 14);
+      }
+      ctx.restore();
+    }
+  }
+
+  _drawProjectile(p, w) {
+    const ctx = this.ctx;
+    const tint = (w && w.visual && w.visual.shotColor) ?? 4;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+    // in-flight bolt drawn in the weapon's real shot colour, with a short trail
+    ctx.fillStyle = h4css(tint);
+    ctx.beginPath(); ctx.ellipse(0, 0, p.w / 2, p.h / 2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.45; ctx.fillRect(-p.w * 1.6, -1, p.w * 1.6, 2);
     ctx.restore();
   }
 
@@ -357,12 +428,13 @@ export class ArenaScene {
       if (!r) continue;
       if (w.combat.kind === 'projectile') for (const p of r.projectiles) box(p.aabb(), '#ffe27f');
       if (w.combat.kind === 'melee') {
-        const arc = r.debugArc(now, this.player.body);
-        if (arc) {
+        // Real client model: a STRIKE POINT (not a hitbox) at tile/1.5 in front.
+        const sp = r.debugStrike(now, this.player.body);
+        if (sp) {
           ctx.strokeStyle = '#ffe27f'; ctx.lineWidth = 1.5;
-          ctx.beginPath(); ctx.moveTo(arc.x, arc.y);
-          ctx.arc(arc.x, arc.y, arc.reach, arc.aim - arc.arc / 2, arc.aim + arc.arc / 2);
-          ctx.closePath(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(sp.x, sp.y, 4, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(sp.x - 7, sp.y); ctx.lineTo(sp.x + 7, sp.y);
+          ctx.moveTo(sp.x, sp.y - 7); ctx.lineTo(sp.x, sp.y + 7); ctx.stroke();
         }
       }
     }
@@ -379,7 +451,7 @@ export class ArenaScene {
       const x = x0 + i * (size + gap);
       const selected = i === this.combat.hotbar.selected;
       if (!this.ui.draw(ctx, 'POCKET_PNG', x, y, size, size)) { ctx.fillStyle = 'rgba(8,12,20,0.72)'; ctx.fillRect(x, y, size, size); }
-      const spr = this.assets.getSprite(w.spriteKey);
+      const spr = this._weaponSprite(w); // real h4 tint (Blue Ray Gun = blue)
       if (spr) {
         const pad = 9, mw = size - pad * 2, mh = size - pad * 2;
         const sc = Math.min(mw / spr.sw, mh / spr.sh);

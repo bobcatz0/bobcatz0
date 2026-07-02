@@ -44,16 +44,20 @@ tap = small hop) · **S/↓** descend · **mouse** aim · **left-click** use wea
 ## 3. Weapon select
 - [ ] `1` selects **Fake Sword**, `2` **Blue Ray Gun**, `3` **Shotgun** (Numpad 1/2/3 too).
 - [ ] The hotbar highlights the selected slot and shows the weapon name.
-- [ ] The selected weapon appears **held in the hand** and rotates toward the mouse.
+- [ ] The selected weapon appears **held in the hand**; guns rotate toward the
+      mouse, the sword sits in its real hold pose (it swings on click instead).
 - [ ] Held weapon mirrors correctly when facing left vs right; stays attached
       while moving/jumping; doesn't detach or flip weirdly when aiming behind.
 - [ ] Shotgun is selectable and shown, but marked **not wired** (no damage).
 
 ## 4. Sword combat (Fake Sword)
-- [ ] Left-click swings; a swing arc shows toward the aim.
-- [ ] A swing **in reach** of the dummy deals damage (≈34); out of reach does nothing.
-- [ ] Swing respects the cooldown (≈0.45s) — spam-clicking doesn't multi-hit instantly.
-- [ ] With **debug** on, the sword hitbox wedge is visible while the swing is live.
+- [ ] Left-click swings: the sword plays the real zswing (cocked over the
+      shoulder, overhead chop to the ground in front, back to the hold pose).
+- [ ] A swing with the dummy **in strike range** (~27px in front) deals damage
+      (≈34); out of range does nothing. The sword plays the real 0.2s zswing.
+- [ ] Swing respects the cooldown (9 game ticks ≈ 0.3s) — spam-clicking doesn't multi-hit instantly.
+- [ ] With **debug** on, the sword **strike point** marker (real client model —
+      a point at tile/1.5 in front, not a hitbox) shows while the swing plays.
 - [ ] One swing hits the dummy at most once (no double-counting per swing).
 - [ ] Dummy HP bar + debug `P2 hp` drop by the damage amount on each hit.
 

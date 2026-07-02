@@ -1,73 +1,87 @@
 /**
- * MeleeResolver — resolves a melee weapon (Combat V1: Fake Sword, id 55).
+ * MeleeResolver — resolves a melee weapon (Combat V1: Fake Sword, id 55) using
+ * the REAL client melee model (docs/WEAPON_FUNCTION_AUDIT.md §4):
  *
- * Confirmed: the weapon identity + that a use is left-mouse toward the aim.
- * PROPOSED (standalone): the arc/reach/damage/cooldown values (from CombatConfig).
+ *   - On use, the client computes a STRIKE POINT at
+ *       x + tileSize/1.5 * facing,  y - 10
+ *     and sends it to the server (op 287 mode 25). The server resolved the hit
+ *     — that logic is lost, so WE test the point against the target hurtbox.
+ *     This is a real client strike point, NOT a real client hitbox.
+ *   - Swing animation = zswing, 0.200 s (CONFIRMED).
+ *   - Cooldown = 9 game ticks (CONFIRMED count; tick rate assumed — see config).
+ *   - Damage stays a PROPOSED standalone value.
  *
- * Pure/deterministic — time passed in. One swing = one short active window with
- * a wedge hitbox in the aim direction; at most one target hit per swing.
+ * Pure/deterministic — time passed in. One strike resolves at most once per
+ * swing, on the first update after use (the client sent it instantly).
  */
 
-import { withinArc, bodyHurtbox, center } from './geometry.js';
+import { bodyHurtbox } from './geometry.js';
 
 export class MeleeResolver {
   constructor(weapon) {
-    this.w = weapon;                 // { combat: { reach, arcDegrees, activeTime, cooldown, damage } }
+    this.w = weapon;                 // { combat: { reach, strikeYOffset, swingDuration, cooldown, damage } }
     this._cooldownUntil = 0;
-    this._activeUntil = 0;
-    this._aim = 0;
-    this._connected = false;
+    this._swingStart = -Infinity;
+    this._facing = 1;
+    this._struck = true;
   }
 
-  get isActive() { return this._activeUntilNow; }
   cooldownRemaining(now) { return Math.max(0, this._cooldownUntil - now); }
 
-  /** Begin a swing toward `aimAngle` if off cooldown. Returns true if started. */
-  use(now, aimAngle) {
+  /** Begin a swing facing +1/-1 if off cooldown. Returns true if started. */
+  use(now, facing) {
     if (now < this._cooldownUntil) return false;
     this._cooldownUntil = now + this.w.combat.cooldown;
-    this._activeUntil = now + this.w.combat.activeTime;
-    this._aim = aimAngle;
-    this._connected = false;
+    this._swingStart = now;
+    this._facing = facing >= 0 ? 1 : -1;
+    this._struck = false;
     return true;
   }
 
-  /** The hitbox wedge is "live" between use() and activeUntil. */
-  active(now) { return now < this._activeUntil; }
+  /** True while the 0.200s swing animation is playing. */
+  isSwinging(now) { return now >= this._swingStart && now < this._swingStart + this.w.combat.swingDuration; }
+
+  /** Swing progress 0..1 (clamped) since the swing started. */
+  swingProgress(now) {
+    const d = this.w.combat.swingDuration;
+    return Math.max(0, Math.min(1, (now - this._swingStart) / d));
+  }
+
+  /** The client-authentic strike point for an attacker body, given the swing facing. */
+  strikePoint(attackerBody) {
+    const cx = attackerBody.x + attackerBody.w / 2;
+    const cy = attackerBody.y + attackerBody.h / 2;
+    return { x: cx + this.w.combat.reach * this._facing, y: cy + this.w.combat.strikeYOffset };
+  }
 
   /**
-   * Test the live swing against targets. Calls onHit(target, damage) once for
-   * the first target the wedge overlaps this swing.
-   * @param attackerBody { x, y, w, h }
-   * @param targets [{ body, health }]
+   * Resolve the strike (once per swing): the strike point is tested against
+   * each target's hurtbox; first containment hits. Calls onHit(target, damage).
    */
   resolve(now, attackerBody, targets, hurtboxInset, onHit) {
-    if (!this.active(now) || this._connected) return;
-    const origin = center(bodyHurtbox(attackerBody));
-    const reach = this.w.combat.reach;
-    const arc = (this.w.combat.arcDegrees * Math.PI) / 180;
+    if (this._struck || !this.isSwinging(now)) return;
+    this._struck = true; // the client sends the strike once, instantly
+    const p = this.strikePoint(attackerBody);
     for (const t of targets) {
       if (t.health && !t.health.alive) continue;
-      const c = center(bodyHurtbox(t.body, hurtboxInset));
-      if (withinArc(origin, c, reach, this._aim, arc)) {
-        this._connected = true;
+      const hb = bodyHurtbox(t.body, hurtboxInset);
+      if (p.x >= hb.x && p.x <= hb.x + hb.w && p.y >= hb.y && p.y <= hb.y + hb.h) {
         onHit(t, this.w.combat.damage);
         return;
       }
     }
   }
 
-  /** For rendering: the swing's reach/arc/aim while active, else null. */
-  debugArc(now, attackerBody) {
-    if (!this.active(now)) return null;
-    const origin = center(bodyHurtbox(attackerBody));
-    return { x: origin.x, y: origin.y, reach: this.w.combat.reach, aim: this._aim, arc: (this.w.combat.arcDegrees * Math.PI) / 180 };
+  /** For debug rendering: the live strike point while swinging, else null. */
+  debugStrike(now, attackerBody) {
+    if (!this.isSwinging(now)) return null;
+    return this.strikePoint(attackerBody);
   }
 
   /** Reset transient swing state (called by CombatSystem.reset for a rematch). */
   clear() {
     this._cooldownUntil = 0;
-    this._activeUntil = 0;
-    this._connected = false;
+    this._swingStart = -Infinity;
+    this._struck = true;
   }
 }
