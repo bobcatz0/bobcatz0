@@ -48,7 +48,8 @@ tap = small hop) · **S/↓** descend · **mouse** aim · **left-click** use wea
       mouse, the sword sits in its real hold pose (it swings on click instead).
 - [ ] Held weapon mirrors correctly when facing left vs right; stays attached
       while moving/jumping; doesn't detach or flip weirdly when aiming behind.
-- [ ] Shotgun is selectable and shown, but marked **not wired** (no damage).
+- [ ] Shotgun fires a **short white ray** (~7 tiles / 280px, PROPOSED default);
+      with debug on, the range endpoint tick shows along the aim.
 
 ## 4. Sword combat (Fake Sword)
 - [ ] Left-click swings: the sword plays the real zswing (cocked over the

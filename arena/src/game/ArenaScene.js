@@ -355,12 +355,17 @@ export class ArenaScene {
       const alive = new Set(r.projectiles);
       for (const p of r.projectiles) {
         const rec = this._shotLive.get(p);
-        if (!rec) this._shotLive.set(p, { ox: p.x, oy: p.y, lx: p.x, ly: p.y, tint: (w.visual && w.visual.shotColor) ?? 4 });
-        else { rec.lx = p.x; rec.ly = p.y; }
+        if (!rec) {
+          this._shotLive.set(p, {
+            ox: p.x, oy: p.y, lx: p.x, ly: p.y,
+            tint: (w.visual && w.visual.shotColor) ?? 4,
+            style: (w.visual && w.visual.tracerStyle) || 'default',
+          });
+        } else { rec.lx = p.x; rec.ly = p.y; }
       }
       for (const [p, rec] of this._shotLive) {
         if (!alive.has(p)) {
-          this.shotfx.add(rec.ox, rec.oy, rec.lx, rec.ly, rec.tint, now);
+          this.shotfx.add(rec.ox, rec.oy, rec.lx, rec.ly, rec.tint, now, rec.style);
           this._shotLive.delete(p);
         }
       }
@@ -373,21 +378,30 @@ export class ArenaScene {
     const beam = this.assets.getSprite('BEAM_PNG');
     for (const f of this.shotfx.fx) {
       const age = now - f.t0;
+      const st = f.style;
       const ang = Math.atan2(f.y2 - f.y1, f.x2 - f.x1);
       const dist = Math.hypot(f.x2 - f.x1, f.y2 - f.y1);
       if (dist < 2) continue;
-      // tracer: stretched line, thickness 3 -> 1, tinted, fading over 500ms
+      const k = Math.min(1, age / st.fadeS);
       ctx.save();
       ctx.translate((f.x1 + f.x2) / 2, (f.y1 + f.y2) / 2); ctx.rotate(ang);
-      ctx.globalAlpha = tracerAlpha(age);
+      // tracer: stretched line in the shot colour; 'quick' (Shotgun, type-26)
+      // is thin white .7 -> 0 over 200ms; default fades 1 -> 0 over 500ms.
+      ctx.globalAlpha = st.alpha0 * (1 - k);
       ctx.fillStyle = h4css(f.tint);
-      const th = tracerThickness(age);
+      const th = st.thick0 - (st.thick0 - 1) * k; // thickness -> 1
       ctx.fillRect(-dist / 2, -th / 2, dist, th);
-      // type-28 laser: BEAM_PNG stretched, alpha .7 -> 0 over 200ms
-      const la = laserAlpha(age);
-      if (beam && la > 0) {
-        ctx.globalAlpha = la;
-        ctx.drawImage(beam.image, beam.sx, beam.sy, beam.sw, beam.sh, -dist / 2, -7, dist, 14);
+      // bright endpoint on the quick style (impact flash of the short ray)
+      if (!st.beam) {
+        ctx.beginPath(); ctx.arc(dist / 2, 0, 2.5 * (1 - k) + 0.5, 0, Math.PI * 2); ctx.fill();
+      }
+      // type-28 laser: BEAM_PNG stretched, alpha .7 -> 0 over 200ms (ray gun only)
+      if (st.beam && beam) {
+        const la = laserAlpha(age);
+        if (la > 0) {
+          ctx.globalAlpha = la;
+          ctx.drawImage(beam.image, beam.sx, beam.sy, beam.sw, beam.sh, -dist / 2, -7, dist, 14);
+        }
       }
       ctx.restore();
     }
@@ -412,6 +426,19 @@ export class ArenaScene {
     ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(this.aimPoint.x, this.aimPoint.y); ctx.stroke();
     ctx.setLineDash([]); ctx.strokeStyle = '#7fd1ff';
     ctx.beginPath(); ctx.arc(this.aimPoint.x, this.aimPoint.y, 6, 0, Math.PI * 2); ctx.stroke();
+    // Range endpoint for range-limited weapons (Shotgun): a tick + ring where
+    // the shot expires along the current aim.
+    const sel = this.combat.selectedWeapon;
+    if (sel && sel.combat.range) {
+      const ex = px + Math.cos(this.aimAngle) * sel.combat.range;
+      const ey = py + Math.sin(this.aimAngle) * sel.combat.range;
+      ctx.strokeStyle = '#ffe27f';
+      ctx.beginPath(); ctx.arc(ex, ey, 4, 0, Math.PI * 2); ctx.stroke();
+      const nx = -Math.sin(this.aimAngle), ny = Math.cos(this.aimAngle);
+      ctx.beginPath(); ctx.moveTo(ex - nx * 8, ey - ny * 8); ctx.lineTo(ex + nx * 8, ey + ny * 8); ctx.stroke();
+      ctx.fillStyle = '#ffe27f'; ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(`range ${Math.round(sel.combat.range)}px`, ex, ey - 10); ctx.textAlign = 'left';
+    }
     ctx.restore();
   }
 

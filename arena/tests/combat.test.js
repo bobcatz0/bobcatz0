@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { MovementController } from '../src/game/MovementController.js';
 import { CombatSystem } from '../src/combat/CombatSystem.js';
 import { FAKE_SWORD, BLUE_RAY_GUN, SHOTGUN, FIGHTER, MATCH, RESPAWN } from '../src/combat/CombatConfig.js';
@@ -292,6 +293,82 @@ const AIM_RIGHT = 0;
   fx.update(10.51);
   assert.strictEqual(fx.fx.length, 0, 'tracer culled after 500ms');
   ok('tracer/beam fx created with the real client fade timings (500ms / 200ms)');
+})();
+
+// ── Shotgun V1 (docs/SHOTGUN_FUNCTION_AUDIT.md) ───────────────────────────────
+
+// 15. Shotgun metadata matches the extracted client weapon table.
+(function shotgunMeta() {
+  const table = JSON.parse(readFileSync(new URL('../docs/extracted/weapon_function_table.json', import.meta.url), 'utf8'));
+  const entry = table.items.find((i) => i.id === 248);
+  assert.ok(entry, 'shotgun present in the extracted weapon table');
+  assert.strictEqual(SHOTGUN.spriteKey, entry.sprite, 'sprite key matches the client (SHOTGUN_PNG)');
+  assert.deepStrictEqual(SHOTGUN.visual.muzzle, { x: entry.gun.muzzleX, y: entry.gun.muzzleY }, 'muzzle matches P29 (-8, 28)');
+  assert.strictEqual(SHOTGUN.visual.shotColor, entry.gun.shotColor, 'shot colour u41 = 26 (white)');
+  assert.strictEqual(SHOTGUN.visual.tracerStyle, 'quick', 'type-26 quick tracer (no beam)');
+  assert.strictEqual(SHOTGUN.combat.kind, 'projectile', 'same ray-style shot system as the Blue Ray Gun');
+  ok('shotgun metadata loaded from the extracted client weapon table');
+})();
+
+// 16. Range defaults to ~7 tiles; provenance stays honest.
+(function shotgunProvenance() {
+  assert.strictEqual(SHOTGUN.combat.range, 7 * 40, 'default range = 7 tiles = 280px');
+  const p = SHOTGUN.combat.provenance;
+  assert.ok(p.damage.startsWith('PROPOSED'), 'damage not claimed CONFIRMED');
+  assert.ok(p.range.startsWith('PROPOSED'), 'range not claimed CONFIRMED');
+  assert.ok(p.spread.startsWith('UNKNOWN_SERVER_SIDE'), 'spread unknown — single ray, no invented pellets');
+  assert.ok(!p.damage.includes('CONFIRMED') && !p.range.includes('CONFIRMED'), 'no false recovery claims');
+  assert.ok(p.cooldown.startsWith('CONFIRMED_FROM_CLIENT'), 'cooldown ticks genuinely found (u39 case 26: o33=40)');
+  assert.strictEqual(SHOTGUN.combat.cooldownTicks, 40, '40 game ticks');
+  assert.strictEqual(SHOTGUN.combat.pellets, 1, 'one short ray in V1');
+  ok('shotgun range defaults to 7 tiles; damage/range/spread stay PROPOSED/UNKNOWN');
+})();
+
+// 17. Shotgun hits within its range, cannot hit past it.
+(function shotgunRange() {
+  // within range: dummy ~212px from the muzzle (< 280)
+  let { combat } = setup(340);
+  combat.selectSlot(2);
+  assert.strictEqual(combat.selectedWeapon.id, 248, 'shotgun selected');
+  let now = 5.0;
+  assert.strictEqual(combat.use(now, AIM_RIGHT), true, 'shotgun fires (no longer inert)');
+  const hp0 = combat.dummy.health.hp;
+  for (let i = 0; i < 80 && combat.dummy.health.hp === hp0; i++) { now += DT; combat.update(DT, now); }
+  assert.strictEqual(combat.dummy.health.hp, hp0 - SHOTGUN.combat.damage, 'hits within 7 tiles');
+  assert.strictEqual(combat.projectilesOf(248).length, 0, 'ray consumed on hit');
+  // beyond range: dummy ~334px from the muzzle (> 280) — the ray expires short
+  ({ combat } = setup(460));
+  combat.selectSlot(2);
+  now = 10.0;
+  combat.use(now, AIM_RIGHT);
+  for (let i = 0; i < 120; i++) { now += DT; combat.update(DT, now); }
+  assert.strictEqual(combat.dummy.health.hp, FIGHTER.maxHealth, 'cannot hit past the configured range');
+  assert.strictEqual(combat.projectilesOf(248).length, 0, 'ray expired at range');
+  ok('shotgun hits within 7 tiles and cannot hit beyond its range');
+})();
+
+// 18. Shotgun is blocked by walls; range knob is live per shot.
+(function shotgunWallAndKnob() {
+  const wall = { tile: 40, isSolid: (c) => c === 4 }; // column 4 = x 160..200
+  const attacker = { body: MovementController.createBody(100, 100, 24, 36) };
+  const dummy = { body: MovementController.createBody(300, 100, 24, 36) };
+  const combat = new CombatSystem({ collider: wall, attacker, dummy });
+  combat.selectSlot(2);
+  let now = 5;
+  combat.use(now, AIM_RIGHT);
+  for (let i = 0; i < 80; i++) { now += DT; combat.update(DT, now); }
+  assert.strictEqual(combat.dummy.health.hp, FIGHTER.maxHealth, 'wall blocks the shotgun ray');
+  // live range knob: shrink range -> the same in-range target is now out of reach
+  const saved = SHOTGUN.combat.range;
+  SHOTGUN.combat.range = 100;
+  const c2 = setup(340).combat;
+  c2.selectSlot(2);
+  let n2 = 20;
+  c2.use(n2, AIM_RIGHT);
+  for (let i = 0; i < 120; i++) { n2 += DT; c2.update(DT, n2); }
+  assert.strictEqual(c2.dummy.health.hp, FIGHTER.maxHealth, 'shrunk range (tuning knob) misses the same target');
+  SHOTGUN.combat.range = saved;
+  ok('shotgun respects walls; the range knob applies per shot');
 })();
 
 console.log(`\nAll ${passed} combat checks passed.`);

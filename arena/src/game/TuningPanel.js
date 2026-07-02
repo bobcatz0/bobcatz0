@@ -34,7 +34,8 @@ export class TuningPanel {
     const mc = scene.movement.cfg;
     const slots = scene.combat.hotbar.slots;
     const sword = (slots.find((w) => w.combat.kind === 'melee') || {}).combat;
-    const ray = (slots.find((w) => w.combat.kind === 'projectile') || {}).combat;
+    const ray = (slots.find((w) => w.id === 79) || {}).combat;
+    const shotgun = (slots.find((w) => w.id === 248) || {}).combat;
     const healths = [scene.combat.attacker.health, scene.combat.dummy.health];
 
     const onCfg = (key) => ({ get: () => mc[key], set: (v) => { mc[key] = v; } });
@@ -69,6 +70,16 @@ export class TuningPanel {
         F('rayCooldown', 'ray gun cooldown', 'Blue Ray Gun', { min: 0.05, max: 2, step: 0.05 }, onObj(ray, 'cooldown'), 's'),
         F('raySpeed', 'ray gun speed', 'Blue Ray Gun', { min: 100, max: 2000, step: 25 }, onObj(ray, 'projectileSpeed'), 'px/s'),
         F('rayTtl', 'ray gun lifetime', 'Blue Ray Gun', { min: 0.2, max: 4, step: 0.1 }, onObj(ray, 'ttl'), 's'),
+      );
+    }
+    if (shotgun) {
+      fields.push(
+        F('shotgunRange', 'shotgun range', 'Shotgun', { min: 80, max: 600, step: 20 }, onObj(shotgun, 'range'), 'px',
+          'PROPOSED_STANDALONE — default 280px = 7 tiles @40px (owner recollection; not in the client).'),
+        F('shotgunDamage', 'shotgun damage', 'Shotgun', { min: 1, max: 100, step: 1 }, onObj(shotgun, 'damage'), 'hp',
+          'PROPOSED_STANDALONE (server damage lost).'),
+        F('shotgunCooldown', 'shotgun cooldown', 'Shotgun', { min: 0.05, max: 3, step: 0.05 }, onObj(shotgun, 'cooldown'), 's',
+          'CONFIRMED_FROM_CLIENT 40 game ticks; tick rate assumed 30/s (1.33s).'),
       );
     }
     fields.push(
@@ -184,6 +195,7 @@ export class TuningPanel {
     };
     if (this.fieldById.swordDamage) cfg.fakeSword = { damage: v('swordDamage'), cooldown: v('swordCooldown'), reach: v('swordReach'), proposedStrikeRadius: v('swordStrikeRadius') };
     if (this.fieldById.rayDamage) cfg.blueRayGun = { damage: v('rayDamage'), cooldown: v('rayCooldown'), speed: v('raySpeed'), lifetime: v('rayTtl'), range: round(v('raySpeed') * v('rayTtl')) };
+    if (this.fieldById.shotgunRange) cfg.shotgun = { range: v('shotgunRange'), rangeTiles: round(v('shotgunRange') / 40), damage: v('shotgunDamage'), cooldown: v('shotgunCooldown') };
     cfg.respawn = { time: v('respawnTime'), invulnerability: v('invuln') };
     cfg._note = 'PROPOSED standalone PvP tuning values (not extracted Diggerz server values).';
     return cfg;

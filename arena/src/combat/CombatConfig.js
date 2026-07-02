@@ -102,22 +102,42 @@ BLUE_RAY_GUN.visual = {
   provenance: 'CONFIRMED (client item-definition table + ul shot effect)',
 };
 
-// 3. Shotgun (id 248) — in the hotbar, but resolution is DEFERRED.
-//
-// PROVENANCE / what is actually known:
-//   - CONFIRMED: only the identity (id 248, name, sprite, atlas rect) from the
-//     real catalog — i.e. that the Shotgun exists and is a Diggerz weapon.
-//   - MISSING (server-side, lost): its damage, pellet count, spread, range and
-//     cooldown. Diggerz resolved combat on the server; that logic is NOT in the
-//     repo, so these numbers are NOT extracted and are deliberately absent.
-//
-// We will NOT invent them and will NOT claim client/server shotgun logic exists
-// unless it can be shown in the decompiled client. Until then the Shotgun is
-// selectable/held but inert (kind 'unimplemented' -> no resolver, no damage).
-export const SHOTGUN = weapon(248, { kind: 'unimplemented' }); // combat numbers: MISSING (server-side)
+// 3. Shotgun (id 248) — V1, per docs/SHOTGUN_FUNCTION_AUDIT.md.
+// CONFIRMED_FROM_CLIENT: same gun class as the ray guns (tm), straight shot
+// (gravity 0), fires op 287 mode 26 from the gun_tip muzzle, cooldown 40 game
+// ticks, thin WHITE quick-fade tracer (h4(26) untinted, no beam).
+// UNKNOWN_SERVER_SIDE: range, damage, pellets/spread — V1 uses a single short
+// ray with PROPOSED_STANDALONE numbers (range default = owner recollection).
+export const SHOTGUN = weapon(248, {
+  kind: 'projectile',
+  damage: 40,              // PROPOSED_STANDALONE (close-range reward)
+  projectileSpeed: 900,    // px/s — PROPOSED_STANDALONE (client preview uses 3600)
+  range: 7 * 40,           // px — PROPOSED_STANDALONE default; "~7 tiles" is owner
+                           // recollection (LIKELY), not found in the client
+  cooldownTicks: 40,       // CONFIRMED_FROM_CLIENT (u39 case 26: o33 = 40)
+  cooldown: 40 / TICK_RATE_ASSUMED, // s — 40 ticks confirmed, tick RATE assumed 30/s
+  projW: 18,               // px — PROPOSED_STANDALONE
+  projH: 5,                // px — PROPOSED_STANDALONE
+  pellets: 1,              // single ray — spread/pellets UNKNOWN_SERVER_SIDE
+  spreadDegrees: 0,
+  provenance: {
+    damage: 'PROPOSED_STANDALONE (server-side, lost)',
+    range: 'PROPOSED_STANDALONE default 7 tiles = 280px (owner recollection LIKELY; not in client)',
+    cooldown: 'CONFIRMED_FROM_CLIENT 40 game ticks; tick rate ASSUMED 30/s',
+    spread: 'UNKNOWN_SERVER_SIDE — single ray in V1, no pellets without evidence',
+    projectileSpeed: 'PROPOSED_STANDALONE (client aim preview uses 3600 px/s)',
+  },
+});
+// CONFIRMED visual identity (client item table + u39 fire case + ul effect).
+SHOTGUN.visual = {
+  tintIndex: null,              // h4(26) = untinted — CONFIRMED_FROM_CLIENT
+  muzzle: { x: -8, y: 28 },     // gun_tip on the weapon sprite — CONFIRMED_FROM_CLIENT (P29)
+  shotColor: 26,                // white tracer — CONFIRMED_FROM_CLIENT
+  tracerStyle: 'quick',         // type-26: alpha .7->0 over 200ms, thin, NO beam — CONFIRMED_FROM_CLIENT
+  provenance: 'CONFIRMED_FROM_CLIENT (item table case 248 + u39 case 26 + ul type-26 effect)',
+};
 
-// The Combat V1 loadout, in hotbar order. Sword + Ray Gun resolve; Shotgun is
-// shown/selectable but not yet wired (no damage).
+// The Combat V1 loadout, in hotbar order. All three weapons resolve.
 export const COMBAT_V1_LOADOUT = [FAKE_SWORD, BLUE_RAY_GUN, SHOTGUN];
 
 // Lookup by catalog id.

@@ -69,10 +69,11 @@ npm test
   selected weapon toward the mouse aim. **Fake Sword** is a melee arc hitbox;
   **Blue Ray Gun** spawns a straight projectile (wall-blocked). On a kill: P1
   scores +1, the dummy respawns at the P2 spawn with brief invulnerability;
-  **first to 20 kills** wins (rematch button restarts). **Shotgun** is in the
-  hotbar and selectable but does **not** resolve yet (it will use the real
-  client's shotgun functions). All combat **numbers** are PROPOSED standalone
-  values (`src/combat/CombatConfig.js`).
+  **first to 20 kills** wins (rematch button restarts). **Shotgun** (V1) fires a
+  short-range white ray (default 7 tiles = 280px, PROPOSED; cooldown 40 game
+  ticks CONFIRMED from the client — see `docs/SHOTGUN_FUNCTION_AUDIT.md`). All
+  combat damage **numbers** are PROPOSED standalone values
+  (`src/combat/CombatConfig.js`).
 - FT20 kill score in the HUD; a win banner with a rematch button
 - Health bars over both fighters; respawn marker; muzzle/swing visuals
 - Debug overlay (toggle "show aim + debug"): weapon, aim, P1/P2 HP, score,
@@ -86,10 +87,10 @@ npm test
   sword and the guns like guns) that rotates toward the mouse aim; aiming
   upward layers the weapon **behind** the body so it never covers the face.
   Body facing follows the **aim while actively using**, else movement (idle
-  keeps the last facing). While **airborne** the character gets a lightweight
-  jump/fall pose (one hand thrown up while rising, both arms up while falling —
-  real Diggerz arm/hand parts overlaid on the sprite; a PROPOSED visual, not a
-  rig). Target visual jump height (Coaster Town reference): ~4 blocks; current
+  keeps the last facing). While **airborne** the character swaps to the real
+  copied jump-pose reference sprite
+  (`assets/generated/default-diggerz-character-jump.png` — masked screenshot,
+  not drawn). Target visual jump height (Coaster Town reference): ~4 blocks; current
   apex ≈ 3.4 tiles — documented in `MovementConfig.js`, physics unchanged. A
   **rig anchors** debug toggle shows the ground/head/hand anchors + facing arrow. Why a sprite and not a
   reconstructed rig: **`docs/CHARACTER_RENDERING.md`** (the original game has
@@ -103,8 +104,8 @@ npm test
   select the slot (highlight + name), the mouse aims (aim line + reticle), and
   left-click resolves the selected weapon against the dummy through the headless
   resolver layer (`src/combat/`) — melee arc for the sword, projectile for the
-  ray gun, health / death / respawn / FT20 kill scoring. The shotgun is
-  selectable but deferred.
+  ray gun, short range-limited ray for the shotgun, health / death / respawn /
+  FT20 kill scoring.
 
 ## Documentation
 

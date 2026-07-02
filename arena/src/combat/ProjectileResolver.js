@@ -57,12 +57,15 @@ export class ProjectileResolver {
     if (now < this._cooldownUntil) return false;
     this._cooldownUntil = now + this.w.combat.cooldown;
     const c = this.w.combat;
+    // Range-limited weapons (Shotgun) derive lifetime from range/speed each
+    // shot, so a live range tweak in the tuning panel takes effect immediately.
+    const ttl = c.range ? c.range / c.projectileSpeed : c.ttl;
     const pellets = c.pellets || 1;
     const spread = ((c.spreadDegrees || 0) * Math.PI) / 180;
     for (let i = 0; i < pellets; i++) {
       const off = pellets === 1 ? 0 : (i / (pellets - 1) - 0.5) * spread;
       this.projectiles.push(
-        new Projectile(x, y, aimAngle + off, c.projW, c.projH, c.projectileSpeed, c.ttl, c.damage, ownerId),
+        new Projectile(x, y, aimAngle + off, c.projW, c.projH, c.projectileSpeed, ttl, c.damage, ownerId),
       );
     }
     return true;
