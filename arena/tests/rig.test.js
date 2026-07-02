@@ -83,13 +83,15 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   assert.strictEqual(airPoseState({ grounded: false, vy: -300 }), 'jump', 'airborne + rising -> jump pose');
   assert.strictEqual(airPoseState({ grounded: false, vy: 200 }), 'fall', 'airborne + descending -> fall pose');
   assert.strictEqual(airPoseState({ grounded: false, vy: 0 }), 'fall', 'apex (vy=0) counts as fall');
-  // pose config: one arm raised (negative = up), the other lower; jump != fall
-  assert.ok(AIR_POSE.jump.front < 0, 'rising: lead arm raised up');
-  assert.ok(AIR_POSE.jump.back > AIR_POSE.jump.front, 'rising: other arm lower than the raised one');
-  assert.ok(AIR_POSE.fall.front < 0 && AIR_POSE.fall.back < 0, 'falling: arms up (flail)');
+  // pose config (Coaster Town reference): the BACK arm is raised up over the
+  // head (negative = up), the FRONT hand trails lower; jump != fall
+  assert.ok(AIR_POSE.jump.back < -90, 'rising: back fist raised up over the head');
+  assert.ok(AIR_POSE.jump.front > 0, 'rising: front hand trails low');
+  assert.ok(AIR_POSE.fall.back < 0, 'falling: raised arm stays up');
   assert.notDeepStrictEqual(AIR_POSE.jump, AIR_POSE.fall, 'jump and fall poses differ');
   assert.ok(AIR_POSE.shoulderFront.x > AIR_POSE.shoulderBack.x, 'front shoulder on the facing side');
-  ok('airborne pose: grounded/jump/fall states + raised-arm pose config');
+  assert.ok(AIR_POSE.raisedLen > AIR_POSE.lowLen, 'raised arm reaches further (clears the head)');
+  ok('airborne pose: grounded/jump/fall states + raised-back-arm pose config');
 })();
 
 console.log(`\nAll ${passed} rig checks passed.`);

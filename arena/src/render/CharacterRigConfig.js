@@ -63,16 +63,20 @@ export function bodyRenderFacing({ using, aimAngle, movementFacing }) {
 // the real Diggerz parts (ARM_PNG + HAND_PNG): one arm raised, the other lower —
 // rising and falling get slightly different angles. This is a PROPOSED visual
 // pose (the reference jump look), NOT a skeleton rig; physics untouched.
+// Matches the Coaster Town jump reference: a COMPACT pose — the back fist is
+// raised to cheek/chin height, tucked close to the body (drawn behind it), and
+// the front hand sits low by the hip. Small and subtle, not a full arm reach.
 export const AIR_POSE = {
   // canvas degrees for a right-facing character (0 = forward, negative = up)
-  jump: { front: -72, back: 50 },    // rising: lead hand thrown up, back arm trailing low
-  fall: { front: -80, back: -102 },  // falling: both arms up (flail), clear of the face
+  jump: { back: -125, front: 55 },  // rising: back fist up beside the cheek, front hand low
+  fall: { back: -100, front: 30 },  // falling: fist a touch higher, front hand mid
   // shoulder anchors in sprite-space px (the 54x95 reference sprite)
   shoulderFront: { x: 38, y: 58 },
-  shoulderBack: { x: 14, y: 58 },
-  armLen: 22,                         // screen px, shoulder -> hand (clears the head)
-  armH: 6,                            // drawn arm thickness (stretched limb)
-  hand: { w: 10, h: 8 },              // drawn hand size
+  shoulderBack: { x: 15, y: 58 },
+  raisedLen: 12,                     // screen px — fist ends beside the face, close in
+  lowLen: 8,                         // screen px — the trailing low hand
+  armH: 5,                           // drawn arm thickness (stretched limb)
+  hand: { w: 10, h: 8 },             // drawn hand size
 };
 
 /**
