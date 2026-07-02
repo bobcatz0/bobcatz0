@@ -18,12 +18,16 @@
  *   opts.palette   — procedural fallback colours (until the sprite has loaded)
  */
 
-import { facingScale, PART_SPRITES } from '../diggerz/CharacterRig.js';
-import { weaponRig, weaponBehind, AIR_POSE, airPoseState } from './CharacterRigConfig.js';
+import { facingScale } from '../diggerz/CharacterRig.js';
+import { weaponRig, weaponBehind, airPoseState } from './CharacterRigConfig.js';
 import { SKELETON_H } from '../combat/swordSwing.js';
 
 const SPRITE_URL = 'assets/generated/default-diggerz-character-idle.png';
 const META_URL = 'assets/generated/default-diggerz-character-idle.json';
+// Airborne: the REAL jump-pose screenshot, copied (not drawn) — shown while
+// jumping/falling, mirrored for facing. See its .json for provenance.
+const JUMP_SPRITE_URL = 'assets/generated/default-diggerz-character-jump.png';
+const JUMP_META_URL = 'assets/generated/default-diggerz-character-jump.json';
 const TARGET_H = 56; // rendered character height in px (feet-to-head)
 
 const TEAM = {
@@ -53,6 +57,17 @@ export class CharacterSprite {
       // leave !ready -> procedural fallback keeps the game drawable
       console.warn('[character] reference sprite not loaded:', e && e.message);
     }
+    try {
+      const jmeta = await fetch(JUMP_META_URL).then((r) => r.json());
+      const jimg = new Image();
+      jimg.src = JUMP_SPRITE_URL;
+      await jimg.decode();
+      this.jumpMeta = jmeta;
+      this.jumpSprite = jimg;
+    } catch (e) {
+      // no jump sprite -> idle sprite is used while airborne too
+      console.warn('[character] jump sprite not loaded:', e && e.message);
+    }
   }
 
   draw(ctx, state, nowSec, opts = {}) {
@@ -62,7 +77,12 @@ export class CharacterSprite {
 
   // ── Reference-image sprite ──────────────────────────────────────────────────
   _drawSprite(ctx, s, opts) {
-    const m = this.meta;
+    // Airborne -> the REAL jump-pose sprite (copied from the reference
+    // screenshot); grounded -> the idle sprite. Same anchor convention.
+    const air = airPoseState({ grounded: s.grounded, vy: s.vy });
+    const useJump = air && this.jumpSprite;
+    const m = useJump ? this.jumpMeta : this.meta;
+    const sprite = useJump ? this.jumpSprite : this.sprite;
     const cx = s.x + s.width / 2;
     const feetY = s.y + s.height;
     const facing = facingScale(s.facing); // +1 right (source orientation), -1 left
@@ -85,11 +105,6 @@ export class CharacterSprite {
     };
     if (opts.weapon && behind) drawWeapon();
 
-    // Airborne pose (visual only): the RAISED back arm draws BEHIND the body so
-    // just the fist clears the head silhouette (Coaster Town reference).
-    const air = airPoseState({ grounded: s.grounded, vy: s.vy });
-    if (air) this._drawAirArm(ctx, cx, feetY, facing, S, m, AIR_POSE.shoulderBack, AIR_POSE[air].back, AIR_POSE.raisedLen);
-
     ctx.save();
     ctx.translate(cx, feetY);
     if (facing < 0) ctx.scale(-1, 1);          // mirror the whole sprite for facing-left
@@ -97,34 +112,12 @@ export class CharacterSprite {
     ctx.translate(-gx, -gy);                    // pin the ground anchor to (cx, feetY)
     const prev = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = true;           // it's a downscaled screenshot, smooth it
-    ctx.drawImage(this.sprite, 0, 0);
+    ctx.drawImage(sprite, 0, 0);
     ctx.imageSmoothingEnabled = prev;
     ctx.restore();
 
-    if (air) this._drawAirArm(ctx, cx, feetY, facing, S, m, AIR_POSE.shoulderFront, AIR_POSE[air].front, AIR_POSE.lowLen);
     if (opts.weapon && !behind) drawWeapon();
     if (opts.debugRig) this._drawDebug(ctx, cx, feetY, facing, handX, handY, S, m);
-  }
-
-  /**
-   * One overlay arm+hand (real ARM_PNG/HAND_PNG) at a shoulder anchor, pointing
-   * along `deg` (canvas degrees, right-facing convention; mirrors with facing).
-   */
-  _drawAirArm(ctx, cx, feetY, facing, S, m, shoulder, deg, len) {
-    const arm = this.assets && this.assets.getSprite(PART_SPRITES.arm);
-    const hand = this.assets && this.assets.getSprite(PART_SPRITES.hand);
-    if (!arm || !hand) return;
-    const gx = m.groundAnchor.x, gy = m.groundAnchor.y;
-    const P = AIR_POSE;
-    ctx.save();
-    ctx.translate(cx, feetY);
-    if (facing < 0) ctx.scale(-1, 1);           // mirror with the body
-    ctx.translate((shoulder.x - gx) * S, (shoulder.y - gy) * S);
-    ctx.rotate(deg * Math.PI / 180);
-    // arm stretched from the shoulder along +x, hand/fist at the end
-    ctx.drawImage(arm.image, arm.sx, arm.sy, arm.sw, arm.sh, -2, -P.armH / 2, len + 2, P.armH);
-    ctx.drawImage(hand.image, hand.sx, hand.sy, hand.sw, hand.sh, len - 2, -P.hand.h / 2, P.hand.w, P.hand.h);
-    ctx.restore();
   }
 
   /** Sword rest pose points up-back over the shoulder -> tuck it behind the body. */

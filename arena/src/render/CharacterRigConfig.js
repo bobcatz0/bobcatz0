@@ -58,27 +58,10 @@ export function bodyRenderFacing({ using, aimAngle, movementFacing }) {
   return movementFacing >= 0 ? 1 : -1;
 }
 
-// ── Airborne pose (visual only — Coaster Town/Diggerz-style jump) ─────────────
-// While airborne the reference sprite gets a lightweight ARM OVERLAY drawn from
-// the real Diggerz parts (ARM_PNG + HAND_PNG): one arm raised, the other lower —
-// rising and falling get slightly different angles. This is a PROPOSED visual
-// pose (the reference jump look), NOT a skeleton rig; physics untouched.
-// Matches the Coaster Town jump reference: a COMPACT pose — the back fist is
-// raised to cheek/chin height, tucked close to the body (drawn behind it), and
-// the front hand sits low by the hip. Small and subtle, not a full arm reach.
-export const AIR_POSE = {
-  // canvas degrees for a right-facing character (0 = forward, negative = up)
-  jump: { back: -125, front: 55 },  // rising: back fist up beside the cheek, front hand low
-  fall: { back: -100, front: 30 },  // falling: fist a touch higher, front hand mid
-  // shoulder anchors in sprite-space px (the 54x95 reference sprite)
-  shoulderFront: { x: 38, y: 58 },
-  shoulderBack: { x: 15, y: 58 },
-  raisedLen: 12,                     // screen px — fist ends beside the face, close in
-  lowLen: 8,                         // screen px — the trailing low hand
-  armH: 5,                           // drawn arm thickness (stretched limb)
-  hand: { w: 10, h: 8 },             // drawn hand size
-};
-
+// ── Airborne pose state ───────────────────────────────────────────────────────
+// While airborne the renderer swaps to the REAL jump-pose sprite
+// (assets/generated/default-diggerz-character-jump.png — copied from the
+// reference screenshot, not drawn). This helper only picks the state.
 /**
  * Airborne pose state from the movement body (pure):
  *   grounded -> null (normal pose) · rising (vy < 0) -> 'jump' · else -> 'fall'.

@@ -1,0 +1,10 @@
+{
+  "source": "real Coaster Town/Diggerz in-game jump screenshot (user-provided reference, night-sky background masked out — copied, not drawn)",
+  "image": "default-diggerz-character-jump.png",
+  "width": 35,
+  "height": 61,
+  "facing": "right",
+  "groundAnchor": { "x": 15, "y": 61 },
+  "handAnchor": { "x": 27, "y": 39 },
+  "note": "Shown while airborne (jump + fall). Anchors in source pixels, origin top-left; mirror x for facing left."
+}

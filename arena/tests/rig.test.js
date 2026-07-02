@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import {
   WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, weaponBehind, bodyRenderFacing,
-  AIR_POSE, airPoseState,
+  airPoseState,
 } from '../src/render/CharacterRigConfig.js';
 import { byId } from '../src/diggerz/DiggerzWeaponCatalog.js';
 
@@ -76,22 +76,22 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   ok('body facing follows aim while using, else movement (idle keeps last)');
 })();
 
-// 5. Airborne pose states: grounded -> normal, rising -> jump, descending -> fall.
+// 5. Airborne pose: state mapping + the REAL jump sprite (copied, not drawn).
 (function airPose() {
   assert.strictEqual(airPoseState({ grounded: true, vy: 0 }), null, 'grounded -> normal pose');
   assert.strictEqual(airPoseState({ grounded: true, vy: -500 }), null, 'grounded ignores vy');
   assert.strictEqual(airPoseState({ grounded: false, vy: -300 }), 'jump', 'airborne + rising -> jump pose');
   assert.strictEqual(airPoseState({ grounded: false, vy: 200 }), 'fall', 'airborne + descending -> fall pose');
   assert.strictEqual(airPoseState({ grounded: false, vy: 0 }), 'fall', 'apex (vy=0) counts as fall');
-  // pose config (Coaster Town reference): the BACK arm is raised up over the
-  // head (negative = up), the FRONT hand trails lower; jump != fall
-  assert.ok(AIR_POSE.jump.back < -90, 'rising: back fist raised up over the head');
-  assert.ok(AIR_POSE.jump.front > 0, 'rising: front hand trails low');
-  assert.ok(AIR_POSE.fall.back < 0, 'falling: raised arm stays up');
-  assert.notDeepStrictEqual(AIR_POSE.jump, AIR_POSE.fall, 'jump and fall poses differ');
-  assert.ok(AIR_POSE.shoulderFront.x > AIR_POSE.shoulderBack.x, 'front shoulder on the facing side');
-  assert.ok(AIR_POSE.raisedLen > AIR_POSE.lowLen, 'raised arm reaches further (clears the head)');
-  ok('airborne pose: grounded/jump/fall states + raised-back-arm pose config');
+  // the airborne sprite is the copied reference screenshot, with sane metadata
+  const meta = JSON.parse(readFileSync(new URL('../assets/generated/default-diggerz-character-jump.json', import.meta.url), 'utf8'));
+  const png = readFileSync(new URL('../assets/generated/default-diggerz-character-jump.png', import.meta.url));
+  assert.strictEqual(png.slice(1, 4).toString(), 'PNG', 'jump sprite is a PNG');
+  assert.strictEqual(png.readUInt32BE(16), meta.width, 'jump metadata width matches the PNG');
+  assert.strictEqual(png.readUInt32BE(20), meta.height, 'jump metadata height matches the PNG');
+  assert.ok(meta.groundAnchor.y >= meta.height * 0.9, 'jump ground anchor at the sprite bottom');
+  assert.ok(/copied, not drawn/.test(meta.source), 'provenance: copied from the reference, not drawn');
+  ok('airborne: grounded/jump/fall states + the real copied jump sprite');
 })();
 
 console.log(`\nAll ${passed} rig checks passed.`);
