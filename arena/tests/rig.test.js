@@ -1,53 +1,38 @@
 import assert from 'node:assert';
-import { GUY_SKELETON } from '../src/render/guySkeleton.js';
-import { WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, BODY_TINTS, bodyRenderFacing, weaponBehind } from '../src/render/CharacterRigConfig.js';
+import { readFileSync } from 'node:fs';
+import {
+  WEAPON_RIG, DEFAULT_WEAPON_RIG, weaponRig, weaponBehind, bodyRenderFacing,
+} from '../src/render/CharacterRigConfig.js';
 import { byId } from '../src/diggerz/DiggerzWeaponCatalog.js';
 
-// Character = the REAL Spine skeleton extracted from the client (guySkeleton.js).
-// These guard the skeleton data, the held-weapon rigs, the body tints, and the
-// facing rule. Pure, no DOM.
+// Character rendering = the reference-image sprite + held-weapon rigs (see
+// docs/CHARACTER_RENDERING.md). These guard the sprite metadata, the per-weapon
+// held configs, the weapon draw-order rule, and the facing rule. Pure, no DOM.
 
 let passed = 0;
 const ok = (l) => { console.log('  ok -', l); passed++; };
 
-// 1. The extracted skeleton is well-formed (real bone hierarchy + draw order).
-(function skeleton() {
-  const sk = GUY_SKELETON;
-  assert.ok(Array.isArray(sk.bones) && sk.bones.length >= 14, 'has the real bones');
-  assert.ok(Array.isArray(sk.slots) && sk.slots.length >= 10, 'has the draw-order slots');
-  const names = new Set(sk.bones.map((b) => b.name));
-  // every non-root bone references a parent that exists (valid FK tree)
-  let roots = 0;
-  for (const b of sk.bones) {
-    if (!b.parent) { roots++; continue; }
-    assert.ok(names.has(b.parent), `bone ${b.name} parent ${b.parent} exists`);
+// 1. The generated character sprite + metadata exist and are consistent.
+(function spriteMeta() {
+  const meta = JSON.parse(readFileSync(new URL('../assets/generated/default-diggerz-character-idle.json', import.meta.url), 'utf8'));
+  const png = readFileSync(new URL('../assets/generated/default-diggerz-character-idle.png', import.meta.url));
+  // PNG magic + IHDR dimensions match the metadata
+  assert.strictEqual(png.slice(1, 4).toString(), 'PNG', 'sprite is a PNG');
+  assert.strictEqual(png.readUInt32BE(16), meta.width, 'metadata width matches the PNG');
+  assert.strictEqual(png.readUInt32BE(20), meta.height, 'metadata height matches the PNG');
+  // anchors sit inside the sprite; ground anchor is at the bottom (feet)
+  for (const key of ['groundAnchor', 'centerAnchor', 'headAnchor', 'handAnchor']) {
+    const a = meta[key];
+    assert.ok(a && a.x >= 0 && a.x <= meta.width && a.y >= 0 && a.y <= meta.height, `${key} within the sprite`);
   }
-  assert.strictEqual(roots, 1, 'exactly one root bone');
-  // key parts are present in the draw order, head before the front arm
-  const slotImgs = sk.slots.map((s) => s.img);
-  for (const need of ['HEAD_PNG', 'TORSO_PNG', 'LEG_PNG', 'EYES_PNG'])
-    assert.ok(slotImgs.includes(need), `draws ${need}`);
-  const headI = sk.slots.findIndex((s) => s.img === 'HEAD_PNG');
-  const eyesI = sk.slots.findIndex((s) => s.img === 'EYES_PNG');
-  assert.ok(eyesI > headI, 'eyes draw on top of the head');
-  assert.ok(sk.handBone && names.has(sk.handBone), 'front hand bone exists for the weapon');
-  ok('real Spine skeleton: valid bone tree, draw order, head+eyes+body parts');
+  assert.ok(meta.groundAnchor.y >= meta.height * 0.9, 'ground anchor at the sprite bottom (feet)');
+  assert.ok(meta.headAnchor.y < meta.height * 0.4, 'head anchor in the upper part');
+  assert.ok(meta.handAnchor.y > meta.headAnchor.y, 'hand anchor below the head (weapon starts at the hand, not the face)');
+  assert.strictEqual(meta.facing, 'right', 'source facing recorded (mirror for left)');
+  ok('reference sprite + metadata consistent (dimensions, anchors, facing)');
 })();
 
-// 2. Body tints colour the WHITE base parts (navy body, blue/purple legs/shoes).
-(function tints() {
-  for (const key of ['TORSO_PNG', 'LEG_PNG', 'PANTS_PNG', 'FOOT_PNG']) {
-    const t = BODY_TINTS[key];
-    assert.ok(t && t.white && /WHITE/.test(t.white), `${key} tints a WHITE base part`);
-    assert.ok(/^#[0-9a-f]{6}$/i.test(t.tint), `${key} has a colour`);
-  }
-  // legs/pants share the blue; shoes are a distinct purple; torso is the navy
-  assert.notStrictEqual(BODY_TINTS.FOOT_PNG.tint, BODY_TINTS.LEG_PNG.tint, 'shoes differ from legs');
-  assert.notStrictEqual(BODY_TINTS.TORSO_PNG.tint, BODY_TINTS.LEG_PNG.tint, 'torso differs from legs');
-  ok('body tints recolour the white base parts (navy torso, blue legs, purple shoes)');
-})();
-
-// 3. Each Combat V1 weapon has its own held rig; unknown -> default.
+// 2. Each Combat V1 weapon has its own held rig; unknown -> default.
 (function perWeapon() {
   const sword = byId(55).spriteKey, ray = byId(79).spriteKey, shot = byId(248).spriteKey;
   for (const key of [sword, ray, shot]) {
@@ -64,6 +49,22 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   ok('each weapon (sword/ray gun/shotgun) has its own grip/rotation/scale; unknown -> default');
 })();
 
+// 3. Held-weapon layering: aiming up draws the weapon BEHIND the character (so
+//    it can't cover the face); horizontal/down draws it in front.
+(function weaponLayering() {
+  const D = Math.PI / 180;
+  assert.strictEqual(weaponBehind(-90 * D), true, 'aim straight up -> behind');
+  assert.strictEqual(weaponBehind(-135 * D), true, 'aim up-left -> behind');
+  assert.strictEqual(weaponBehind(-45 * D), true, 'aim up-right -> behind');
+  assert.strictEqual(weaponBehind(0), false, 'aim straight right -> in front');
+  assert.strictEqual(weaponBehind(Math.PI), false, 'aim straight left -> in front');
+  assert.strictEqual(weaponBehind(45 * D), false, 'aim down-right -> in front');
+  assert.strictEqual(weaponBehind(90 * D), false, 'aim straight down -> in front');
+  assert.strictEqual(weaponBehind(-10 * D), false, 'aim slightly up (shallow) -> still in front');
+  assert.strictEqual(weaponBehind(null), false, 'no aim -> in front');
+  ok('held weapon draws behind the character when aiming up, in front otherwise');
+})();
+
 // 4. Body-facing rule: aim direction while using, else movement; idle keeps last.
 (function facingRule() {
   assert.strictEqual(bodyRenderFacing({ using: true, aimAngle: 0, movementFacing: -1 }), 1, 'using + aim right -> face right');
@@ -72,26 +73,6 @@ const ok = (l) => { console.log('  ok -', l); passed++; };
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: Math.PI, movementFacing: 1 }), 1, 'idle keeps movement facing R (ignores aim)');
   assert.strictEqual(bodyRenderFacing({ using: false, aimAngle: 0, movementFacing: -1 }), -1, 'idle keeps movement facing L (ignores aim)');
   ok('body facing follows aim while using, else movement (idle keeps last)');
-})();
-
-// 5. Held-weapon layering: aiming up draws the weapon BEHIND the character (so
-//    it can't cover the face); horizontal/down draws it in front.
-(function weaponLayering() {
-  const D = Math.PI / 180;
-  // straight up / up-left / up-right -> behind (face stays readable)
-  assert.strictEqual(weaponBehind(-90 * D), true, 'aim straight up -> behind');
-  assert.strictEqual(weaponBehind(-135 * D), true, 'aim up-left -> behind');
-  assert.strictEqual(weaponBehind(-45 * D), true, 'aim up-right -> behind');
-  // horizontal + downward -> in front (held in hand)
-  assert.strictEqual(weaponBehind(0), false, 'aim straight right -> in front');
-  assert.strictEqual(weaponBehind(Math.PI), false, 'aim straight left -> in front');
-  assert.strictEqual(weaponBehind(45 * D), false, 'aim down-right -> in front');
-  assert.strictEqual(weaponBehind(90 * D), false, 'aim straight down -> in front');
-  // a shallow upward aim near horizontal stays in front (no flicker at the edge)
-  assert.strictEqual(weaponBehind(-10 * D), false, 'aim slightly up (shallow) -> still in front');
-  // null aim (no aim) -> not behind
-  assert.strictEqual(weaponBehind(null), false, 'no aim -> in front');
-  ok('held weapon draws behind the character when aiming up, in front otherwise');
 })();
 
 console.log(`\nAll ${passed} rig checks passed.`);

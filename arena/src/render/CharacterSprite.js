@@ -1,15 +1,16 @@
 /**
  * CharacterSprite — draws the character from the REAL in-game reference image.
  *
- * Per the visual-correctness pass, the character is a static sprite cropped from
- * the actual Diggerz in-game character screenshot (assets/generated/
- * default-diggerz-character-idle.png, background masked out), placed by its
- * metadata anchors. The whole sprite mirrors for facing-left; the equipped
- * weapon is drawn on top at the approximate hand anchor (rotated to the mouse
- * aim). Health bars + hurtbox/collision are handled elsewhere and unchanged.
+ * The character is a static sprite cropped from an actual Diggerz in-game
+ * character screenshot (assets/generated/default-diggerz-character-idle.png,
+ * background masked out), placed by its metadata anchors. The whole sprite
+ * mirrors for facing-left; the equipped weapon is drawn at the hand anchor
+ * (rotated to the mouse aim, layered behind the body when aiming up so it never
+ * covers the face). Health bars + hurtbox/collision are handled elsewhere.
  *
- * The Spine skeleton path is kept in the repo (guySkeleton.js + the tests) for a
- * future real skeletal-animation pass, but is no longer used to render.
+ * WHY a sprite and not a rig: see docs/CHARACTER_RENDERING.md — the original
+ * game has no finished character image (it assembles Spine-skeleton parts at
+ * runtime), and reproducing that path never visually matched the real game.
  *
  * draw(ctx, state, nowSec, opts):
  *   opts.aim / opts.weapon / opts.weaponKey  — held weapon overlay

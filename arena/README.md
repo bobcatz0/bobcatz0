@@ -77,22 +77,20 @@ npm test
 - Health bars over both fighters; respawn marker; muzzle/swing visuals
 - Debug overlay (toggle "show aim + debug"): weapon, aim, P1/P2 HP, score,
   world mouse/player/camera + zoom, and the live **hurtboxes/hitboxes**
-- Diggerz-style rendering: real Diggerz tiles + the **real character**, drawn
-  from the **actual Spine skeleton** (`"guy_anims"`/`"guyskin"`, Spine 3.6.53)
-  extracted verbatim from the decompiled client (`src/render/guySkeleton.js`) —
-  not an invented rig. A tiny forward-kinematics pass (`CharacterSprite`) poses
-  the idle frame and draws each part with the real `tiles.png` sprites; the body
-  is coloured by multiply-**tinting** the white base parts (`WHITE_TORSO`,
-  `LEG_WHITE`, …) navy + blue/purple + purple shoes (the hands too, so the
-  resting hand blends into the body), the way the game colours characters, with a
-  small visual calibration (slightly smaller eyes + head) to match the reference.
-  The skeleton mirrors for facing (right→right, left→left), and
-  the equipped weapon is held in the front hand with a **per-weapon grip /
-  rotation / scale** (so the sword is held like a sword and the guns like guns)
-  that rotates toward the mouse aim and stays attached when aiming behind. Body
-  facing follows the **aim while actively using**, else movement (idle keeps the
-  last facing). A **rig anchors** debug toggle shows the head/hand/shoulder/body
-  anchors + facing arrow.
+- Diggerz-style rendering: real Diggerz tiles + a character taken from a **real
+  in-game Diggerz screenshot** — a clean masked reference sprite
+  (`assets/generated/default-diggerz-character-idle.png` + anchor metadata),
+  drawn by `src/render/CharacterSprite.js`. The sprite mirrors for facing
+  (right→right, left→left) and the equipped weapon is held at the hand anchor
+  with a **per-weapon grip / rotation / scale** (so the sword is held like a
+  sword and the guns like guns) that rotates toward the mouse aim; aiming
+  upward layers the weapon **behind** the body so it never covers the face.
+  Body facing follows the **aim while actively using**, else movement (idle
+  keeps the last facing). A **rig anchors** debug toggle shows the
+  ground/head/hand anchors + facing arrow. Why a sprite and not a
+  reconstructed rig: **`docs/CHARACTER_RENDERING.md`** (the original game has
+  no finished character image; it assembles Spine parts + per-player colour
+  data at runtime, and reproducing that never visually matched).
 - Camera **zoom** (0.75×–2.0×, keeps the player centred) on the **mouse wheel**
   (`0` resets; `+`/`−` also nudge it)
 - **Diggerz hotbar + Combat V1 resolution (wired):** a 3-slot hotbar using the
@@ -117,6 +115,11 @@ npm test
 - **`docs/UI_ASSET_AUDIT.md`** — the `ui.png` UI sprites identified + verified
   for HUD/hotbar/health/buttons/arrows/score/match status (ready to wire), plus
   the real asset inventory.
+- **`docs/CHARACTER_RENDERING.md`** — the chosen character approach (reference
+  sprite) and why the skeletal reconstruction was removed.
+- **`docs/ORIGINAL_CHARACTER_RENDER_PATH.md`** — how the original client builds
+  the character (`guy_anims` Spine skeleton, `guyskin`, `h4` palette); the
+  starting point for a future real skeletal-animation pass.
 
 ## Modules
 
@@ -136,9 +139,8 @@ src/
   render/
     AssetStore.js            loads the real Diggerz atlas (tiles.png) if present
     TileSprites.js           real dirt/grass/stone tiles, else procedural texture
-    guySkeleton.js           the REAL character Spine skeleton (from the client)
-    CharacterSprite.js       poses the skeleton's idle frame + draws + held weapon
-    CharacterRigConfig.js    per-weapon held rigs, body colour tints, facing rule
+    CharacterSprite.js       reference-sprite character + held weapon overlay
+    CharacterRigConfig.js    per-weapon held rigs, weapon layering, facing rule
     SpriteAnimation.js       reusable sprite-sheet frame stepper
     Background.js            real bknd.png parallax backdrop (mountains/hills/moon)
   diggerz/                  ← faithful recreations of CONFIRMED client systems
