@@ -65,13 +65,43 @@ skeletal-animation pass can start from data, not archaeology.
 - **Tests:** `tests/rig.test.js` — sprite/metadata consistency, per-weapon held
   rigs, weapon layering rule, facing rule.
 
-## 5. Trade-offs accepted
+## 5. ACCEPTED SYSTEM (owner-approved): copied reference sprites per state
 
-- One static idle frame: no walk/jump body animation yet (the sprite translates).
+The character is a set of **copied reference screenshots** — masked, never
+drawn or invented. Current states:
+
+| state | sprite | trigger |
+|---|---|---|
+| grounded (idle/run) | `default-diggerz-character-idle.png` | `grounded === true` |
+| airborne (jump/fall) | `default-diggerz-character-jump.png` | `airPoseState()` → `'jump'`/`'fall'` |
+
+Each sprite ships with a `.json` (dimensions, ground/hand anchors, source
+facing, provenance). The renderer pins the ground anchor, scales to `TARGET_H`,
+mirrors for facing, and overlays the held weapon.
+
+### Rules (do not violate)
+
+1. **Do NOT draw or invent poses.** The drawn-arm overlay was tried and
+   rejected; it is deleted. Do not re-add anything like it.
+2. **Do NOT resurrect the Spine rig** for rendering (see §3).
+3. **New states come ONLY from owner-provided reference screenshots.** When a
+   reference arrives for walk / fall / sword swing / gun pose / hitstun /
+   death-respawn: mask it exactly like the existing ones (edge flood-fill with
+   character-colour protection, largest component + interior hole-fill,
+   halo de-fringe exempting character colours), save as
+   `assets/generated/default-diggerz-character-<state>.png` + `.json` with
+   `"copied, not drawn"` provenance, and wire it as a sprite state in
+   `CharacterSprite`.
+4. Until a reference exists for a state, the nearest existing sprite covers it
+   (e.g. one jump sprite covers rising *and* falling today).
+
+## 6. Trade-offs accepted
+
+- Static frames per state; no in-between animation.
 - The arm doesn't visibly raise toward the aim; the weapon does.
-- Matching the reference exactly is guaranteed *by construction* — the sprite
-  **is** the reference image.
+- Matching the reference exactly is guaranteed *by construction* — each sprite
+  **is** its reference image.
 
-If real skeletal animation is wanted later, re-extract `guy_anims` per the
-audit doc and build it as a separate, screenshot-judged pass — do not resurrect
-the removed rig incrementally.
+If real skeletal animation is ever wanted, re-extract `guy_anims` per the audit
+doc and build it as a separate, screenshot-judged pass — and only with the
+owner's explicit go-ahead.
