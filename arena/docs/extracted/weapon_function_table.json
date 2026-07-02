@@ -1,0 +1,3028 @@
+{
+ "source": "diggerz_v-203.js item switch + Yf.W48 + combat code",
+ "items": [
+  {
+   "id": 3,
+   "sprite": "COWBOYHAT_PNG",
+   "name": "Ten Gallon Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 2,
+    "y": -27,
+    "z": 1
+   }
+  },
+  {
+   "id": 4,
+   "sprite": "ROADCONE_PNG",
+   "name": "Road Cone",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": -46,
+    "z": 1
+   }
+  },
+  {
+   "id": 5,
+   "sprite": "SAILORHAT_PNG",
+   "name": "Sailor Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 6,
+   "sprite": "WELDERMASK_PNG",
+   "name": "Welder Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": -7,
+    "z": 1
+   }
+  },
+  {
+   "id": 7,
+   "sprite": "PARTYHAT_PNG",
+   "name": "Party Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -38,
+    "z": 1
+   }
+  },
+  {
+   "id": 8,
+   "sprite": "LUCKYHAT_PNG",
+   "name": "Lucky Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 2,
+    "y": -39,
+    "z": 1
+   }
+  },
+  {
+   "id": 9,
+   "sprite": "HARDHAT_PNG",
+   "name": "Hard Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": -3,
+    "y": -26,
+    "z": 1
+   }
+  },
+  {
+   "id": 10,
+   "sprite": "WINTERHAT_PNG",
+   "name": "Winter Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 3,
+    "y": -36,
+    "z": 1
+   }
+  },
+  {
+   "id": 11,
+   "sprite": "BOB_PNG",
+   "name": "Cute Black Bob",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 0,
+    "z": 0
+   }
+  },
+  {
+   "id": 12,
+   "sprite": "BOB_PNG",
+   "name": "Cute Brown Bob",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 0,
+    "z": 0
+   }
+  },
+  {
+   "id": 13,
+   "sprite": "BOB_PNG",
+   "name": "Cute Red Bob",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 0,
+    "z": 0
+   }
+  },
+  {
+   "id": 14,
+   "sprite": "KICKS_PNG",
+   "name": "White/Red Sneakers",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   }
+  },
+  {
+   "id": 15,
+   "name": "Plaid Pants",
+   "category": 2
+  },
+  {
+   "id": 16,
+   "name": "Plaid Shirt",
+   "category": 2
+  },
+  {
+   "id": 17,
+   "name": "Sport Pants",
+   "category": 2
+  },
+  {
+   "id": 18,
+   "name": "Red Striped Shirt",
+   "category": 2
+  },
+  {
+   "id": 19,
+   "name": "Tidy Whiteys",
+   "category": 2
+  },
+  {
+   "id": 20,
+   "name": "White Shirt",
+   "category": 2
+  },
+  {
+   "id": 22,
+   "sprite": "SNOWSHOE_PNG",
+   "name": "SnowShoes",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   }
+  },
+  {
+   "id": 23,
+   "name": "White Pants",
+   "category": 2
+  },
+  {
+   "id": 25,
+   "name": "Orange Pants",
+   "category": 2,
+   "tintIndex": 8
+  },
+  {
+   "id": 26,
+   "name": "Orange Shirt",
+   "category": 2,
+   "tintIndex": 8
+  },
+  {
+   "id": 27,
+   "name": "Grey Pants",
+   "category": 2,
+   "tintIndex": 0
+  },
+  {
+   "id": 30,
+   "name": "Blue Shirt",
+   "category": 2,
+   "tintIndex": 4
+  },
+  {
+   "id": 31,
+   "name": "Red Pants",
+   "category": 2,
+   "tintIndex": 1
+  },
+  {
+   "id": 33,
+   "name": "Santa Pants",
+   "category": 2
+  },
+  {
+   "id": 34,
+   "name": "Santa Shirt",
+   "category": 2
+  },
+  {
+   "id": 35,
+   "sprite": "CROCHAT_PNG",
+   "name": "Croc Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": -26,
+    "z": 1
+   }
+  },
+  {
+   "id": 36,
+   "sprite": "PILOTHAT_PNG",
+   "name": "Pilot Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": -26,
+    "z": 1
+   }
+  },
+  {
+   "id": 38,
+   "sprite": "EMOHAIR_PNG",
+   "name": "Emo Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 2,
+    "y": 8,
+    "z": 0
+   }
+  },
+  {
+   "id": 39,
+   "sprite": "UNICORNHORN_PNG",
+   "name": "Rainbow Unihorn",
+   "category": 2,
+   "holdOffset": {
+    "x": -10,
+    "y": -46,
+    "z": 1
+   },
+   "behavior": {
+    "class": "sm",
+    "effect": "18 floating spark particles around the held item"
+   }
+  },
+  {
+   "id": 40,
+   "sprite": "WHITEUNIHORN_PNG",
+   "name": "Gold Unihorn",
+   "category": 2,
+   "holdOffset": {
+    "x": -10,
+    "y": -46,
+    "z": 1
+   },
+   "behavior": {
+    "class": "sm",
+    "effect": "18 floating spark particles around the held item"
+   }
+  },
+  {
+   "id": 41,
+   "sprite": "HORSEHEAD_PNG",
+   "name": "Horse Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -12,
+    "y": -6,
+    "z": 1
+   }
+  },
+  {
+   "id": 42,
+   "sprite": "PUMPKINHEAD_PNG",
+   "name": "Pumpkin Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": -12,
+    "z": 1
+   }
+  },
+  {
+   "id": 43,
+   "sprite": "ALIENHEAD_PNG",
+   "name": "Alien Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -2,
+    "y": -8,
+    "z": 1
+   }
+  },
+  {
+   "id": 44,
+   "sprite": "CATMASK_PNG",
+   "name": "Cat Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -2,
+    "y": -8,
+    "z": 1
+   }
+  },
+  {
+   "id": 45,
+   "sprite": "BOXINGGLOVE_PNG",
+   "name": "Red Boxing Gloves",
+   "category": 2,
+   "tintIndex": 1,
+   "holdOffset": {
+    "x": 0,
+    "y": 8,
+    "z": 4
+   }
+  },
+  {
+   "id": 46,
+   "sprite": "BOXINGGLOVE_PNG",
+   "name": "Black Boxing Gloves",
+   "category": 2,
+   "tintIndex": 5,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 4
+   }
+  },
+  {
+   "id": 47,
+   "sprite": "BOXINGGLOVE_PNG",
+   "name": "White Boxing Gloves",
+   "category": 2,
+   "tintIndex": 7,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 4
+   }
+  },
+  {
+   "id": 48,
+   "sprite": "HAMMER_PNG",
+   "name": "Hammer Hands",
+   "category": 2,
+   "tintIndex": 7,
+   "holdOffset": {
+    "x": -10,
+    "y": 6,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 49,
+   "sprite": "WHITESKIRT_PNG",
+   "name": "Red Skirt",
+   "category": 2,
+   "tintIndex": 1,
+   "holdOffset": {
+    "x": 0,
+    "y": 7,
+    "z": 7
+   }
+  },
+  {
+   "id": 50,
+   "sprite": "WHITESKIRT_PNG",
+   "name": "Yellow Skirt",
+   "category": 2,
+   "tintIndex": 9,
+   "holdOffset": {
+    "x": 0,
+    "y": 7,
+    "z": 7
+   }
+  },
+  {
+   "id": 51,
+   "sprite": "WHITESKIRT_PNG",
+   "name": "Orange Skirt",
+   "category": 2,
+   "tintIndex": 8,
+   "holdOffset": {
+    "x": 0,
+    "y": 7,
+    "z": 7
+   }
+  },
+  {
+   "id": 52,
+   "sprite": "WHITESKIRT_PNG",
+   "name": "Blue Skirt",
+   "category": 2,
+   "tintIndex": 4,
+   "holdOffset": {
+    "x": 0,
+    "y": 7,
+    "z": 7
+   }
+  },
+  {
+   "id": 53,
+   "sprite": "WHITESKIRT_PNG",
+   "name": "Black Skirt",
+   "category": 2,
+   "tintIndex": 5,
+   "holdOffset": {
+    "x": 0,
+    "y": 7,
+    "z": 7
+   }
+  },
+  {
+   "id": 54,
+   "sprite": "COWBOYHAT_PNG",
+   "name": "Black Ten Gallon Hat",
+   "category": 2,
+   "tintIndex": 5,
+   "holdOffset": {
+    "x": 2,
+    "y": -27,
+    "z": 1
+   }
+  },
+  {
+   "id": 55,
+   "sprite": "SWORD_PNG",
+   "name": "Fake Sword",
+   "category": 2,
+   "holdOffset": {
+    "x": -20,
+    "y": 2,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 56,
+   "sprite": "KPOPSHOE_PNG",
+   "name": "K-Pop Shoes",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "idleAnim": "kpop_dance"
+   }
+  },
+  {
+   "id": 57,
+   "name": "K-Pop Pants",
+   "category": 2
+  },
+  {
+   "id": 58,
+   "sprite": "SHORTHAIR_PNG",
+   "name": "Short Blonde Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -13,
+    "z": 0
+   }
+  },
+  {
+   "id": 59,
+   "sprite": "SHORTHAIR_PNG",
+   "name": "Short Black Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -13,
+    "z": 0
+   }
+  },
+  {
+   "id": 60,
+   "sprite": "SHORTHAIR_PNG",
+   "name": "Short Red Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -13,
+    "z": 0
+   }
+  },
+  {
+   "id": 61,
+   "sprite": "SHORTHAIR_PNG",
+   "name": "Short Brown Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -13,
+    "z": 0
+   }
+  },
+  {
+   "id": 62,
+   "sprite": "TRIGGERED_PNG",
+   "name": "Triggered Face",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 6
+   },
+   "behavior": {
+    "class": "qp",
+    "effect": "pulsing glow tween"
+   }
+  },
+  {
+   "id": 63,
+   "sprite": "NERDGLASSES_PNG",
+   "name": "Nerd Specs",
+   "category": 2,
+   "holdOffset": {
+    "x": -4,
+    "y": -2,
+    "z": 6
+   }
+  },
+  {
+   "id": 64,
+   "sprite": "FUTURESHADES_PNG",
+   "name": "Future Shades",
+   "category": 2,
+   "holdOffset": {
+    "x": -1,
+    "y": -5,
+    "z": 6
+   }
+  },
+  {
+   "id": 65,
+   "sprite": "GOLDJETPACK_PNG",
+   "name": "Golden Beta Jetpack",
+   "category": 2,
+   "holdOffset": {
+    "x": 23,
+    "y": 0,
+    "z": 5
+   },
+   "behavior": {
+    "class": "km",
+    "role": "spray (extinguisher-family)"
+   }
+  },
+  {
+   "id": 66,
+   "sprite": "GREYHAND_PNG",
+   "name": "Black Gloves",
+   "category": 2,
+   "tintIndex": 5,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 4
+   }
+  },
+  {
+   "id": 67,
+   "name": "K-Pop Shirt",
+   "category": 2
+  },
+  {
+   "id": 68,
+   "sprite": "PLATFORMSHOE_WHITE_PNG",
+   "name": "Red Platforms",
+   "category": 2,
+   "tintIndex": 1,
+   "holdOffset": {
+    "x": -4,
+    "y": 0,
+    "z": 3
+   }
+  },
+  {
+   "id": 69,
+   "sprite": "PLATFORMSHOE_WHITE_PNG",
+   "name": "Purple Platforms",
+   "category": 2,
+   "tintIndex": 6,
+   "holdOffset": {
+    "x": -4,
+    "y": 0,
+    "z": 3
+   }
+  },
+  {
+   "id": 70,
+   "name": "White Muscle Shirt",
+   "category": 2
+  },
+  {
+   "id": 71,
+   "name": "Black Muscle Shirt",
+   "category": 2,
+   "tintIndex": 5
+  },
+  {
+   "id": 72,
+   "name": "Red Muscle Shirt",
+   "category": 2,
+   "tintIndex": 1
+  },
+  {
+   "id": 73,
+   "name": "Yellow Muscle Shirt",
+   "category": 2,
+   "tintIndex": 9
+  },
+  {
+   "id": 74,
+   "name": "Blue Muscle Shirt",
+   "category": 2,
+   "tintIndex": 4
+  },
+  {
+   "id": 75,
+   "sprite": "SANTAHAT_PNG",
+   "name": "Santa Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 3,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 76,
+   "sprite": "SANTABEARD_PNG",
+   "name": "Santa Beard",
+   "category": 2,
+   "holdOffset": {
+    "x": -6,
+    "y": 20,
+    "z": 9
+   }
+  },
+  {
+   "id": 78,
+   "sprite": "DOGEARS_PNG",
+   "name": "Dog Ears",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": -30,
+    "z": 1
+   }
+  },
+  {
+   "id": 79,
+   "sprite": "RAILGUN_PNG",
+   "name": "Blue Ray Gun",
+   "category": 2,
+   "tintIndex": 4,
+   "holdOffset": {
+    "x": -10,
+    "y": 0,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 0,
+    "shotColor": 4
+   },
+   "behavior": {
+    "class": "tm",
+    "role": "gun",
+    "notes": "81 adds 8 sparkle particles + fires spark-line along shot (H51); 82/86 recoil tween"
+   }
+  },
+  {
+   "id": 80,
+   "sprite": "RAILGUN_PNG",
+   "name": "Red Ray Gun",
+   "category": 2,
+   "tintIndex": 1,
+   "holdOffset": {
+    "x": -10,
+    "y": 0,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": -4,
+    "muzzleY": 25,
+    "shotColor": 1
+   },
+   "behavior": {
+    "class": "tm",
+    "role": "gun",
+    "notes": "81 adds 8 sparkle particles + fires spark-line along shot (H51); 82/86 recoil tween"
+   }
+  },
+  {
+   "id": 81,
+   "sprite": "GOLDRAYGUN_PNG",
+   "name": "Beta Gun",
+   "category": 2,
+   "tintIndex": 10,
+   "holdOffset": {
+    "x": -12,
+    "y": 4,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 0,
+    "shotColor": 10
+   },
+   "behavior": {
+    "class": "tm",
+    "role": "gun",
+    "notes": "81 adds 8 sparkle particles + fires spark-line along shot (H51); 82/86 recoil tween"
+   }
+  },
+  {
+   "id": 82,
+   "sprite": "PURPLERAY_PNG",
+   "name": "Purple Ray Gun",
+   "category": 2,
+   "tintIndex": 6,
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 0,
+    "shotColor": 6
+   },
+   "behavior": {
+    "class": "tm",
+    "role": "gun",
+    "notes": "81 adds 8 sparkle particles + fires spark-line along shot (H51); 82/86 recoil tween"
+   }
+  },
+  {
+   "id": 83,
+   "sprite": "RAILGUN_PNG",
+   "name": "Green Ray Gun",
+   "category": 2,
+   "tintIndex": 2,
+   "holdOffset": {
+    "x": -10,
+    "y": 0,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 0,
+    "shotColor": 2
+   },
+   "behavior": {
+    "class": "tm",
+    "role": "gun",
+    "notes": "81 adds 8 sparkle particles + fires spark-line along shot (H51); 82/86 recoil tween"
+   }
+  },
+  {
+   "id": 84,
+   "name": "Pink Briefs",
+   "category": 2,
+   "tintIndex": 11
+  },
+  {
+   "id": 85,
+   "sprite": "EYES_BLANK_PNG",
+   "name": "Golden Beta Eyes",
+   "category": 2,
+   "tintName": "yellow",
+   "holdOffset": {
+    "x": -8,
+    "y": -4,
+    "z": 6
+   },
+   "behavior": {
+    "class": "um(true)"
+   }
+  },
+  {
+   "id": 86,
+   "sprite": "PURPLERAY_PNG",
+   "name": "Orange Ray Gun",
+   "category": 2,
+   "tintName": "orange",
+   "holdOffset": {
+    "x": -6,
+    "y": 10,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 0,
+    "shotColor": 8
+   },
+   "behavior": {
+    "class": "tm",
+    "role": "gun",
+    "notes": "81 adds 8 sparkle particles + fires spark-line along shot (H51); 82/86 recoil tween"
+   }
+  },
+  {
+   "id": 87,
+   "name": "Black Briefs",
+   "category": 2,
+   "tintName": "black"
+  },
+  {
+   "id": 92,
+   "sprite": "WINTERHAT_PNG",
+   "name": "Black Winter Hat",
+   "category": 2,
+   "tintName": "black",
+   "holdOffset": {
+    "x": 3,
+    "y": -36,
+    "z": 1
+   }
+  },
+  {
+   "id": 93,
+   "sprite": "GRENADELAUNCHER_PNG",
+   "name": "Grenade Launcher",
+   "category": 2,
+   "tintIndex": 20,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": -8,
+    "muzzleY": 28,
+    "shotColor": 20
+   },
+   "behavior": {
+    "class": "Ok",
+    "F50": 0.55,
+    "role": "lobbed projectile (velocity x0.55)"
+   }
+  },
+  {
+   "id": 94,
+   "sprite": "BLANK_PNG",
+   "name": "Labrador",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 96,
+   "name": "Jail Pants",
+   "category": 2
+  },
+  {
+   "id": 97,
+   "name": "Jail Shirt",
+   "category": 2
+  },
+  {
+   "id": 99,
+   "sprite": "BOB_PNG",
+   "name": "Cute Grey Bob",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 0,
+    "z": 0
+   }
+  },
+  {
+   "id": 100,
+   "name": "Kung Fu Shirt",
+   "category": 2
+  },
+  {
+   "id": 101,
+   "sprite": "BOB_PNG",
+   "name": "Cute Blue Bob",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 0,
+    "z": 0
+   }
+  },
+  {
+   "id": 102,
+   "name": "Kung Fu Pants",
+   "category": 2
+  },
+  {
+   "id": 103,
+   "sprite": "PENGUINHAT_PNG",
+   "name": "Penguin Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": -13,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 105,
+   "sprite": "STETSONHAT_PNG",
+   "name": "Yellow Stetson",
+   "category": 2,
+   "tintIndex": 9,
+   "holdOffset": {
+    "x": 2,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 106,
+   "sprite": "PAPERHAT_PNG",
+   "name": "Paper Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 2,
+    "y": -27,
+    "z": 1
+   }
+  },
+  {
+   "id": 107,
+   "sprite": "CUPIDBOW_PNG",
+   "name": "Cupid's Bow",
+   "category": 2,
+   "tintIndex": 22,
+   "holdOffset": {
+    "x": 0,
+    "y": 5,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": -20,
+    "muzzleY": 0,
+    "shotColor": 22
+   },
+   "behavior": {
+    "class": "rp",
+    "role": "thrown: v=8x(mouse-muzzle), gravity 150"
+   }
+  },
+  {
+   "id": 108,
+   "sprite": "PIRATEHAT_PNG",
+   "name": "Pirate Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 7,
+    "y": -41,
+    "z": 1
+   }
+  },
+  {
+   "id": 109,
+   "sprite": "BOB_PNG",
+   "name": "Cute Blonde Bob",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 0,
+    "z": 0
+   }
+  },
+  {
+   "id": 110,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 111,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 112,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 113,
+   "sprite": "JETPACK_PNG",
+   "name": "Jetpack",
+   "category": 2,
+   "holdOffset": {
+    "x": 23,
+    "y": 0,
+    "z": 5
+   },
+   "behavior": {
+    "class": "km",
+    "role": "spray (extinguisher-family)"
+   }
+  },
+  {
+   "id": 114,
+   "sprite": "SHARKFIN_PNG",
+   "name": "Shark Fin",
+   "category": 2,
+   "holdOffset": {
+    "x": 23,
+    "y": 0,
+    "z": 5
+   }
+  },
+  {
+   "id": 116,
+   "sprite": "KUNGFUFOOT_PNG",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "idleAnim": "crane_pose"
+   }
+  },
+  {
+   "id": 117,
+   "sprite": "STETSONHAT_PNG",
+   "name": "Black Stetson",
+   "category": 2,
+   "tintIndex": 5,
+   "holdOffset": {
+    "x": 2,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 118,
+   "sprite": "EYEPATCH_PNG",
+   "name": "Eye Patch",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 6
+   }
+  },
+  {
+   "id": 119,
+   "sprite": "SANTABEARD_PNG",
+   "name": "Hipster Beard",
+   "category": 2,
+   "holdOffset": {
+    "x": -6,
+    "y": 20,
+    "z": 9
+   }
+  },
+  {
+   "id": 120,
+   "sprite": "BLANK_PNG",
+   "name": "Cat",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 121,
+   "sprite": "BLANK_PNG",
+   "name": "Bunny",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 122,
+   "sprite": "BLANK_PNG",
+   "name": "Green Dragon",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 124,
+   "sprite": "BLANK_PNG",
+   "name": "Red Dragon",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 125,
+   "sprite": "BLANK_PNG",
+   "name": "Golden Retriever",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 127,
+   "sprite": "MOHAWK_PNG",
+   "name": "Blonde Mohawk",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 0
+   }
+  },
+  {
+   "id": 128,
+   "sprite": "MOHAWK_PNG",
+   "name": "Red Mohawk",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 0
+   }
+  },
+  {
+   "id": 129,
+   "sprite": "MOHAWK_PNG",
+   "name": "Brown Mohawk",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 0
+   }
+  },
+  {
+   "id": 130,
+   "sprite": "MOHAWK_PNG",
+   "name": "Black Mohawk",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 0
+   }
+  },
+  {
+   "id": 131,
+   "sprite": "MOHAWK_PNG",
+   "name": "Blue Mohawk",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 0
+   }
+  },
+  {
+   "id": 132,
+   "sprite": "HEARTPACK_PNG",
+   "name": "Love (Jet)Pack",
+   "category": 2,
+   "holdOffset": {
+    "x": 23,
+    "y": 0,
+    "z": 5
+   },
+   "behavior": {
+    "class": "km",
+    "role": "spray (extinguisher-family)"
+   }
+  },
+  {
+   "id": 133,
+   "sprite": "WOODCUBEHAT_PNG",
+   "name": "Block Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -30,
+    "z": 1
+   }
+  },
+  {
+   "id": 134,
+   "sprite": "OCTOHAT_PNG",
+   "name": "Octo Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 6,
+    "y": -21,
+    "z": 1
+   }
+  },
+  {
+   "id": 135,
+   "sprite": "CHEFHAT_PNG",
+   "name": "Chef Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 6,
+    "y": -39,
+    "z": 1
+   }
+  },
+  {
+   "id": 136,
+   "sprite": "SHORTHAIR_PNG",
+   "name": "Short Pink Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -13,
+    "z": 0
+   }
+  },
+  {
+   "id": 137,
+   "sprite": "MOHAWK_PNG",
+   "name": "Pink Mohawk",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 0
+   }
+  },
+  {
+   "id": 138,
+   "sprite": "BOB_PNG",
+   "name": "Cute Pink Bob",
+   "category": 2
+  },
+  {
+   "id": 139,
+   "sprite": "BAZOOKA_PNG",
+   "name": "Bazooka",
+   "category": 2,
+   "tintIndex": 23,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 0,
+    "shotColor": 23
+   },
+   "behavior": {
+    "class": "tp",
+    "role": "gun: straight shot v=3600"
+   }
+  },
+  {
+   "id": 140,
+   "sprite": "BLANK_PNG",
+   "name": "White Pup",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 142,
+   "sprite": "SHAMHAT_PNG",
+   "name": "Sham Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 143,
+   "sprite": "EGGHAT_PNG",
+   "name": "White Egg Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 144,
+   "sprite": "EGGHAT_PNG",
+   "name": "Purple Egg Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 145,
+   "sprite": "EGGHAT_PNG",
+   "name": "Pink Egg Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 146,
+   "sprite": "EGGHAT_PNG",
+   "name": "Green Egg Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 147,
+   "sprite": "EGGHAT_PNG",
+   "name": "Yellow Egg Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 148,
+   "sprite": "EGGHAT_PNG",
+   "name": "Blue Egg Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 149,
+   "sprite": "SMARTPHONE_PNG",
+   "name": "White Smartphone",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 9,
+    "z": 4
+   },
+   "behavior": {
+    "idleAnim": "smartphone"
+   }
+  },
+  {
+   "id": 150,
+   "sprite": "SMARTPHONE_PNG",
+   "name": "Black Smartphone",
+   "category": 2,
+   "tintIndex": 0,
+   "holdOffset": {
+    "x": 0,
+    "y": 9,
+    "z": 4
+   },
+   "behavior": {
+    "idleAnim": "smartphone"
+   }
+  },
+  {
+   "id": 151,
+   "name": "Tux Shirt",
+   "category": 2
+  },
+  {
+   "id": 152,
+   "sprite": "DARKBUNNY_PNG",
+   "name": "Dark Bunny",
+   "category": 2,
+   "holdOffset": {
+    "x": 8,
+    "y": -26,
+    "z": 1
+   }
+  },
+  {
+   "id": 153,
+   "sprite": "ADVHAT_PNG",
+   "name": "Adventure Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 2,
+    "y": -27,
+    "z": 1
+   }
+  },
+  {
+   "id": 154,
+   "name": "Adventure Shirt",
+   "category": 2
+  },
+  {
+   "id": 155,
+   "name": "Adventure Pants",
+   "category": 2
+  },
+  {
+   "id": 156,
+   "sprite": "ADVSHOES_PNG",
+   "name": "Adventure Shoes",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   }
+  },
+  {
+   "id": 157,
+   "sprite": "WHIP_HANDLE_PNG",
+   "name": "Adventure Whip",
+   "category": 2,
+   "tintIndex": 0,
+   "holdOffset": {
+    "x": 0,
+    "y": 7,
+    "z": 4
+   },
+   "behavior": {
+    "class": "up"
+   }
+  },
+  {
+   "id": 158,
+   "name": "Tux Pants",
+   "category": 2
+  },
+  {
+   "id": 159,
+   "sprite": "GASMASK_PNG",
+   "name": "Gas Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 6,
+    "z": 1
+   }
+  },
+  {
+   "id": 160,
+   "sprite": "BAREFOOT_PNG",
+   "name": "Barefoot",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   }
+  },
+  {
+   "id": 161,
+   "sprite": "BLACKBALLET_PNG",
+   "name": "Ballet Slippers",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "idleAnim": "ballet_pose"
+   }
+  },
+  {
+   "id": 163,
+   "sprite": "ROBOTSHOES_PNG",
+   "name": "Robot Shoes",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "idleAnim": "robot"
+   }
+  },
+  {
+   "id": 165,
+   "sprite": "MULLET_PNG",
+   "name": "Blonde Mullet",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 6,
+    "z": 0
+   }
+  },
+  {
+   "id": 166,
+   "sprite": "MULLET_PNG",
+   "name": "Black Mullet",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 6,
+    "z": 0
+   }
+  },
+  {
+   "id": 167,
+   "sprite": "MULLET_PNG",
+   "name": "Brown Mullet",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 6,
+    "z": 0
+   }
+  },
+  {
+   "id": 168,
+   "sprite": "MULLET_PNG",
+   "name": "Red Mullet",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 6,
+    "z": 0
+   }
+  },
+  {
+   "id": 169,
+   "sprite": "MULLET_PNG",
+   "name": "Blue Mullet",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 6,
+    "z": 0
+   }
+  },
+  {
+   "id": 170,
+   "sprite": "MULLET_PNG",
+   "name": "Pink Mullet",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 6,
+    "z": 0
+   }
+  },
+  {
+   "id": 171,
+   "sprite": "MULLET_PNG",
+   "name": "Grey Mullet",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 6,
+    "z": 0
+   }
+  },
+  {
+   "id": 172,
+   "sprite": "COFFEECUP_PNG",
+   "name": "Coffee Cup",
+   "category": 2,
+   "holdOffset": {
+    "x": -3,
+    "y": 9,
+    "z": 4
+   },
+   "behavior": {
+    "idleAnim": "coffee"
+   }
+  },
+  {
+   "id": 173,
+   "sprite": "SPIKYHAIR_PNG",
+   "name": "Blonde Spiky Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": 4,
+    "z": 0
+   }
+  },
+  {
+   "id": 174,
+   "sprite": "SPIKYHAIR_PNG",
+   "name": "Black Spiky Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": 4,
+    "z": 0
+   }
+  },
+  {
+   "id": 175,
+   "sprite": "SPIKYHAIR_PNG",
+   "name": "Brown Spiky Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": 4,
+    "z": 0
+   }
+  },
+  {
+   "id": 176,
+   "sprite": "SPIKYHAIR_PNG",
+   "name": "Red Spiky Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": 4,
+    "z": 0
+   }
+  },
+  {
+   "id": 177,
+   "sprite": "SPIKYHAIR_PNG",
+   "name": "Blue Spiky Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": 4,
+    "z": 0
+   }
+  },
+  {
+   "id": 178,
+   "sprite": "SPIKYHAIR_PNG",
+   "name": "Pink Spiky Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": 4,
+    "z": 0
+   }
+  },
+  {
+   "id": 179,
+   "sprite": "SPIKYHAIR_PNG",
+   "name": "Grey Spiky Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 4,
+    "y": 4,
+    "z": 0
+   }
+  },
+  {
+   "id": 180,
+   "sprite": "HANGGLIDER_PNG",
+   "name": "Red Hang Glider",
+   "category": 2,
+   "tintIndex": 1,
+   "holdOffset": {
+    "x": 50,
+    "y": -55,
+    "z": 5
+   },
+   "behavior": {
+    "class": "vp"
+   }
+  },
+  {
+   "id": 181,
+   "sprite": "EYES_BLANK_PNG",
+   "name": "Blue Trance Eyes",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": -4,
+    "z": 6
+   },
+   "behavior": {
+    "class": "um(false)"
+   }
+  },
+  {
+   "id": 182,
+   "sprite": "EYES_BLANK_PNG",
+   "name": "Green Trance Eyes",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": -4,
+    "z": 6
+   },
+   "behavior": {
+    "class": "um(false)"
+   }
+  },
+  {
+   "id": 183,
+   "sprite": "EYES_BLANK_PNG",
+   "name": "Red Trance Eyes",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": -4,
+    "z": 6
+   },
+   "behavior": {
+    "class": "um(false)"
+   }
+  },
+  {
+   "id": 184,
+   "sprite": "HANGGLIDER_PNG",
+   "name": "YELLOW Hang Glider",
+   "category": 2,
+   "tintIndex": 9,
+   "holdOffset": {
+    "x": 50,
+    "y": -55,
+    "z": 5
+   },
+   "behavior": {
+    "class": "vp"
+   }
+  },
+  {
+   "id": 186,
+   "sprite": "BUBBLEPACK_PNG",
+   "name": "Bubble Pack",
+   "category": 2,
+   "holdOffset": {
+    "x": 23,
+    "y": 0,
+    "z": 5
+   },
+   "behavior": {
+    "class": "km",
+    "role": "spray (extinguisher-family)"
+   }
+  },
+  {
+   "id": 187,
+   "name": "Red WC Shirt",
+   "category": 2,
+   "tintIndex": 1
+  },
+  {
+   "id": 188,
+   "name": "Green WC Shirt",
+   "category": 2,
+   "tintName": "green"
+  },
+  {
+   "id": 189,
+   "name": "Blue WC Shirt",
+   "category": 2,
+   "tintName": "blue"
+  },
+  {
+   "id": 190,
+   "name": "Orange WC Shirt",
+   "category": 2,
+   "tintName": "orange"
+  },
+  {
+   "id": 191,
+   "name": "Black WC Shirt",
+   "category": 2,
+   "tintName": "black"
+  },
+  {
+   "id": 192,
+   "name": "Cyan WC Shirt",
+   "category": 2,
+   "tintName": "cyan"
+  },
+  {
+   "id": 193,
+   "name": "Yellow WC Shirt",
+   "category": 2,
+   "tintName": "yellow"
+  },
+  {
+   "id": 194,
+   "name": "Black WC Shorts",
+   "category": 2
+  },
+  {
+   "id": 195,
+   "sprite": "WCHAT_PNG",
+   "name": "WC Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 3,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 196,
+   "sprite": "WCHAT_PNG",
+   "name": "Pink WC Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 3,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 197,
+   "sprite": "WCHAT_PNG",
+   "name": "Cyan WC Hat",
+   "category": 2,
+   "tintName": "cyan",
+   "holdOffset": {
+    "x": 3,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 198,
+   "sprite": "WCHAT_PNG",
+   "name": "Purple WC Hat",
+   "category": 2,
+   "tintName": "purple",
+   "holdOffset": {
+    "x": 3,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 199,
+   "sprite": "WCHAT_PNG",
+   "name": "Yellow WC Hat",
+   "category": 2,
+   "tintName": "yellow"
+  },
+  {
+   "id": 200,
+   "sprite": "WCHAT_PNG",
+   "name": "Green WC Hat",
+   "category": 2,
+   "tintName": "green",
+   "holdOffset": {
+    "x": 3,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 201,
+   "sprite": "SHARKEATER_PNG",
+   "name": "Sharkbite",
+   "category": 2,
+   "holdOffset": {
+    "x": 10,
+    "y": -46,
+    "z": 1
+   }
+  },
+  {
+   "id": 202,
+   "sprite": "KANGO_PNG",
+   "name": "Red Kango",
+   "category": 2,
+   "tintName": "red",
+   "holdOffset": {
+    "x": 1,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 203,
+   "sprite": "KANGO_PNG",
+   "name": "Orange Kango",
+   "category": 2,
+   "tintName": "orange",
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 204,
+   "sprite": "KANGO_PNG",
+   "name": "Grey Kango",
+   "category": 2,
+   "tintName": "grey",
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 205,
+   "sprite": "KANGO_PNG",
+   "name": "Black Kango",
+   "category": 2,
+   "tintName": "black",
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 206,
+   "sprite": "KANGO_PNG",
+   "name": "Purple Kango",
+   "category": 2,
+   "tintName": "purple",
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 207,
+   "sprite": "KANGO_PNG",
+   "name": "Green Kango",
+   "category": 2,
+   "tintName": "green",
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 208,
+   "sprite": "KANGO_PNG",
+   "name": "Blue Kango",
+   "category": 2,
+   "tintName": "blue",
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 209,
+   "sprite": "KANGO_PNG",
+   "name": "Yellow Kango",
+   "category": 2,
+   "tintName": "yellow",
+   "holdOffset": {
+    "x": 1,
+    "y": -23,
+    "z": 1
+   }
+  },
+  {
+   "id": 210,
+   "sprite": "GUYFAWKES_PNG",
+   "name": "Guy Fawkes",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 3,
+    "z": 6
+   }
+  },
+  {
+   "id": 213,
+   "sprite": "BASIC_WING_LEFT_PNG",
+   "name": "Simple Wings",
+   "category": 2,
+   "tintName": "gold",
+   "holdOffset": {
+    "x": 0,
+    "y": -6,
+    "z": 5
+   },
+   "behavior": {
+    "class": "wp"
+   }
+  },
+  {
+   "id": 214,
+   "sprite": "EYES_BLANK_PNG",
+   "name": "Pink Trance Eyes",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": -4,
+    "z": 6
+   }
+  },
+  {
+   "id": 215,
+   "sprite": "BLANK_PNG",
+   "name": "Blue Dragon",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 216,
+   "sprite": "ROOSHOES_PNG",
+   "name": "Red Roo Shoes",
+   "category": 2,
+   "tintIndex": 1,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "walkAnim": "roo_walk"
+   }
+  },
+  {
+   "id": 217,
+   "sprite": "ROOSHOES_PNG",
+   "name": "Blue Roo Shoes",
+   "category": 2,
+   "tintIndex": 4,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "walkAnim": "roo_walk"
+   }
+  },
+  {
+   "id": 218,
+   "sprite": "ROOSHOES_PNG",
+   "name": "Gold Roo Shoes",
+   "category": 2,
+   "tintIndex": 10,
+   "tintName": "gold",
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "walkAnim": "roo_walk"
+   }
+  },
+  {
+   "id": 219,
+   "sprite": "CREEPYCLOWN_PNG",
+   "name": "Creepy Clown",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": 1,
+    "z": 6
+   }
+  },
+  {
+   "id": 220,
+   "sprite": "CATEYEGLASSES_PNG",
+   "name": "Red Granny Glasses",
+   "category": 2,
+   "tintIndex": 1,
+   "holdOffset": {
+    "x": 1,
+    "y": -1,
+    "z": 6
+   }
+  },
+  {
+   "id": 221,
+   "sprite": "CATEYEGLASSES_PNG",
+   "name": "Blue Granny Glasses",
+   "category": 2,
+   "tintIndex": 4,
+   "holdOffset": {
+    "x": 1,
+    "y": -1,
+    "z": 6
+   }
+  },
+  {
+   "id": 222,
+   "sprite": "CATEYEGLASSES_PNG",
+   "name": "Yellow Granny Glasses",
+   "category": 2,
+   "tintName": "yellow",
+   "holdOffset": {
+    "x": 1,
+    "y": -1,
+    "z": 6
+   }
+  },
+  {
+   "id": 223,
+   "sprite": "SHORTHAIR_PNG",
+   "name": "Short Grey Hair",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -13,
+    "z": 0
+   }
+  },
+  {
+   "id": 224,
+   "sprite": "FIREHAT_PNG",
+   "name": "Fire Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 1,
+    "y": -27,
+    "z": 1
+   }
+  },
+  {
+   "id": 225,
+   "sprite": "O2MASK_PNG",
+   "name": "Blast Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -3,
+    "y": 9,
+    "z": 6
+   }
+  },
+  {
+   "id": 226,
+   "name": "Fireman Pants",
+   "category": 2
+  },
+  {
+   "id": 227,
+   "sprite": "AXE_PNG",
+   "name": "Axe",
+   "category": 2,
+   "holdOffset": {
+    "x": -10,
+    "y": 16,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 228,
+   "sprite": "EXTINGUISHER_PNG",
+   "name": "Extinguisher",
+   "category": 2,
+   "holdOffset": {
+    "x": 23,
+    "y": 0,
+    "z": 5
+   },
+   "behavior": {
+    "class": "km",
+    "role": "spray (extinguisher-family)"
+   }
+  },
+  {
+   "id": 229,
+   "sprite": "FLASHLIGHT_PNG",
+   "name": "Flashlight",
+   "category": 2,
+   "holdOffset": {
+    "x": -5,
+    "y": 16,
+    "z": 4
+   },
+   "behavior": {
+    "class": "xp"
+   }
+  },
+  {
+   "id": 230,
+   "sprite": "BLANK_PNG",
+   "name": "Dalmatian",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 231,
+   "name": "Fire Shirt",
+   "category": 2
+  },
+  {
+   "id": 232,
+   "sprite": "MINERHAT_PNG",
+   "name": "Miner Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": -2,
+    "y": -24,
+    "z": 1
+   },
+   "behavior": {
+    "class": "yp"
+   }
+  },
+  {
+   "id": 233,
+   "sprite": "SPARKLE_GLOVE_PNG",
+   "name": "Sparkle Glove",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 4
+   },
+   "behavior": {
+    "class": "zp"
+   }
+  },
+  {
+   "id": 234,
+   "sprite": "SPARKLE_SHOE_PNG",
+   "name": "Sparkle Shoes",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 0,
+    "z": 3
+   },
+   "behavior": {
+    "class": "Ap"
+   }
+  },
+  {
+   "id": 235,
+   "sprite": "LIGHTGUN_PNG",
+   "name": "Light Gun",
+   "category": 2,
+   "tintIndex": 7,
+   "holdOffset": {
+    "x": -6,
+    "y": 19,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 0,
+    "shotColor": 7
+   }
+  },
+  {
+   "id": 236,
+   "sprite": "RETROSHADES_PNG",
+   "name": "Retro Shades",
+   "category": 2,
+   "holdOffset": {
+    "x": -2,
+    "y": -3,
+    "z": 6
+   }
+  },
+  {
+   "id": 237,
+   "sprite": "BLANK_PNG",
+   "name": "Lion",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 238,
+   "sprite": "BLANK_PNG",
+   "name": "Pet",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 10
+   }
+  },
+  {
+   "id": 239,
+   "sprite": "EXCALIBUR_PNG",
+   "name": "Excalibur",
+   "category": 2,
+   "holdOffset": {
+    "x": -26,
+    "y": 6,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Bp",
+    "meleeAnim": "zstab",
+    "effect": "FLASH_PNG glow"
+   }
+  },
+  {
+   "id": 240,
+   "sprite": "PICKAXE_PNG",
+   "name": "Pickaxe",
+   "category": 2,
+   "holdOffset": {
+    "x": -18,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 241,
+   "sprite": "ROCK_PNG",
+   "name": "Rock",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 8,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 242,
+   "sprite": "PIRATESWORD_PNG",
+   "name": "Pirate Sword",
+   "category": 2,
+   "holdOffset": {
+    "x": -27,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "meleeAnim": "zstab"
+   }
+  },
+  {
+   "id": 243,
+   "sprite": "CROWBAR_PNG",
+   "name": "Crowbar",
+   "category": 2,
+   "holdOffset": {
+    "x": -9,
+    "y": 12,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 244,
+   "sprite": "PIPEWRENCH_PNG",
+   "name": "Pipewrench",
+   "category": 2,
+   "holdOffset": {
+    "x": -13,
+    "y": -1,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 245,
+   "sprite": "CLEAVER_PNG",
+   "name": "Meat Cleaver",
+   "category": 2,
+   "holdOffset": {
+    "x": -19,
+    "y": 11,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 246,
+   "sprite": "SHOVEL_PNG",
+   "name": "Shovel",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": 6,
+    "z": 4
+   },
+   "melee": true
+  },
+  {
+   "id": 247,
+   "sprite": "ARMYHAT_PNG",
+   "name": "Army Helmet",
+   "category": 2,
+   "holdOffset": {
+    "x": -1,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 248,
+   "sprite": "SHOTGUN_PNG",
+   "name": "Shotgun",
+   "category": 2,
+   "tintIndex": 26,
+   "holdOffset": {
+    "x": -3,
+    "y": 28,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": -8,
+    "muzzleY": 28,
+    "shotColor": 26
+   },
+   "behavior": {
+    "class": "tm",
+    "role": "gun",
+    "notes": "81 adds 8 sparkle particles + fires spark-line along shot (H51); 82/86 recoil tween"
+   }
+  },
+  {
+   "id": 249,
+   "sprite": "ROOSTER_PNG",
+   "name": "Rooster Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -12,
+    "y": -6,
+    "z": 1
+   }
+  },
+  {
+   "id": 250,
+   "sprite": "PIG_PNG",
+   "name": "Pig Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -2,
+    "y": -9,
+    "z": 1
+   }
+  },
+  {
+   "id": 251,
+   "sprite": "DONKEY_PNG",
+   "name": "Donkey Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -9,
+    "y": -24,
+    "z": 1
+   }
+  },
+  {
+   "id": 252,
+   "sprite": "TURTLESHELL_PNG",
+   "name": "Turtle Shell",
+   "category": 2
+  },
+  {
+   "id": 253,
+   "sprite": "GORILLA_PNG",
+   "name": "Gorilla Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -4,
+    "y": -10,
+    "z": 1
+   }
+  },
+  {
+   "id": 254,
+   "sprite": "TURTLE_PNG",
+   "name": "Turtle Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -4,
+    "y": -7,
+    "z": 1
+   }
+  },
+  {
+   "id": 255,
+   "sprite": "EAGLE_PNG",
+   "name": "Eagle Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": -4,
+    "z": 1
+   }
+  },
+  {
+   "id": 256,
+   "sprite": "RACCOON_PNG",
+   "name": "Raccoon Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -6,
+    "y": -4,
+    "z": 1
+   }
+  },
+  {
+   "id": 257,
+   "sprite": "FOXMASK_PNG",
+   "name": "Fox Mask",
+   "category": 2,
+   "holdOffset": {
+    "x": -8,
+    "y": -2,
+    "z": 1
+   }
+  },
+  {
+   "id": 275,
+   "sprite": "TURKEYHEAD_PNG",
+   "name": "Turkey Head",
+   "category": 2,
+   "holdOffset": {
+    "x": -5,
+    "y": -14,
+    "z": 1
+   }
+  },
+  {
+   "id": 276,
+   "sprite": "MUSKET_PNG",
+   "name": "Musket",
+   "category": 2,
+   "tintIndex": 28,
+   "holdOffset": {
+    "x": -3,
+    "y": 28,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": -2,
+    "muzzleY": 40,
+    "shotColor": 28
+   }
+  },
+  {
+   "id": 277,
+   "sprite": "PILGRIMHAT_PNG",
+   "name": "Pilgrim Hat",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": -33,
+    "z": 1
+   }
+  },
+  {
+   "id": 278,
+   "sprite": "PILGRIMSKIRT_PNG",
+   "name": "Pilgrim Skirt",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 10,
+    "z": 7
+   }
+  },
+  {
+   "id": 279,
+   "name": "Pilgrim Pants",
+   "category": 2
+  },
+  {
+   "id": 355,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "tintName": "white",
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 356,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "tintName": "green",
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 357,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "tintName": "yellow",
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 358,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "tintName": "purple",
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 359,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "tintName": "pink",
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 360,
+   "sprite": "BASEBALL_HAT_PNG",
+   "category": 2,
+   "tintName": "orange",
+   "holdOffset": {
+    "x": -6,
+    "y": -25,
+    "z": 1
+   }
+  },
+  {
+   "id": 370,
+   "sprite": "BAZOOKA_PNG",
+   "name": "Homing Mortar",
+   "category": 2,
+   "tintName": "yellow",
+   "holdOffset": {
+    "x": -8,
+    "y": 0,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": -8,
+    "muzzleY": 28,
+    "shotColor": 37
+   },
+   "behavior": {
+    "class": "Ok",
+    "role": "lobbed: v=10x(dx, dy-50), gravity 300"
+   }
+  },
+  {
+   "id": 371,
+   "sprite": "DEPTHCHARGE_PNG",
+   "name": "Depth Charge",
+   "category": 2,
+   "holdOffset": {
+    "x": 0,
+    "y": 10,
+    "z": 4
+   },
+   "gun": {
+    "muzzleX": 0,
+    "muzzleY": 50,
+    "shotColor": 39
+   },
+   "behavior": {
+    "class": "Ok",
+    "F50": 0.55,
+    "role": "lobbed projectile (velocity x0.55)"
+   }
+  },
+  {
+   "id": 379,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "red",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 380,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "green",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 381,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "blue",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 382,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "yellow",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 383,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "purple",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 384,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "pink",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 385,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "orange",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 386,
+   "sprite": "LIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "cyan",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(false)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 387,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "red",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 388,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "green",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 389,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "blue",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 390,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "yellow",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 391,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "purple",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 392,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "pink",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 393,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "orange",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  },
+  {
+   "id": 394,
+   "sprite": "DUALLIGHTSABRE_PNG",
+   "category": 2,
+   "tintName": "cyan",
+   "holdOffset": {
+    "x": 0,
+    "y": 4,
+    "z": 4
+   },
+   "melee": true,
+   "behavior": {
+    "class": "Pk(true)",
+    "idleAnim": "sabre_pose (NOT in shipped skeleton)"
+   }
+  }
+ ],
+ "combatModel": {
+  "meleeAttack": {
+   "trigger": "U30() on use with a melee (T40) item equipped",
+   "cooldown": "o33 = 9 game ticks",
+   "strikePoint": "x = guy.x + tileSize/1.5 * facing, y = guy.y - 10 (straight below when mounted: x=guy.x, y+=tileSize)",
+   "send": "op 287 via K._16(x,y, x,y+0.1, mode=25, selectedSlot) — coords in tile units",
+   "anim": "plays j30 (zswing default; zstab for ids 239/242), blend 50ms, no loop",
+   "sound": "Wm sample on swing",
+   "resolution": "SERVER-SIDE (lost) — client sends the strike point only"
+  },
+  "guns": {
+   "muzzle": "gun_tip child node at P29 (t48,t49) on the held weapon sprite",
+   "launchVelocity": "default F57: 3600 px/s toward mouse; Ok lob: 10*(dx, dy-50); rp throw: 8*dx; F50 multiplier (0.55 grenade launcher)",
+   "projectileGravity": "f59: default 300, rp 150, base ma(a,b) per-weapon",
+   "trajectoryPreview": "F53: 11 SPARK dots along origin + (v/8)*t + 0.5*g*t^2, t=i/5, alpha fade 1-i/15",
+   "shotVisual": "network effect -> new ul(x1,y1,x2,y2,colorIdx): SPARK_PNG stretched muzzle->impact, yScale 3->1 over 500ms, tinted h4(colorIdx); type 28 = BEAM_PNG stretched (laser), alpha .7->0 over 200ms; type 26 quick tracer; + impact particle burst (E.V0)",
+   "perGunShotColor": "u41 from P29 (79 blue=4, 80 red=1, 82 purple=6, 83 green=2, 81 gold=10, 86 orange=8, 248 white=26)",
+   "resolution": "SERVER-SIDE (lost) — damage/hit determination never in client"
+  },
+  "characterHurtbox": {
+   "rect": "new r(-30,-180,60,140) (J34) — 60x140 units, x-30 y-180 relative to feet origin",
+   "note": "client-side bounding rect on the guy entity; server authoritative"
+  },
+  "animations": {
+   "sword_pose": "static hold pose (0s)",
+   "zswing": "melee swing 0.200s",
+   "zstab": "stab 0.133s",
+   "hit": "hurt reaction 0.400s",
+   "idle": "1.0s loop",
+   "missing": "gun_pose and sabre_pose are referenced by code but NOT present in the shipped guy_anims skeleton"
+  }
+ }
+}
