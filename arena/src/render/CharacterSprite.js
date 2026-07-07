@@ -120,8 +120,13 @@ export class CharacterSprite {
     if (opts.debugRig) this._drawDebug(ctx, cx, feetY, facing, handX, handY, S, m);
   }
 
-  /** Sword rest pose points up-back over the shoulder -> tuck it behind the body. */
+  /**
+   * Sword layering: a pose may say explicitly whether it sits behind the body
+   * (the held stances render in FRONT — the sword is carried across the front).
+   * Swing keys fall back to the angle rule: blade pointing backwards -> behind.
+   */
   _poseBehind(pose) {
+    if (pose.behind !== undefined) return pose.behind;
     const d = ((pose.deg % 360) + 360) % 360;
     return d > 90 && d < 270; // blade pointing backwards (up-back / down-back)
   }

@@ -45,10 +45,12 @@ tap = small hop) · **S/↓** descend · **mouse** aim · **left-click** use wea
 - [ ] `1` selects **Fake Sword**, `2` **Blue Ray Gun**, `3` **Shotgun** (Numpad 1/2/3 too).
 - [ ] The hotbar highlights the selected slot and shows the weapon name.
 - [ ] The selected weapon appears **held in the hand**; guns rotate toward the
-      mouse, the sword sits in its real hold pose (it swings on click instead).
+      mouse, the sword sits in its **low diagonal guard** stance: idle = blade
+      diagonally down-forward across the front; walking = blade diagonally
+      forward/upward with a slight bob (it swings on click instead).
 - [ ] Held weapon mirrors correctly when facing left vs right; stays attached
       while moving/jumping; doesn't detach or flip weirdly when aiming behind.
-- [ ] Shotgun fires a **short white ray** (~7 tiles / 280px, PROPOSED default);
+- [ ] Shotgun fires a **short white ray** (250px = 6.25 tiles, PROPOSED cap);
       with debug on, the range endpoint tick shows along the aim.
 
 ## 4. Sword combat (Fake Sword)
@@ -62,14 +64,22 @@ tap = small hop) · **S/↓** descend · **mouse** aim · **left-click** use wea
 - [ ] One swing hits the dummy at most once (no double-counting per swing).
 - [ ] Dummy HP bar + debug `P2 hp` drop by the damage amount on each hit.
 
-## 5. Ray gun combat (Blue Ray Gun)
-- [ ] Left-click fires a projectile from the hand toward the aim.
-- [ ] Projectile travels in a straight line and hits the dummy, dealing damage (≈25).
-- [ ] Projectile is **consumed** on hit (doesn't pass through).
-- [ ] Projectile is **blocked by walls/tiles** (no damage through solid terrain).
-- [ ] Projectile disappears after its lifetime/range (doesn't fly forever).
+## 5. Ray gun combat (Blue Ray Gun — BEAM)
+- [ ] Left-click: a small **shiny white flash** shows at the muzzle (startup),
+      then the **beam lane** appears instantly from the muzzle to max range or
+      the first wall — it reads as a lane/wall, **not** a small projectile.
+- [ ] A **white circle endpoint** shows at the end of the beam (max range or
+      the impact point).
+- [ ] A target on the beam line takes damage (≈25) — once per beam.
+- [ ] Beam is **blocked by walls/tiles**: it visibly ends at the wall and
+      deals no damage behind it.
+- [ ] Beam is capped at **285px** (~7.1 tiles — medium-range beam TEST cap);
+      with debug on, the range tick shows along the aim.
+- [ ] After the short active hit window the beam **fades out** — the fade is
+      visual only (nothing walking into a fading beam takes damage).
 - [ ] Fire respects the cooldown (≈0.6s).
-- [ ] With **debug** on, the projectile hitbox is visible.
+- [ ] Works aiming in every direction (up/down/diagonals), including into
+      ceilings/floors (endpoint on the tile).
 
 ## 6. Dummy, death & respawn
 - [ ] Dummy (P2) takes damage from both weapons; HP bar reflects it.
@@ -99,7 +109,8 @@ tap = small hop) · **S/↓** descend · **mouse** aim · **left-click** use wea
 - [ ] Panel is hidden by default; the button (or `#tune`) opens/closes it.
 - [ ] Sliders/inputs exist for: move speed, acceleration, friction, gravity, jump
       power (upward launch velocity); sword damage/cooldown/reach; ray gun
-      damage/cooldown/speed/lifetime; respawn time; invulnerability time.
+      damage/cooldown/beam range/startup/active frames; shotgun
+      range/damage/cooldown; respawn time; invulnerability time.
 - [ ] Changing a value affects play **immediately** (move speed, weapon stats, etc.).
 - [ ] **Reset to defaults** restores every value and updates the inputs.
 - [ ] **Export JSON** shows the current config; Copy / Download work.

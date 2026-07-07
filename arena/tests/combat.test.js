@@ -3,7 +3,11 @@ import { readFileSync } from 'node:fs';
 import { MovementController } from '../src/game/MovementController.js';
 import { CombatSystem } from '../src/combat/CombatSystem.js';
 import { FAKE_SWORD, BLUE_RAY_GUN, SHOTGUN, FIGHTER, MATCH, RESPAWN } from '../src/combat/CombatConfig.js';
-import { swordSwingAt, swordHoldPose, SWING_DURATION } from '../src/combat/swordSwing.js';
+import {
+  swordSwingAt, swordHoldPose, SWING_DURATION, SWING_KEYS,
+  swordStancePose, SWORD_IDLE_POSE, SWORD_WALK_POSE, WALK_BOB_UNITS,
+} from '../src/combat/swordSwing.js';
+import { BeamResolver, castBeam, FRAME_S } from '../src/combat/BeamResolver.js';
 import { h4 } from '../src/render/h4Palette.js';
 import { ShotFx, tracerThickness, tracerAlpha, laserAlpha, TRACER_FADE_S, LASER_FADE_S } from '../src/game/ShotFx.js';
 
@@ -54,22 +58,35 @@ const AIM_RIGHT = 0;
   ok('sword miss: out-of-reach target takes no damage');
 })();
 
-// 2. Ray gun hit: projectile travels and damages the dummy.
-(function rayGunHit() {
+// 2. Ray gun BEAM hit: the whole beam line exists at the press (NOT a traveling
+//    projectile); damage lands only during the ACTIVE frames after the startup
+//    muzzle shine, and at most once per beam.
+(function rayGunBeamHit() {
   const { combat } = setup(180);
   combat.selectSlot(1); // number key 2 -> Blue Ray Gun
   assert.strictEqual(combat.selectedWeapon.id, 79, 'ray gun selected on slot 1');
+  assert.strictEqual(BLUE_RAY_GUN.combat.kind, 'beam', 'Blue Ray Gun is a BEAM weapon');
   let now = 5.0;
   combat.use(now, AIM_RIGHT);
+  const r = combat.resolvers[79];
+  assert.strictEqual(r.beams.length, 1, 'the whole beam exists at the press (no projectile travel)');
+  assert.strictEqual(combat.projectilesOf(79).length, 0, 'no projectiles: it is a beam');
   const hp0 = combat.dummy.health.hp;
-  for (let i = 0; i < 60 && combat.dummy.health.hp === hp0; i++) { now += DT; combat.update(DT, now); }
-  assert.strictEqual(combat.dummy.health.hp, hp0 - BLUE_RAY_GUN.combat.damage, 'dummy took ray gun damage');
-  assert.strictEqual(combat.projectilesOf(79).length, 0, 'projectile consumed on hit');
-  ok('ray gun hit: projectile travels, hits, and is consumed');
+  // startup: the muzzle shine plays, NO hitbox yet (safe margin inside 4f)
+  for (let i = 0; i < 6; i++) { now += DT; combat.update(DT, now); }
+  assert.strictEqual(combat.dummy.health.hp, hp0, 'no damage during startup frames');
+  // active: the beam line hitbox lands
+  for (let i = 0; i < 10 && combat.dummy.health.hp === hp0; i++) { now += DT; combat.update(DT, now); }
+  assert.strictEqual(combat.dummy.health.hp, hp0 - BLUE_RAY_GUN.combat.damage, 'dummy took beam damage during the active frames');
+  // once per beam — extra sim time adds no damage
+  for (let i = 0; i < 60; i++) { now += DT; combat.update(DT, now); }
+  assert.strictEqual(combat.dummy.health.hp, hp0 - BLUE_RAY_GUN.combat.damage, 'one damage application per beam');
+  ok('ray gun beam: startup shine -> short active hit (once) -> no projectile');
 })();
 
-// 2b. Ray gun blocked by a wall (no damage).
-(function rayGunWall() {
+// 2b. Ray gun beam blocked by a wall: the beam ENDS at the wall (endpoint =
+//     impact) and deals no damage behind it.
+(function rayGunBeamWall() {
   const wall = { tile: 40, isSolid: (c) => c === 3 }; // column 3 = x 120..160
   const attacker = { body: MovementController.createBody(100, 100, 24, 36) };
   const dummy = { body: MovementController.createBody(300, 100, 24, 36) };
@@ -77,10 +94,77 @@ const AIM_RIGHT = 0;
   combat.selectSlot(1);
   let now = 5;
   combat.use(now, AIM_RIGHT);
-  for (let i = 0; i < 120; i++) { now += DT; combat.update(DT, now); }
-  assert.strictEqual(combat.dummy.health.hp, FIGHTER.maxHealth, 'no damage: blocked by wall');
-  assert.strictEqual(combat.projectilesOf(79).length, 0, 'projectile died on wall');
-  ok('ray gun blocked by a wall deals no damage');
+  const b = combat.resolvers[79].beams[0];
+  assert.strictEqual(b.impact, true, 'beam impacted the wall');
+  assert.ok(b.x2 <= 160, 'beam endpoint stops at the wall, not max range');
+  for (let i = 0; i < 60; i++) { now += DT; combat.update(DT, now); }
+  assert.strictEqual(combat.dummy.health.hp, FIGHTER.maxHealth, 'no damage through the wall');
+  ok('ray gun beam ends on wall impact and deals no damage behind it');
+})();
+
+// 2c. Beam fires in ALL directions (8 compass angles) and hits a target on the line.
+(function beamAllDirections() {
+  for (let i = 0; i < 8; i++) {
+    const ang = (i * Math.PI) / 4;
+    const r = new BeamResolver(BLUE_RAY_GUN, noWall);
+    const tx = 400 + Math.cos(ang) * 150, ty = 400 + Math.sin(ang) * 150;
+    const target = { id: 'p2', body: { x: tx - 12, y: ty - 18, w: 24, h: 36 }, health: { alive: true } };
+    let hits = 0;
+    r.use(0, 400, 400, ang, 'p1');
+    let now = 0;
+    for (let k = 0; k < 20; k++) { now += DT; r.update(DT, [target], 2, () => hits++, now); }
+    assert.strictEqual(hits, 1, `direction ${i * 45}°: exactly one hit`);
+  }
+  ok('beam fires and hits in all 8 directions');
+})();
+
+// 2d. Beam range cap: endpoint at exactly max range (285px, white-endpoint
+//     position); a target past the cap is never hit — NO unlimited range.
+(function beamRangeCap() {
+  assert.strictEqual(BLUE_RAY_GUN.combat.range, 285, 'range capped at 285px (medium-range beam TEST — not the OG long raygun)');
+  const r = new BeamResolver(BLUE_RAY_GUN, noWall);
+  r.use(0, 0, 0, 0, 'p1');
+  const b = r.beams[0];
+  assert.ok(Math.abs(b.x2 - 285) < 1e-9 && Math.abs(b.y2) < 1e-9, 'endpoint at exactly max range along the aim');
+  assert.strictEqual(b.impact, false, 'open air: endpoint is the range cap, not an impact');
+  const far = { id: 'p2', body: { x: 320, y: -18, w: 24, h: 36 }, health: { alive: true } };
+  let hits = 0, now = 0;
+  for (let k = 0; k < 20; k++) { now += DT; r.update(DT, [far], 2, () => hits++, now); }
+  assert.strictEqual(hits, 0, 'target past 285px is untouched (no unlimited range)');
+  ok('beam ends at max range with the white endpoint there; no unlimited range');
+})();
+
+// 2e. Frame-data phases: damage ONLY during active frames — the recovery fade
+//     is visual cleanup (and intentionally longer than the active window).
+(function beamActiveFramesOnly() {
+  const c = BLUE_RAY_GUN.combat;
+  const su = c.startupFrames * FRAME_S, act = c.activeFrames * FRAME_S, rec = c.recoveryFrames * FRAME_S;
+  assert.ok(c.activeFrames >= 1 && c.activeFrames <= 2, 'active window is 1-2 frames');
+  assert.ok(rec > act, 'visual fade lasts LONGER than the active hit frames');
+  assert.ok(Math.abs(rec - BLUE_RAY_GUN.visual.laserFadeMs / 1000) < 1e-9, 'fade = the confirmed 200ms type-28 laser fade');
+  const r = new BeamResolver(BLUE_RAY_GUN, noWall);
+  const target = { id: 'p2', body: { x: 138, y: -18, w: 24, h: 36 }, health: { alive: true } };
+  let hits = 0;
+  r.use(0, 0, 0, 0, 'p1');
+  // jump straight into the recovery fade — the target on the line takes nothing
+  r.update(DT, [target], 2, () => hits++, su + act + 0.01);
+  assert.strictEqual(hits, 0, 'recovery/fade deals NO damage');
+  assert.strictEqual(r.beams.length, 1, 'beam still rendered while fading');
+  assert.strictEqual(r.phase(r.beams[0], su + act + 0.01), 'recovery', 'phase reads recovery');
+  r.update(DT, [target], 2, () => hits++, su + act + rec + 0.01);
+  assert.strictEqual(r.beams.length, 0, 'beam culled after the fade window');
+  ok('beam damages only during active frames; the fade is visual only');
+})();
+
+// 2f. Beam cooldown gates refire (36 design frames = 0.6s PROPOSED).
+(function beamCooldown() {
+  const { combat } = setup(180);
+  combat.selectSlot(1);
+  const cd = BLUE_RAY_GUN.combat.cooldown;
+  assert.strictEqual(combat.use(50.0, AIM_RIGHT), true, 'first beam fires');
+  assert.strictEqual(combat.use(50.0 + cd - 0.01, AIM_RIGHT), false, 'blocked during cooldown');
+  assert.strictEqual(combat.use(50.0 + cd + 0.01, AIM_RIGHT), true, 'fires again after cooldown');
+  ok('beam cooldown blocks refire until it elapses');
 })();
 
 // 3. Death + score: enough sword hits kill the dummy and award P1 a kill.
@@ -225,9 +309,8 @@ const AIM_RIGHT = 0;
   assert.strictEqual(v.tintIndex, 4, 'tint = h4(4) (CONFIRMED item table)');
   assert.deepStrictEqual(h4(4), [0.3, 0.3, 1], 'h4(4) is the real blue multiply');
   assert.deepStrictEqual(v.muzzle, { x: 0, y: 0 }, 'muzzle = weapon origin (CONFIRMED P29)');
-  assert.strictEqual(v.shotColor, 4, 'tracer colour u41 = 4 (blue)');
-  assert.strictEqual(v.tracerFadeMs, 500, 'tracer fade 500ms (CONFIRMED ul)');
-  assert.strictEqual(v.laserFadeMs, 200, 'type-28 laser fade 200ms (CONFIRMED ul)');
+  assert.strictEqual(v.shotColor, 4, 'beam colour u41 = 4 (blue)');
+  assert.strictEqual(v.laserFadeMs, 200, 'type-28 laser fade 200ms (CONFIRMED ul) — the recovery fade');
   ok('Blue Ray Gun uses the real h4(4) tint + muzzle point metadata');
 })();
 
@@ -310,9 +393,10 @@ const AIM_RIGHT = 0;
   ok('shotgun metadata loaded from the extracted client weapon table');
 })();
 
-// 16. Range defaults to ~7 tiles; provenance stays honest.
+// 16. Range capped at 250px (below the ray beam's 285px); provenance stays honest.
 (function shotgunProvenance() {
-  assert.strictEqual(SHOTGUN.combat.range, 7 * 40, 'default range = 7 tiles = 280px');
+  assert.strictEqual(SHOTGUN.combat.range, 250, 'range capped at 250px = 6.25 tiles');
+  assert.ok(SHOTGUN.combat.range < BLUE_RAY_GUN.combat.range, 'shotgun stays shorter than the ray beam');
   const p = SHOTGUN.combat.provenance;
   assert.ok(p.damage.startsWith('PROPOSED'), 'damage not claimed CONFIRMED');
   assert.ok(p.range.startsWith('PROPOSED'), 'range not claimed CONFIRMED');
@@ -321,12 +405,12 @@ const AIM_RIGHT = 0;
   assert.ok(p.cooldown.startsWith('CONFIRMED_FROM_CLIENT'), 'cooldown ticks genuinely found (u39 case 26: o33=40)');
   assert.strictEqual(SHOTGUN.combat.cooldownTicks, 40, '40 game ticks');
   assert.strictEqual(SHOTGUN.combat.pellets, 1, 'one short ray in V1');
-  ok('shotgun range defaults to 7 tiles; damage/range/spread stay PROPOSED/UNKNOWN');
+  ok('shotgun range capped at 250px; damage/range/spread stay PROPOSED/UNKNOWN');
 })();
 
 // 17. Shotgun hits within its range, cannot hit past it.
 (function shotgunRange() {
-  // within range: dummy ~212px from the muzzle (< 280)
+  // within range: dummy ~214px from the muzzle (< 250)
   let { combat } = setup(340);
   combat.selectSlot(2);
   assert.strictEqual(combat.selectedWeapon.id, 248, 'shotgun selected');
@@ -334,9 +418,9 @@ const AIM_RIGHT = 0;
   assert.strictEqual(combat.use(now, AIM_RIGHT), true, 'shotgun fires (no longer inert)');
   const hp0 = combat.dummy.health.hp;
   for (let i = 0; i < 80 && combat.dummy.health.hp === hp0; i++) { now += DT; combat.update(DT, now); }
-  assert.strictEqual(combat.dummy.health.hp, hp0 - SHOTGUN.combat.damage, 'hits within 7 tiles');
+  assert.strictEqual(combat.dummy.health.hp, hp0 - SHOTGUN.combat.damage, 'hits within 250px');
   assert.strictEqual(combat.projectilesOf(248).length, 0, 'ray consumed on hit');
-  // beyond range: dummy ~334px from the muzzle (> 280) — the ray expires short
+  // beyond range: dummy ~334px from the muzzle (> 250) — the ray expires short
   ({ combat } = setup(460));
   combat.selectSlot(2);
   now = 10.0;
@@ -344,7 +428,7 @@ const AIM_RIGHT = 0;
   for (let i = 0; i < 120; i++) { now += DT; combat.update(DT, now); }
   assert.strictEqual(combat.dummy.health.hp, FIGHTER.maxHealth, 'cannot hit past the configured range');
   assert.strictEqual(combat.projectilesOf(248).length, 0, 'ray expired at range');
-  ok('shotgun hits within 7 tiles and cannot hit beyond its range');
+  ok('shotgun hits within 250px and cannot hit beyond its range');
 })();
 
 // 18. Shotgun is blocked by walls; range knob is live per shot.
@@ -369,6 +453,51 @@ const AIM_RIGHT = 0;
   assert.strictEqual(c2.dummy.health.hp, FIGHTER.maxHealth, 'shrunk range (tuning knob) misses the same target');
   SHOTGUN.combat.range = saved;
   ok('shotgun respects walls; the range knob applies per shot');
+})();
+
+// ── Fake Sword held stances (owner spec: low diagonal guard) ──────────────────
+
+// 19. Idle stance: blade diagonally DOWNWARD across the front, tip down-forward;
+//     compact hold near the torso; NOT the old over-the-shoulder rest, NOT a
+//     swing key. (Sprite blade = local -x, so on-screen blade tip direction =
+//     (-cos deg, -sin deg), canvas y down, facing right.)
+(function swordIdleStance() {
+  const idle = swordStancePose(false);
+  assert.deepStrictEqual(idle, SWORD_IDLE_POSE, 'idle stance = the low diagonal guard pose');
+  const rad = (idle.deg * Math.PI) / 180;
+  const tip = { x: -Math.cos(rad), y: -Math.sin(rad) };
+  assert.ok(tip.x > 0.2, 'blade tip points FORWARD');
+  assert.ok(tip.y > 0.2, 'blade tip points DOWN (low guard, not horizontal, not overhead)');
+  assert.ok(Math.abs(tip.x) < 0.95 && Math.abs(tip.y) < 0.95, 'diagonal — not straight out, not straight down');
+  assert.ok(idle.dx > 0 && idle.dx < 20, 'sword held in front, close to the torso (compact)');
+  assert.ok(idle.dy > 10 && idle.dy < 40, 'hand/centre around the waist/chest, held LOW');
+  assert.notStrictEqual(idle.deg, swordHoldPose().deg, 'NOT the old over-the-shoulder sword_pose rest');
+  for (const k of SWING_KEYS) assert.notStrictEqual(idle.deg, k.deg, 'idle stance is not a zswing key (no attack anticipation)');
+  assert.strictEqual(idle.behind, false, 'guard renders in FRONT of the body');
+  ok('Fake Sword idle = low diagonal guard (tip down-forward, compact, in front)');
+})();
+
+// 20. Walk stance: same compact hold, blade diagonally forward/UPWARD; the
+//     weapon only BOBS with the walk cycle — no rotation, no zswing.
+(function swordWalkStance() {
+  const walk = swordStancePose(true, 0);
+  const rad = (walk.deg * Math.PI) / 180;
+  const tip = { x: -Math.cos(rad), y: -Math.sin(rad) };
+  assert.ok(tip.x > 0.2, 'blade tip points FORWARD while walking');
+  assert.ok(tip.y < -0.2, 'blade tip points UP (diagonal forward/upward)');
+  assert.ok(walk.dx > 0 && walk.dx < 20, 'carried in front, arm bent close to the torso');
+  assert.strictEqual(walk.behind, false, 'carried in front of the body');
+  for (const k of SWING_KEYS) assert.notStrictEqual(walk.deg, k.deg, 'walk stance is not a zswing key');
+  // bob: dy varies slightly over the walk cycle; deg NEVER rotates
+  let minDy = Infinity, maxDy = -Infinity;
+  for (let t = 0; t < 1.0; t += 0.02) {
+    const p = swordStancePose(true, t);
+    assert.strictEqual(p.deg, SWORD_WALK_POSE.deg, 'no wild rotation during the walk');
+    minDy = Math.min(minDy, p.dy); maxDy = Math.max(maxDy, p.dy);
+  }
+  assert.ok(maxDy - minDy > 0, 'weapon bobs with the walk cycle');
+  assert.ok(maxDy - minDy <= WALK_BOB_UNITS + 1e-9, 'bob is slight (bounded)');
+  ok('Fake Sword walk = compact hold, blade up-forward, slight bob, never zswing');
 })();
 
 console.log(`\nAll ${passed} combat checks passed.`);

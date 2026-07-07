@@ -33,23 +33,26 @@ at range** (never lets it close for free).
 | cooldown | 0.30 s (9 ticks confirmed; 30 tps assumed) | ticks CONFIRMED / rate ASSUMED |
 | TTK | 3 hits ≈ **0.8 s** | — |
 
-### Blue Ray Gun (id 79)
+### Blue Ray Gun (id 79) — BEAM
 | value | current | provenance |
 |---|---|---|
 | damage | 25 (4 hits to kill) | PROPOSED |
-| projectile speed | 900 px/s | PROPOSED (client preview 3600) |
-| lifetime | 1.2 s → effective range **1080 px ≈ 27 tiles** | PROPOSED |
-| cooldown | 0.60 s | PROPOSED — client actually shows **50 ticks** (≈1.67 s @30tps), not adopted |
+| range | **285 px ≈ 7.1 tiles** (beam line, instant) | PROPOSED_STANDALONE medium-range beam TEST cap |
+| startup | 4 frames (muzzle shine, no hitbox) | PROPOSED |
+| active | 2 frames (beam line hitbox) | PROPOSED |
+| recovery | 12 frames (beam fade — visual only) | fade length = CONFIRMED 200ms type-28 laser |
+| cooldown | 0.60 s = 36 frames | PROPOSED — client actually shows **50 ticks** (≈1.67 s @30tps), not adopted |
 | TTK | 4 hits ≈ **1.8 s** | — |
 
-> ⚠ Owner memory says the real ray range was **~17 tiles ≈ 680 px** — the
-> current 1080 px is likely too generous. To match memory: lifetime ≈ **0.75 s**.
+> ⚠ 285 px is a **medium-range beam test**, not the OG long-range raygun —
+> that would be a much longer beam with much lower damage, later. Note 285 px
+> is deliberately close to the Shotgun's 250 px for this test.
 
 ### Shotgun (id 248)
 | value | current | provenance |
 |---|---|---|
 | damage | 40 (3 hits to kill) | PROPOSED |
-| range | 280 px = 7 tiles | PROPOSED default (owner memory LIKELY) |
+| range | 250 px = 6.25 tiles | PROPOSED cap (kept below the ray beam's 285 px) |
 | projectile speed | 900 px/s | PROPOSED |
 | cooldown | 1.33 s (**40 ticks CONFIRMED**; 30 tps assumed) | ticks CONFIRMED / rate ASSUMED |
 | pellets | 1 (single short ray) | spread UNKNOWN_SERVER_SIDE |
@@ -63,19 +66,21 @@ at range** (never lets it close for free).
 - Jump-in swing: can you land a hit on the way down?
 - Whiff punish: miss on purpose — does the 0.3 s cooldown feel fair?
 
-**Blue Ray Gun**
-- Poke from 10+, 17, and 25 tiles — where does landing shots stop feeling fair?
+**Blue Ray Gun (beam)**
+- Poke from 4, 6, and just past 7.1 tiles — the 285 px cap should read clearly
+  (white endpoint circle at max range).
 - Kite the dummy's position: shoot, retreat, shoot. Does chip feel oppressive?
-- Fire at a jumping arc — is the 900 px/s bolt leadable?
-- Shoot through gaps/over ledges — wall blocking should feel consistent.
+- The beam is instant — does the 4f startup shine give the target any tell?
+- Shoot through gaps/over ledges — the beam must end at walls (endpoint on the
+  tile), never damage behind them.
 
 **Shotgun**
 - Ambush at 3–5 tiles: fire → the 1.33 s reload — does the gap feel survivable
   for the target and tense for the shooter?
-- Fire at exactly ~7 tiles (use the debug range tick) — edge hits should feel
-  readable, not random.
+- Fire at exactly ~6.25 tiles (use the debug range tick) — edge hits should
+  feel readable, not random.
 - Miss up close, then get swordded during reload — that SHOULD lose.
-- Whiff at 8+ tiles — the ray visibly dying at 280 px should read clearly.
+- Whiff at 7+ tiles — the ray visibly dying at 250 px should read clearly.
 
 ## 4. Signs of too strong / too weak
 
@@ -97,9 +102,10 @@ FT20 rounds all end the same way regardless of positioning.
 | sword strike radius | 0 | **6** | 12 | 0 = pure authentic point |
 | ray damage | 15 | **25** | 34 | 34 = 3-hit kill, big |
 | ray cooldown | 0.45 | **0.60** | 1.67 | 1.67 = the confirmed 50 ticks @30tps |
-| ray lifetime | 0.6 | **1.2** | 1.5 | 0.75 ≈ the remembered 17 tiles |
+| ray beam range | 200 | **285** | 680 | 285 = medium-range TEST; 680 ≈ the remembered 17-tile OG (pair with much lower damage) |
+| ray startup | 2f | **4f** | 10f | more startup = more counterplay to the instant beam |
 | shotgun damage | 30 | **40** | 60 | 60 = 2-hit kill; only with long cooldown |
-| shotgun range | 200 | **280** | 400 | keep clearly shorter than the ray |
+| shotgun range | 200 | **250** | 400 | keep shorter than the ray beam |
 | shotgun cooldown | 0.67 | **1.33** | 2.0 | 0.67 = 40 ticks if the real rate was 60 tps |
 
 ## 6. Presets
@@ -107,27 +113,28 @@ FT20 rounds all end the same way regardless of positioning.
 Apply by typing values into ⚙ Tuning (then Export JSON to save the run).
 
 ### A. STRICT — closest to confirmed/remembered Diggerz
-Every confirmed tick honored at 30 tps; ranges per owner memory.
+Every confirmed tick honored at 30 tps; ray = the remembered ~17-tile OG
+long-range beam paired with much lower damage.
 ```json
 { "fakeSword": { "damage": 34, "cooldown": 0.30, "reach": 27, "proposedStrikeRadius": 0 },
-  "blueRayGun": { "damage": 25, "cooldown": 1.67, "speed": 900, "lifetime": 0.75 },
-  "shotgun": { "range": 280, "damage": 40, "cooldown": 1.33 } }
+  "blueRayGun": { "damage": 15, "cooldown": 1.67, "range": 680, "startupFrames": 4, "activeFrames": 2 },
+  "shotgun": { "range": 250, "damage": 40, "cooldown": 1.33 } }
 ```
 Expect: slow, deliberate duels; misses hurt.
 
 ### B. PLAYABLE — the current shipped defaults
 ```json
 { "fakeSword": { "damage": 34, "cooldown": 0.30, "reach": 27, "proposedStrikeRadius": 6 },
-  "blueRayGun": { "damage": 25, "cooldown": 0.60, "speed": 900, "lifetime": 1.2 },
-  "shotgun": { "range": 280, "damage": 40, "cooldown": 1.33 } }
+  "blueRayGun": { "damage": 25, "cooldown": 0.60, "range": 285, "startupFrames": 4, "activeFrames": 2 },
+  "shotgun": { "range": 250, "damage": 40, "cooldown": 1.33 } }
 ```
 Expect: forgiving melee, chatty ray gun, deliberate shotgun.
 
 ### C. AGGRESSIVE — fast TTK brawl
 ```json
 { "fakeSword": { "damage": 40, "cooldown": 0.25, "reach": 27, "proposedStrikeRadius": 8 },
-  "blueRayGun": { "damage": 34, "cooldown": 0.45, "speed": 1100, "lifetime": 1.0 },
-  "shotgun": { "range": 320, "damage": 50, "cooldown": 0.90 } }
+  "blueRayGun": { "damage": 34, "cooldown": 0.45, "range": 320, "startupFrames": 2, "activeFrames": 2 },
+  "shotgun": { "range": 300, "damage": 50, "cooldown": 0.90 } }
 ```
 Expect: 2–3 hit kills everywhere; positioning mistakes end rounds instantly.
 

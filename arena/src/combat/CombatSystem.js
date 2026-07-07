@@ -14,6 +14,7 @@ import { Hotbar } from '../diggerz/ItemSystem.js';
 import { Health } from './Health.js';
 import { MeleeResolver } from './MeleeResolver.js';
 import { ProjectileResolver } from './ProjectileResolver.js';
+import { BeamResolver } from './BeamResolver.js';
 import { MatchState } from './MatchState.js';
 import { FIGHTER, MATCH, RESPAWN, COMBAT_V1_LOADOUT } from './CombatConfig.js';
 
@@ -39,7 +40,8 @@ export class CombatSystem {
     for (const w of COMBAT_V1_LOADOUT) {
       if (w.combat.kind === 'melee') this.resolvers[w.id] = new MeleeResolver(w);
       else if (w.combat.kind === 'projectile') this.resolvers[w.id] = new ProjectileResolver(w, collider);
-      // 'unimplemented' (e.g. Shotgun) -> no resolver, no damage yet.
+      else if (w.combat.kind === 'beam') this.resolvers[w.id] = new BeamResolver(w, collider);
+      // any other kind -> no resolver, no damage yet.
     }
 
     this.match = new MatchState({ ftTarget: MATCH.ftTarget });
@@ -64,7 +66,7 @@ export class CombatSystem {
       // direction), so the aim only picks which way the swing faces.
       return r.use(now, Math.cos(aimAngle) >= 0 ? 1 : -1);
     }
-    // projectile muzzle: from attacker centre, nudged toward the aim
+    // projectile/beam muzzle: from attacker centre, nudged toward the aim
     const b = this.attacker.body;
     const cx = b.x + b.w / 2 + Math.cos(aimAngle) * (b.w / 2 + 4);
     const cy = b.y + b.h * 0.4 + Math.sin(aimAngle) * (b.w / 2 + 4);
@@ -83,7 +85,7 @@ export class CombatSystem {
       const r = this.resolvers[w.id];
       if (!r) continue; // unimplemented weapon (Shotgun)
       if (w.combat.kind === 'melee') r.resolve(now, this.attacker.body, targets, FIGHTER.hurtboxInset, onHit);
-      else r.update(dt, targets, FIGHTER.hurtboxInset, onHit);
+      else r.update(dt, targets, FIGHTER.hurtboxInset, onHit, now); // beams need `now` for their frame phases
     }
 
     // Respawn timers; reposition the dummy on respawn.

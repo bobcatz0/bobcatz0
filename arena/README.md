@@ -66,11 +66,15 @@ npm test
 - AABB collision against tile/platform blocks (with flush ground-snap)
 - Velocity tracking, facing direction, animation-state values
 - **Combat V1 (wired):** a P2 **dummy** with health + hurtbox; left-click uses the
-  selected weapon toward the mouse aim. **Fake Sword** is a melee arc hitbox;
-  **Blue Ray Gun** spawns a straight projectile (wall-blocked). On a kill: P1
+  selected weapon toward the mouse aim. **Fake Sword** is a melee arc hitbox
+  (held in a low-diagonal-guard idle/walk stance while not swinging);
+  **Blue Ray Gun** is a **beam**: startup muzzle shine → a 1–2 frame active
+  beam-line hitbox from the muzzle to max range (285px, PROPOSED medium-range
+  test cap) or wall impact, with a white endpoint circle, then a fading
+  recovery (visual only — see `docs/FRAME_DATA_TERMINOLOGY.md`). On a kill: P1
   scores +1, the dummy respawns at the P2 spawn with brief invulnerability;
   **first to 20 kills** wins (rematch button restarts). **Shotgun** (V1) fires a
-  short-range white ray (default 7 tiles = 280px, PROPOSED; cooldown 40 game
+  short-range white ray (capped 250px, PROPOSED; cooldown 40 game
   ticks CONFIRMED from the client — see `docs/SHOTGUN_FUNCTION_AUDIT.md`). All
   combat damage **numbers** are PROPOSED standalone values
   (`src/combat/CombatConfig.js`).
@@ -103,9 +107,9 @@ npm test
   (**Fake Sword**, **Blue Ray Gun**, **Shotgun**). The number keys `1`/`2`/`3`
   select the slot (highlight + name), the mouse aims (aim line + reticle), and
   left-click resolves the selected weapon against the dummy through the headless
-  resolver layer (`src/combat/`) — melee arc for the sword, projectile for the
-  ray gun, short range-limited ray for the shotgun, health / death / respawn /
-  FT20 kill scoring.
+  resolver layer (`src/combat/`) — melee strike point for the sword, frame-data
+  beam (startup/active/recovery) for the ray gun, short range-limited ray for
+  the shotgun, health / death / respawn / FT20 kill scoring.
 
 ## Documentation
 
@@ -215,8 +219,9 @@ combat logic is lost).
 Click **⚙ Tuning** (or open the page with `#tune`) for a live playtest panel
 (`src/game/TuningPanel.js`). It exposes — as sliders + number inputs you can
 change *while playing* — move speed, acceleration, friction, gravity, **jump
-power**; Fake Sword damage/cooldown/reach; Blue Ray Gun damage/cooldown/speed/
-lifetime; and respawn time + invulnerability time. (**jump power** is the jump's
+power**; Fake Sword damage/cooldown/reach; Blue Ray Gun damage/cooldown/beam
+range/startup/active frames; Shotgun range/damage/cooldown; and respawn time +
+invulnerability time. (**jump power** is the jump's
 upward launch velocity, in px/s — higher = higher jump, lower = lower jump; it
 maps to the `jumpSpeed` movement constant.) **Reset to defaults** restores
 the boot values, and **Export JSON** gives you the current set (copy or download)

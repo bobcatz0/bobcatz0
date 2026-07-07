@@ -68,14 +68,18 @@ export class TuningPanel {
       fields.push(
         F('rayDamage', 'ray gun damage', 'Blue Ray Gun', { min: 1, max: 100, step: 1 }, onObj(ray, 'damage'), 'hp'),
         F('rayCooldown', 'ray gun cooldown', 'Blue Ray Gun', { min: 0.05, max: 2, step: 0.05 }, onObj(ray, 'cooldown'), 's'),
-        F('raySpeed', 'ray gun speed', 'Blue Ray Gun', { min: 100, max: 2000, step: 25 }, onObj(ray, 'projectileSpeed'), 'px/s'),
-        F('rayTtl', 'ray gun lifetime', 'Blue Ray Gun', { min: 0.2, max: 4, step: 0.1 }, onObj(ray, 'ttl'), 's'),
+        F('rayRange', 'ray gun beam range', 'Blue Ray Gun', { min: 80, max: 800, step: 5 }, onObj(ray, 'range'), 'px',
+          'PROPOSED_STANDALONE 285px ≈ 7.1 tiles — a medium-range beam TEST cap, not the OG long-range raygun.'),
+        F('rayStartup', 'ray gun startup', 'Blue Ray Gun', { min: 0, max: 20, step: 1 }, onObj(ray, 'startupFrames'), 'f',
+          'Startup frames (1f = 1/60s): muzzle shine/flash before the beam hitbox exists.'),
+        F('rayActive', 'ray gun active', 'Blue Ray Gun', { min: 1, max: 12, step: 1 }, onObj(ray, 'activeFrames'), 'f',
+          'Active frames: the beam line hitbox can damage (design: 1-2f). Recovery fade is visual only.'),
       );
     }
     if (shotgun) {
       fields.push(
-        F('shotgunRange', 'shotgun range', 'Shotgun', { min: 80, max: 600, step: 20 }, onObj(shotgun, 'range'), 'px',
-          'PROPOSED_STANDALONE — default 280px = 7 tiles @40px (owner recollection; not in the client).'),
+        F('shotgunRange', 'shotgun range', 'Shotgun', { min: 80, max: 600, step: 10 }, onObj(shotgun, 'range'), 'px',
+          'PROPOSED_STANDALONE — capped at 250px = 6.25 tiles @40px (kept below the ray beam’s 285px).'),
         F('shotgunDamage', 'shotgun damage', 'Shotgun', { min: 1, max: 100, step: 1 }, onObj(shotgun, 'damage'), 'hp',
           'PROPOSED_STANDALONE (server damage lost).'),
         F('shotgunCooldown', 'shotgun cooldown', 'Shotgun', { min: 0.05, max: 3, step: 0.05 }, onObj(shotgun, 'cooldown'), 's',
@@ -194,7 +198,7 @@ export class TuningPanel {
       movement: { moveSpeed: v('moveSpeed'), acceleration: v('acceleration'), friction: v('friction'), gravity: v('gravity'), jumpSpeed: v('jumpSpeed') },
     };
     if (this.fieldById.swordDamage) cfg.fakeSword = { damage: v('swordDamage'), cooldown: v('swordCooldown'), reach: v('swordReach'), proposedStrikeRadius: v('swordStrikeRadius') };
-    if (this.fieldById.rayDamage) cfg.blueRayGun = { damage: v('rayDamage'), cooldown: v('rayCooldown'), speed: v('raySpeed'), lifetime: v('rayTtl'), range: round(v('raySpeed') * v('rayTtl')) };
+    if (this.fieldById.rayDamage) cfg.blueRayGun = { damage: v('rayDamage'), cooldown: v('rayCooldown'), range: v('rayRange'), rangeTiles: round(v('rayRange') / 40), startupFrames: v('rayStartup'), activeFrames: v('rayActive') };
     if (this.fieldById.shotgunRange) cfg.shotgun = { range: v('shotgunRange'), rangeTiles: round(v('shotgunRange') / 40), damage: v('shotgunDamage'), cooldown: v('shotgunCooldown') };
     cfg.respawn = { time: v('respawnTime'), invulnerability: v('invuln') };
     cfg._note = 'PROPOSED standalone PvP tuning values (not extracted Diggerz server values).';

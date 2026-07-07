@@ -16,7 +16,7 @@ import { CombatSystem } from '../combat/CombatSystem.js';
 import { bodyHurtbox } from '../combat/geometry.js';
 import { FIGHTER } from '../combat/CombatConfig.js';
 import { HitFx } from './HitFx.js';
-import { swordSwingAt, swordHoldPose, SWING_DURATION } from '../combat/swordSwing.js';
+import { swordSwingAt, swordStancePose, SWING_DURATION } from '../combat/swordSwing.js';
 import { h4css, tintSprite } from '../render/h4Palette.js';
 import { ShotFx, tracerThickness, tracerAlpha, laserAlpha } from './ShotFx.js';
 
@@ -209,18 +209,22 @@ export class ArenaScene {
       this._respawnMarker(d);
     }
 
-    // ── Player (P1): holding the selected weapon. The sword uses the REAL
-    // sword_pose hold + zswing swing (weapon-only animation); guns aim at the
-    // mouse. The Blue Ray Gun sprite is tinted its real h4(4) blue.
+    // ── Player (P1): holding the selected weapon. The sword swings with the
+    // REAL zswing; while not swinging it sits in the owner's low-diagonal-guard
+    // stance (idle: blade down-forward; walking: blade up-forward + slight
+    // bob — never attack anticipation). Guns aim at the mouse. The Blue Ray
+    // Gun sprite is tinted its real h4(4) blue.
     const sel = this.combat.selectedWeapon;
     const weaponSprite = sel ? this._weaponSprite(sel) : null;
     const pstate = { ...this.player.state, facing: this._facing() };
     let swordPose = null;
     if (sel && sel.combat.kind === 'melee') {
       const r = this.combat.resolvers[sel.id];
+      const pb2 = this.player.body;
+      const walking = pb2.grounded && Math.abs(pb2.vx) > 10;
       swordPose = r.isSwinging(now)
         ? swordSwingAt(r.swingProgress(now) * SWING_DURATION)
-        : swordHoldPose();
+        : swordStancePose(walking, now);
     }
     this.character.draw(ctx, pstate, now, {
       aim: this.aimAngle, weapon: weaponSprite, weaponKey: sel ? sel.spriteKey : null,
@@ -228,7 +232,7 @@ export class ArenaScene {
     });
     this._healthBar(this.player.body, this.combat.attacker.health);
 
-    // ── Projectiles (ray gun) + shot tracers/laser (real client-style visuals).
+    // ── Projectiles (shotgun ray) + shot tracers, and beam weapons (ray gun).
     this._trackShots();
     for (const w of this.combat.hotbar.slots) {
       const r = this.combat.resolvers[w.id];
@@ -236,6 +240,7 @@ export class ArenaScene {
       if (w.combat.kind === 'projectile') for (const p of r.projectiles) this._drawProjectile(p, w);
     }
     this._drawShotFx(now);
+    this._drawBeams(now);
 
     // ── Hit feedback: character flash + sparks / damage numbers / rings.
     if (d.health.alive) this._drawHitFlash(d.body, this.hitfx.flashAmt('p2'));
@@ -407,6 +412,74 @@ export class ArenaScene {
     }
   }
 
+  /**
+   * Beam weapons (Blue Ray Gun) — drawn by frame-data phase
+   * (docs/FRAME_DATA_TERMINOLOGY.md):
+   *   startup  — small shiny white circle/flash at the muzzle (no beam yet)
+   *   active   — full-brightness thin lane muzzle->endpoint + WHITE endpoint circle
+   *   recovery — the same lane fading out (VISUAL ONLY — the hitbox is gone)
+   */
+  _drawBeams(now) {
+    const ctx = this.ctx;
+    const beamSprite = this.assets.getSprite('BEAM_PNG');
+    for (const w of this.combat.hotbar.slots) {
+      if (w.combat.kind !== 'beam') continue;
+      const r = this.combat.resolvers[w.id];
+      if (!r) continue;
+      const c = w.combat;
+      const tint = (w.visual && w.visual.shotColor) ?? 4;
+      const suS = c.startupFrames / 60, actS = c.activeFrames / 60, recS = c.recoveryFrames / 60;
+      for (const b of r.beams) {
+        const ph = r.phase(b, now);
+        const age = now - b.t0;
+        if (ph === 'startup') {
+          // muzzle shine: a small shiny white circle growing over the startup
+          const f = Math.min(1, age / suS);
+          const R = 3 + 4 * f;
+          const grd = ctx.createRadialGradient(b.x1, b.y1, 0.5, b.x1, b.y1, R);
+          grd.addColorStop(0, 'rgba(255,255,255,0.95)');
+          grd.addColorStop(0.5, 'rgba(255,255,255,0.55)');
+          grd.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.save();
+          ctx.fillStyle = grd;
+          ctx.beginPath(); ctx.arc(b.x1, b.y1, R, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+          continue;
+        }
+        // active/recovery: the lane. Fade only during recovery (fade is longer
+        // than the active window on purpose — visual cleanup, no damage).
+        const fade = ph === 'active' ? 1 : Math.max(0, 1 - (age - suS - actS) / recS);
+        if (fade <= 0) continue;
+        const ang = Math.atan2(b.y2 - b.y1, b.x2 - b.x1);
+        const dist = Math.hypot(b.x2 - b.x1, b.y2 - b.y1);
+        ctx.save();
+        ctx.translate(b.x1, b.y1); ctx.rotate(ang);
+        // soft outer glow (type-28 BEAM_PNG stretched over the whole lane)
+        if (beamSprite) {
+          ctx.globalAlpha = 0.7 * fade;
+          ctx.drawImage(beamSprite.image, beamSprite.sx, beamSprite.sy, beamSprite.sw, beamSprite.sh, 0, -7, dist, 14);
+        }
+        // the lane body in the gun's shot colour + a bright white core — reads
+        // as a wall/lane, not a small projectile
+        ctx.globalAlpha = 0.55 * fade;
+        ctx.fillStyle = h4css(tint);
+        ctx.fillRect(0, -2.5, dist, 5);
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, -1, dist, 2);
+        ctx.restore();
+        // white circle endpoint at max range or impact
+        ctx.save();
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(b.x2, b.y2, 2 + 3.5 * fade, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(b.x2, b.y2, 4 + 4 * fade, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+
   _drawProjectile(p, w) {
     const ctx = this.ctx;
     const tint = (w && w.visual && w.visual.shotColor) ?? 4;
@@ -454,6 +527,14 @@ export class ArenaScene {
       const r = this.combat.resolvers[w.id];
       if (!r) continue;
       if (w.combat.kind === 'projectile') for (const p of r.projectiles) box(p.aabb(), '#ffe27f');
+      if (w.combat.kind === 'beam') {
+        // Beam line hitbox exists ONLY during the active frames.
+        for (const b of r.beams) {
+          if (r.phase(b, now) !== 'active') continue;
+          ctx.strokeStyle = '#ffe27f'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke();
+        }
+      }
       if (w.combat.kind === 'melee') {
         // Real client model: a STRIKE POINT (not a hitbox) at tile/1.5 in front.
         const sp = r.debugStrike(now, this.player.body);

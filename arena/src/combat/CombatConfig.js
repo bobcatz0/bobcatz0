@@ -72,33 +72,40 @@ export const FAKE_SWORD = weapon(55, {
   },
 });
 
-// 2. Blue Ray Gun (id 79) — ranged, single straight shot. Gameplay numbers are
-// PROPOSED (server-side lost); the VISUALS are CONFIRMED from the client
-// (docs/WEAPON_FUNCTION_AUDIT.md): grey RAILGUN_PNG tinted h4(4) blue, muzzle
-// at the weapon origin, blue tracer (u41=4) + type-28 laser beam timings.
+// 2. Blue Ray Gun (id 79) — BEAM weapon (docs/FRAME_DATA_TERMINOLOGY.md): the
+// whole beam line exists muzzle -> max range/impact, in frame-data phases
+// (startup shine -> 1-2f active line hitbox -> fading recovery). NOT a
+// traveling projectile. Gameplay numbers are PROPOSED (server-side lost); the
+// VISUALS are CONFIRMED from the client (docs/WEAPON_FUNCTION_AUDIT.md): grey
+// RAILGUN_PNG tinted h4(4) blue, muzzle at the weapon origin, blue tracer
+// (u41=4) + type-28 laser beam timings.
 export const BLUE_RAY_GUN = weapon(79, {
-  kind: 'projectile',
+  kind: 'beam',
   damage: 25,              // PROPOSED (4 hits to drop 100 HP)
-  projectileSpeed: 900,    // px/s — PROPOSED (client aim-preview uses 3600; kept for feel)
-  ttl: 1.2,                // s — PROPOSED
-  cooldown: 0.6,           // s — PROPOSED (server-side lost)
-  projW: 24,               // px — PROPOSED
-  projH: 6,                // px — PROPOSED
-  pellets: 1,              // single shot
-  spreadDegrees: 0,
+  range: 285,              // px ≈ 7.1 tiles — PROPOSED_STANDALONE "medium-range
+                           // beam test" cap. NOT the OG long-range raygun (that
+                           // would be a much longer beam with much lower damage,
+                           // later). Close to the Shotgun's 250px on purpose,
+                           // for this test only.
+  startupFrames: 4,        // design frames @60 — muzzle shine/flash, NO hitbox yet (PROPOSED)
+  activeFrames: 2,         // beam line hitbox exists 1-2 frames only (PROPOSED)
+  recoveryFrames: 12,      // beam fades on screen — VISUAL ONLY, no damage.
+                           // 12f = 0.2s = the CONFIRMED type-28 laser fade,
+                           // intentionally longer than the active window.
+  cooldown: 0.6,           // s = 36 design frames — PROPOSED (client shows 50 ticks; not adopted)
   provenance: {
     damage: 'PROPOSED (server-side, lost)',
     cooldown: 'PROPOSED (server-side, lost)',
-    projectileSpeed: 'PROPOSED (client trajectory preview uses 3600 px/s — adoptable later)',
+    range: 'PROPOSED_STANDALONE 285px medium-range beam test — not the OG long-range raygun (longer beam, much lower damage, later)',
+    frames: 'PROPOSED_STANDALONE frame data (startup/active); recovery length = the CONFIRMED 200ms type-28 laser fade',
   },
 });
 // CONFIRMED visual identity for the Blue Ray Gun (client item table + ul effect).
 BLUE_RAY_GUN.visual = {
   tintIndex: 4,                 // h4(4) blue — CONFIRMED (item table)
   muzzle: { x: 0, y: 0 },       // gun_tip on the weapon sprite — CONFIRMED (P29)
-  shotColor: 4,                 // tracer tint u41 — CONFIRMED
-  tracerFadeMs: 500,            // tracer yScale 3->1 fade — CONFIRMED (ul)
-  laserFadeMs: 200,             // type-28 BEAM alpha .7->0 — CONFIRMED (ul)
+  shotColor: 4,                 // beam tint u41 — CONFIRMED
+  laserFadeMs: 200,             // type-28 BEAM alpha .7->0 — CONFIRMED (ul); = recoveryFrames
   provenance: 'CONFIRMED (client item-definition table + ul shot effect)',
 };
 
@@ -112,8 +119,9 @@ export const SHOTGUN = weapon(248, {
   kind: 'projectile',
   damage: 40,              // PROPOSED_STANDALONE (close-range reward)
   projectileSpeed: 900,    // px/s — PROPOSED_STANDALONE (client preview uses 3600)
-  range: 7 * 40,           // px — PROPOSED_STANDALONE default; "~7 tiles" is owner
-                           // recollection (LIKELY), not found in the client
+  range: 250,              // px = 6.25 tiles — PROPOSED_STANDALONE cap (owner:
+                           // capped to 250px, kept below the ray beam's 285px;
+                           // earlier "~7 tiles" recollection was 280px)
   cooldownTicks: 40,       // CONFIRMED_FROM_CLIENT (u39 case 26: o33 = 40)
   cooldown: 40 / TICK_RATE_ASSUMED, // s — 40 ticks confirmed, tick RATE assumed 30/s
   projW: 18,               // px — PROPOSED_STANDALONE
@@ -122,7 +130,7 @@ export const SHOTGUN = weapon(248, {
   spreadDegrees: 0,
   provenance: {
     damage: 'PROPOSED_STANDALONE (server-side, lost)',
-    range: 'PROPOSED_STANDALONE default 7 tiles = 280px (owner recollection LIKELY; not in client)',
+    range: 'PROPOSED_STANDALONE cap 250px = 6.25 tiles (owner-set test value; not in client)',
     cooldown: 'CONFIRMED_FROM_CLIENT 40 game ticks; tick rate ASSUMED 30/s',
     spread: 'UNKNOWN_SERVER_SIDE — single ray in V1, no pellets without evidence',
     projectileSpeed: 'PROPOSED_STANDALONE (client aim preview uses 3600 px/s)',

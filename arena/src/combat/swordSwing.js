@@ -30,8 +30,35 @@ export const SWING_KEYS = [
 // scale the hand offsets to the on-screen sprite height.
 export const SKELETON_H = 91;
 
-/** The static hold pose (sword_pose). */
+/** The swing's rest key (the client's sword_pose — used only by the zswing). */
 export function swordHoldPose() { return { ...SWING_KEYS[0] }; }
+
+// ── Held stances (owner spec — docs/references/sword_idle_reference.png /
+// sword_walk_reference.png). PROPOSED_STANDALONE poses, NOT client keyframes:
+// the owner replaced the client's over-the-shoulder rest hold with a LOW
+// DIAGONAL GUARD. The sword sprite's BLADE points along local -x (handle +x,
+// verified on screen), so the blade tip direction for facing-right is
+// (-cos deg, -sin deg) in canvas coords (y down).
+//
+// idle: compact relaxed-ready hold — hand near waist/chest, sword low in
+// front, blade diagonally DOWNWARD across the front, tip down-forward.
+// walk: same compact hold, blade diagonally forward/UPWARD; the weapon only
+// bobs with the walk cycle (never plays zswing, never reads as a windup).
+export const SWORD_IDLE_POSE = { deg: 225, dx: 12, dy: 22, behind: false };
+export const SWORD_WALK_POSE = { deg: 135, dx: 13, dy: 30, behind: false };
+
+// Slight walk-cycle bob (skeleton units); rate matches the leg cycle (t*12).
+export const WALK_BOB_UNITS = 1.5;
+
+/**
+ * The held stance while NOT swinging. `moving` = grounded walk/run;
+ * `tSec` drives the slight walk bob. Returns { deg, dx, dy, behind }.
+ */
+export function swordStancePose(moving, tSec = 0) {
+  if (!moving) return { ...SWORD_IDLE_POSE };
+  const bob = Math.abs(Math.sin(tSec * 12)) * WALK_BOB_UNITS;
+  return { ...SWORD_WALK_POSE, dy: SWORD_WALK_POSE.dy + bob };
+}
 
 /**
  * Sample the swing at `t` seconds since the swing started (linear between the
