@@ -1,0 +1,162 @@
+{
+"image": "bknd.png",
+"source": "diggerz_v-203.js",
+"sprites": {
+"CLOUD1_PNG": [
+442,
+0,
+151,
+93
+],
+"COASTER_SH_PNG": [
+1393,
+170,
+613,
+195
+],
+"FERRIS_SEAT_PNG": [
+386,
+81,
+36,
+36
+],
+"FERRIS_SUPPORT_PNG": [
+378,
+1151,
+118,
+175
+],
+"FERRIS_WHEEL_PNG": [
+607,
+1337,
+291,
+291
+],
+"GREY_BKND_PNG": [
+607,
+389,
+630,
+384
+],
+"HILL_PNG": [
+594,
+0,
+352,
+169
+],
+"HOTAIRBALLOON_PNG": [
+386,
+0,
+55,
+80
+],
+"ICY_HILLS_PNG": [
+607,
+774,
+352,
+177
+],
+"ICY_MOUNTAINS_PNG": [
+0,
+389,
+606,
+380
+],
+"LOOPTRACK_PNG": [
+0,
+170,
+500,
+218
+],
+"LOWERCITY_PNG": [
+1091,
+0,
+352,
+169
+],
+"MOON_PNG": [
+0,
+1151,
+377,
+369
+],
+"MOUNTAIN_PNG": [
+0,
+1521,
+606,
+380
+],
+"SETTINGS_WHEEL_PNG": [
+1444,
+0,
+121,
+119
+],
+"SMOKE_PNG": [
+442,
+94,
+64,
+64
+],
+"SNOWFLAKE_PNG": [
+353,
+0,
+32,
+32
+],
+"SPACEMOUNTAINS_PNG": [
+0,
+770,
+606,
+380
+],
+"SPACE_BKND_PNG": [
+1238,
+389,
+630,
+384
+],
+"SPACE_HILLS_PNG": [
+0,
+0,
+352,
+169
+],
+"SPARK_PNG": [
+382,
+38,
+2,
+2
+],
+"SQLOGO_PNG": [
+501,
+170,
+891,
+206
+],
+"STAR_PNG": [
+353,
+61,
+21,
+21
+],
+"TENT_SH_PNG": [
+947,
+0,
+143,
+147
+],
+"TITLE_BKND_PNG": [
+607,
+952,
+630,
+384
+],
+"UPPERCITY_PNG": [
+607,
+1629,
+606,
+380
+]
+}
+}

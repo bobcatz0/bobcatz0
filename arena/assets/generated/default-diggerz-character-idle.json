@@ -1,0 +1,24 @@
+{
+  "source": "real in-game Diggerz character reference screenshot (extracted from chat upload, sky+grass background masked out)",
+  "image": "default-diggerz-character-idle.png",
+  "width": 54,
+  "height": 95,
+  "facing": "right",
+  "groundAnchor": {
+    "x": 24,
+    "y": 95
+  },
+  "centerAnchor": {
+    "x": 25,
+    "y": 43
+  },
+  "headAnchor": {
+    "x": 26,
+    "y": 17
+  },
+  "handAnchor": {
+    "x": 30,
+    "y": 71
+  },
+  "note": "Temporary visual sprite. Anchors are in source-image pixels (origin top-left). Mirror x for facing left."
+}

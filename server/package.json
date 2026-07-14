@@ -1,0 +1,14 @@
+{
+  "name": "diggerz-server",
+  "version": "2.0.0",
+  "description": "Reconstructed authoritative server for the diggerz.io game client (raw binary WebSocket protocol)",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node test/handshake-test.js && node test/movement-validator-test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
